@@ -49,4 +49,18 @@ namespace graphics
         
         void loadModelFromObj(const std::string& filename);
     };
+    
+    struct MeshRenderData
+    {
+        MeshRenderData(id_t id, const glm::mat4& _transform, uint32_t materialID = 0, id_t objID = -1)
+            : meshID(id), objectID(objID), transforms{_transform}, materialIndex{materialID}, instanceBuffer{createInstanceBuffer(transforms)} {}
+        MeshRenderData(id_t id, const std::vector<glm::mat4>& _transform, uint32_t materialID = 0, id_t objID = -1)
+            : meshID(id), objectID(objID), transforms{_transform}, materialIndex{materialID}, instanceBuffer{createInstanceBuffer(transforms)} {}
+
+        id_t meshID;
+        uint32_t objectID;
+        uint32_t materialIndex;
+        std::vector<glm::mat4> transforms{};
+        std::unique_ptr<Buffer> instanceBuffer{};
+    };
 }
