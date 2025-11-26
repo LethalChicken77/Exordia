@@ -1,9 +1,18 @@
+# Build files
 build/.cmake/*
 build/CMakeFiles/*
 build/CMakeCache.txt
 build/cmake_install.cmake
+build/compile_commands.json
+
+build/.ninja_deps
+build/.ninja_log
+build/build.ninja
+
 build/Makefile
-build/compile_commands.json
+
+# VSCode files
 .vscode/*
+
+# Executable
 build/GameEngine.exe
-build/compile_commands.json
