@@ -224,7 +224,7 @@ void Device::createCommandPool() {
   }
 }
 
-void Device::createSurface() { window.CreateWindowSurface(Shared::instance, &surface_); }
+void Device::createSurface() { window.createWindowSurface(Shared::instance, &surface_); }
 
 bool Device::isDeviceSuitable(VkPhysicalDevice device) {
   QueueFamilyIndices indices = findQueueFamilies(device);

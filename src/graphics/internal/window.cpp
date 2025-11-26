@@ -15,7 +15,8 @@ Window::Window(uint32_t _width, uint32_t _height, const std::string& title)
 
 Window::~Window()
 {
-    Close();
+    glfwDestroyWindow(window);
+    glfwTerminate();
 }
 
 void Window::init()
@@ -32,7 +33,7 @@ void Window::init()
 
     window = glfwCreateWindow(640, 480, name.c_str(), NULL, NULL);
     glfwSetWindowUserPointer(window, this);
-    glfwSetFramebufferSizeCallback(window, FrameResizeCallback);
+    glfwSetFramebufferSizeCallback(window, frameResizeCallback);
     // glfwSetWindowRefreshCallback(window, windowRefreshCallback);
 
     if (!window) 
@@ -45,30 +46,27 @@ void Window::init()
     return;
 }
 
-void Window::Clear()
+void Window::clear()
 {
     // Clear the window
 }
 
-void Window::Close()
+void Window::close()
 {
-    if(surface != VK_NULL_HANDLE)
-        vkDestroySurfaceKHR(VK_NULL_HANDLE, surface, nullptr);
     glfwDestroyWindow(window);
     glfwTerminate();
 }
 
-void Window::CreateWindowSurface(VkInstance instance)
+void Window::createWindowSurface(VkInstance instance, VkSurfaceKHR* surface)
 {
-    if (glfwCreateWindowSurface(instance, window, nullptr, &surface) != VK_SUCCESS) 
-    {
+    if (glfwCreateWindowSurface(instance, window, nullptr, surface) != VK_SUCCESS) {
         throw std::runtime_error("failed to create window surface!");
     }
 }
 
 std::function<void()> Window::onRefreshCallback = nullptr;
 
-void Window::WindowRefreshCallback(GLFWwindow *_window)
+void Window::windowRefreshCallback(GLFWwindow *_window)
 {
     Window *windowPtr = reinterpret_cast<Window*>(glfwGetWindowUserPointer(_window));
 
@@ -85,7 +83,7 @@ void Window::WindowRefreshCallback(GLFWwindow *_window)
     }
 }
 
-void Window::FrameResizeCallback(GLFWwindow *_window, int width, int height)
+void Window::frameResizeCallback(GLFWwindow *_window, int width, int height)
 {
     Window *windowPtr = reinterpret_cast<Window*>(glfwGetWindowUserPointer(_window));
     windowPtr->frameBufferResized = true;

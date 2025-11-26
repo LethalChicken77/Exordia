@@ -6,9 +6,9 @@
 #include <memory>
 
 #include "modules.hpp"
-#include "graphics/backend/window.hpp"
+#include "graphics/internal/window.hpp"
 #include "graphics/graphics.hpp"
-#include "primitives/camera.hpp"
+#include "graphics/camera.hpp"
 #include "core/game_object.hpp"
 #include "utils/debug.hpp"
 #include "utils/random.hpp"
@@ -32,7 +32,7 @@ public:
 
     void init();
     void close();
-    bool isOpen() const { return graphicsModule.getWindow()->IsOpen(); }
+    bool isOpen() const { return graphicsModule.getWindow()->isOpen(); }
 
     void run();
 

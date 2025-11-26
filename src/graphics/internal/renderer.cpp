@@ -64,9 +64,9 @@ void Renderer::endFrame()
     }
 
     VkResult result = swapChain->submitCommandBuffers(&currentCommandBuffer, &currentImageIndex);
-    if(result == VK_ERROR_OUT_OF_DATE_KHR || result == VK_SUBOPTIMAL_KHR || window.WindowResized())
+    if(result == VK_ERROR_OUT_OF_DATE_KHR || result == VK_SUBOPTIMAL_KHR || window.windowResized())
     {
-        window.ResetWindowResizedFlag();
+        window.resetWindowResizedFlag();
         recreateSwapChain();
     }
     else if(result != VK_SUCCESS)
@@ -125,10 +125,10 @@ void Renderer::endRenderPass()
 
 void Renderer::recreateSwapChain()
 {
-    VkExtent2D extent = window.GetExtent();
+    VkExtent2D extent = window.getExtent();
     while(extent.width == 0 || extent.height == 0)
     {
-        extent = window.GetExtent();
+        extent = window.getExtent();
         glfwWaitEvents();
     }
 

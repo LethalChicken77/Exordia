@@ -10,7 +10,7 @@ class DrawFunctions
     private:
         static void renderMeshes(RenderContext& frameInfo, const std::vector<MeshRenderData> &renderQueue);
         static void renderGameObjectIDs(RenderContext& frameInfo, const std::vector<MeshRenderData> &renderQueue);
-        static void renderFullScreenQuad(RenderContext& frameInfo);
+        static void renderFullScreenQuad(RenderContext& frameInfo)
         static void bindCameraDescriptor(RenderContext& frameInfo, GraphicsPipeline* pipeline);
         static void bindGlobalDescriptor(RenderContext& frameInfo, GraphicsPipeline* pipeline);
 

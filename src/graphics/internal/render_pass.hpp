@@ -55,8 +55,10 @@ class RenderPass
         std::vector<VkImageLayout> colorImageLayout;
         VkImageLayout depthImageLayout;
 
-        std::vector<Texture*> images{};
-        Texture* depthImage = nullptr;
+        std::vector<std::unique_ptr<Texture>> images{};
+        std::vector<VkImage> externalImages{};
+        std::map<std::string, std::unique_ptr<Texture>&> imageRefs{};
+        std::unique_ptr<Texture> depthImage = nullptr;
         GraphicsPipeline* pipeline = nullptr;
 
         void updateImageSizes();
@@ -77,6 +79,7 @@ class RenderPassBuilder
     public:
         RenderPassBuilder(VkExtent2D initialExtent, std::string_view passName);
 
+        RenderPassBuilder &AddExternalColorAttachment(Texture *texture);
         RenderPassBuilder &AddColorAttachment(std::string_view passName, VkFormat imageFormat = VK_FORMAT_R8G8B8A8_SRGB, VkImageLayout imageLayout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL);
         RenderPassBuilder &AddColorAttachment(std::string_view passName, TextureProperties textureProps, VkFormat imageFormat = VK_FORMAT_R8G8B8A8_SRGB, VkImageLayout imageLayout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL);
         RenderPassBuilder &AddColorAttachment(std::string_view passName, SamplerProperties samplerProps, VkFormat imageFormat = VK_FORMAT_R8G8B8A8_SRGB, VkImageLayout imageLayout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL);

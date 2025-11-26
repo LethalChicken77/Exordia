@@ -1,1 +1,0 @@
-// Materials, compute shader inputs, etc.
