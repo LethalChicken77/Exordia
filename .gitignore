@@ -3,7 +3,7 @@ build/.cmake/*
 build/CMakeFiles/*
 build/CMakeCache.txt
 build/cmake_install.cmake
-build/compile_commands.JSON
+build/compile_commands.json
 
 build/.ninja_deps
 build/.ninja_log
