@@ -10,8 +10,7 @@
 #include "utils/console.hpp"
 #include "engine.hpp"
 #include "utils/debug.hpp"
-#include "graphics/internal/window.hpp"
-#include "graphics/graphics.hpp"
+#include "graphics/backend/window.hpp"
 #include "core/input.hpp"
 
 #define STB_IMAGE_IMPLEMENTATION
@@ -90,11 +89,11 @@ int main()
     graphicsModule.init(APPLICATION_NAME, ENGINE_NAME);
 
     // Set window icon
-    setWindowIcons(graphicsModule.getWindow()->getWindow());
+    setWindowIcons(graphicsModule.getWindow()->GetWindow());
     
 #ifdef WINDOWS_BUILD
     // Set title bar color
-    SetTitleBarColor(graphicsModule.getWindow()->getWindow(), RGB(0x19, 0x15, 0x14), RGB(0x19, 0x15, 0x14));
+    SetTitleBarColor(graphicsModule.getWindow()->GetWindow(), RGB(0x19, 0x15, 0x14), RGB(0x19, 0x15, 0x14));
 #endif
 
     if(!graphicsModule.isOpen())

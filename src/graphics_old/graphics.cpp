@@ -8,9 +8,9 @@
 
 #include "graphics.hpp"
 #include "draw_funcs.hpp"
-#include "buffers/graphics_mesh.hpp"
+#include "resources/graphics_mesh.hpp"
 #include "core/input.hpp"
-#include "buffers/material.hpp"
+#include "resources/material.hpp"
 #include "procedural/noise.hpp"
 
 #define GLM_FORCE_RADIANS
@@ -132,7 +132,7 @@ void Graphics::cleanup()
     Shared::materials.clear();
     waitForDevice();
     // vkDestroyInstance(instance, nullptr);
-    window.close();
+    window.Close();
 }
 
 
@@ -175,12 +175,12 @@ void Graphics::drawFrame()
         
         // Object IDs render pass
         renderer.beginRenderPass(idBufferRenderPass->getRenderPass(), idBufferRenderPass->getFrameBuffer(), idBufferRenderPass->getExtent(), VkClearColorValue{-1, 0, 0, 0});
-        renderGameObjectIDs(frameInfo);
+        DrawFunctions::renderGameObjectIDs(frameInfo, sceneRenderQueue);
         renderer.endRenderPass();
         
         // Objects render pass
         renderer.beginRenderPass(sceneRenderPass->getRenderPass(), sceneRenderPass->getFrameBuffer(), sceneRenderPass->getExtent(), defaultClearColor);
-        renderMeshes(frameInfo, sceneRenderQueue);
+        DrawFunctions::renderMeshes(frameInfo, sceneRenderQueue);
         renderer.endRenderPass();
 
         std::unique_ptr<Texture> &colorTexture = sceneRenderPass->getColorTexture();

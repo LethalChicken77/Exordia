@@ -2,7 +2,7 @@
 #include <string>
 #include <memory>
 #include <map>
-#include "frame_info.hpp"
+#include "render_context.hpp"
 #include "internal/render_pass.hpp"
 
 namespace graphics

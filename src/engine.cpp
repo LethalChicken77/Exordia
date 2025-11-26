@@ -95,7 +95,7 @@ void Engine::update(double deltaTime)
 
     if(core::Input::getButtonDown(GLFW_MOUSE_BUTTON_RIGHT))
     {
-        glfwSetInputMode(graphicsModule.getWindow()->getWindow(), GLFW_CURSOR, GLFW_CURSOR_DISABLED);
+        glfwSetInputMode(graphicsModule.getWindow()->GetWindow(), GLFW_CURSOR, GLFW_CURSOR_DISABLED);
     }
     if(core::Input::getButton(GLFW_MOUSE_BUTTON_RIGHT))
     {
@@ -107,7 +107,7 @@ void Engine::update(double deltaTime)
     }
     if(core::Input::getButtonUp(GLFW_MOUSE_BUTTON_RIGHT))
     {
-        glfwSetInputMode(graphicsModule.getWindow()->getWindow(), GLFW_CURSOR, GLFW_CURSOR_NORMAL);
+        glfwSetInputMode(graphicsModule.getWindow()->GetWindow(), GLFW_CURSOR, GLFW_CURSOR_NORMAL);
     }
 
     scene->update(deltaTime);
@@ -138,7 +138,7 @@ void Engine::run()
 
     // Modify colors
 
-    ImGui_ImplGlfw_InitForVulkan(graphicsModule.getWindow()->getWindow(), true);
+    ImGui_ImplGlfw_InitForVulkan(graphicsModule.getWindow()->GetWindow(), true);
     graphicsModule.graphicsInitImgui();
     ImGui::GetIO().ConfigFlags |= ImGuiConfigFlags_DockingEnable;
 
@@ -211,7 +211,7 @@ void Engine::run()
         bool imguiHovered = ImGui::IsWindowHovered(ImGuiHoveredFlags_AnyWindow);
         ImGui::Render();
         // Input
-        Input::processInput(graphicsModule.getWindow()->getWindow());
+        Input::processInput(graphicsModule.getWindow()->GetWindow());
         
         if(core::Input::getKeyDown(GLFW_KEY_ESCAPE))
         {
