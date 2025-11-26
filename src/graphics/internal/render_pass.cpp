@@ -297,7 +297,7 @@ RenderPassBuilder &RenderPassBuilder::AddDepthAttachment(VkImageLayout imageLayo
     return *this;
 }
 
-RenderPassBuilder &RenderPassBuilder::SetDrawFunction(void (*func)(RenderContext &))
+RenderPassBuilder &RenderPassBuilder::SetDrawFunction(void (*func)(FrameInfo))
 {
     // TODO: implement
     // newPass.drawFunction = func;

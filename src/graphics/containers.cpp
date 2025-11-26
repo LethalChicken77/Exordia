@@ -9,8 +9,6 @@ namespace Shared
     
     std::vector<Material> materials{};
     std::vector<std::unique_ptr<Shader>> shaders{};
-    // Store graphics meshes based on instance ID
-    std::unordered_map<id_t, std::unique_ptr<GraphicsMesh>> graphicsMeshes{};
 }
 
 namespace Descriptors

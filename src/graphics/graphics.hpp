@@ -17,7 +17,7 @@
 #include "internal/render_pass.hpp"
 #include "buffers/buffer.hpp"
 #include "buffers/texture.hpp"
-#include "render_context.hpp"
+#include "frame_info.hpp"
 
 #include "buffers/graphics_mesh.hpp"
 #include "camera.hpp"
@@ -58,6 +58,8 @@ public:
 
     Window *getWindow() { return &window; }
     Device *getDevice() { return &device; }
+    void bindCameraDescriptor(FrameInfo& frameInfo, GraphicsPipeline* pipeline);
+    void bindGlobalDescriptor(FrameInfo& frameInfo, GraphicsPipeline* pipeline);
     
     void graphicsInitImgui();
     
@@ -80,6 +82,19 @@ public:
     VkExtent2D viewportSize{};
 
 private:
+    struct MeshRenderData
+    {
+        MeshRenderData(id_t id, const glm::mat4& _transform, uint32_t materialID = 0, id_t objID = -1)
+            : meshID(id), objectID(objID), transforms{_transform}, materialIndex{materialID}, instanceBuffer{createInstanceBuffer(transforms)} {}
+        MeshRenderData(id_t id, const std::vector<glm::mat4>& _transform, uint32_t materialID = 0, id_t objID = -1)
+            : meshID(id), objectID(objID), transforms{_transform}, materialIndex{materialID}, instanceBuffer{createInstanceBuffer(transforms)} {}
+
+        id_t meshID;
+        uint32_t objectID;
+        uint32_t materialIndex;
+        std::vector<glm::mat4> transforms{};
+        std::unique_ptr<Buffer> instanceBuffer{};
+    };
     std::vector<MeshRenderData> sceneRenderQueue{};
     std::vector<MeshRenderData> outlineRenderQueue{};
 
@@ -92,6 +107,8 @@ private:
     void loadMaterials();
 
 
+    void renderMeshes(FrameInfo& frameInfo, const std::vector<MeshRenderData> &renderQueue);
+    void renderGameObjectIDs(FrameInfo& frameInfo);
 
     static void windowRefreshCallback(GLFWwindow *window);
 
@@ -126,6 +143,9 @@ private:
     core::Mesh skyboxMesh{};
     Texture *idTexture = nullptr;
     Texture *viewportTexture = nullptr;
+
+    // Store graphics meshes based on instance ID
+    std::unordered_map<id_t, std::unique_ptr<GraphicsMesh>> graphicsMeshes{};
 
     VkClearColorValue defaultClearColor{0.04f, 0.08f, 0.2f, 1.0f};
 

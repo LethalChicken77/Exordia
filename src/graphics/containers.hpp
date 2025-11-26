@@ -2,7 +2,6 @@
 #include <vulkan/vulkan.h>
 #include <vector>
 #include <memory>
-#include "core/object.hpp"
 #include "buffers/buffer.hpp"
 #include "buffers/texture.hpp"
 #include "internal/descriptors.hpp"
@@ -18,15 +17,12 @@ namespace graphics
     class Material;
     class Shader;
     class ComputeShader;
-    class GraphicsMesh;
     namespace Shared
     {
         extern VkInstance instance;
         extern Device *device;
         extern std::vector<Material> materials;
         extern std::vector<std::unique_ptr<Shader>> shaders;
-        // Store graphics meshes based on instance ID
-        extern std::unordered_map<id_t, std::unique_ptr<GraphicsMesh>> graphicsMeshes;
         // std::vector<ComputeShader> computeShaders;
     }
     // Declaration order matters

@@ -7,7 +7,6 @@
 #include "backends/imgui_impl_glfw.h"
 
 #include "graphics.hpp"
-#include "draw_funcs.hpp"
 #include "buffers/graphics_mesh.hpp"
 #include "core/input.hpp"
 #include "buffers/material.hpp"
@@ -145,7 +144,7 @@ void Graphics::drawFrame()
     if(VkCommandBuffer commandBuffer = renderer.startFrame())
     {
         uint32_t frameIndex = renderer.getFrameIndex();
-        RenderContext frameInfo{frameIndex, 0.0, commandBuffer, Descriptors::globalDescriptorSet, Descriptors::cameraDescriptorSets[frameIndex]};
+        FrameInfo frameInfo{frameIndex, 0.0, commandBuffer, Descriptors::globalDescriptorSet, Descriptors::cameraDescriptorSets[frameIndex]};
 
         GlobalUbo globalUbo{};
         globalUbo.lights[0] = {glm::vec3(1, 1, 1), LightType::DIRECTIONAL, glm::vec3(1.0, 1.0, 1.0), 6.0};
@@ -367,7 +366,7 @@ void Graphics::createRenderPasses()
     idBufferRenderPass = RenderPassBuilder(renderer.getExtent())
         .AddColorAttachment("ID Buffer", VK_FORMAT_R32_SINT)
         .AddDepthAttachment()
-        .SetDrawFunction_Mesh(DrawFunctions::renderGameObjectIDs)
+        .SetDrawFunction(renderGameObjectIDs) // TODO: Object draw function
         .Build();
 
     Console::log("Creating scene render pass", "Graphics");
@@ -378,30 +377,28 @@ void Graphics::createRenderPasses()
     sceneRenderPass = RenderPassBuilder(renderer.getExtent())
         .AddColorAttachment("Scene", VK_FORMAT_R16G16B16A16_SFLOAT)
         .AddDepthAttachment()
-        .SetDrawFunction_Mesh(DrawFunctions::renderMeshes)
+        .SetDrawFunction() // TODO: Object draw function
         .Build();
 
     Console::log("Creating outline base render pass", "Graphics");
+    outlineBaseRenderPass = std::make_unique<RenderPass>();
     SamplerProperties outlineBaseSamplerProperties = SamplerProperties::getDefaultProperties();
     outlineBaseSamplerProperties.addressMode = VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_BORDER;
-    outlineBaseRenderPass = RenderPassBuilder(renderer.getExtent())
-        .AddColorAttachment(outlineBaseSamplerProperties, VK_FORMAT_R16G16B16A16_SFLOAT)
-        .SetDrawFunction_Mesh(DrawFunctions::renderMeshes)
-        .build();
+    outlineBaseRenderPass->addColorAttachment(outlineBaseSamplerProperties, VK_FORMAT_R16G16B16A16_SFLOAT);
+    // outlineRenderPass->addDepthAttachment();
+    outlineBaseRenderPass->create(renderer.getExtent());
     
     Console::log("Creating outline render pass", "Graphics");
-    outlineRenderPass = RenderPassBuilder(renderer.getExtent())
-        .AddColorAttachment(VK_FORMAT_B8G8R8A8_SRGB)
-        .AddDepthAttachment() // Needed for stencil
-        .SetDrawFunction_Mesh(DrawFunctions::renderFullScreenQuad)
-        .build();
+    outlineRenderPass = std::make_unique<RenderPass>();
+    outlineRenderPass->addColorAttachment(VK_FORMAT_B8G8R8A8_SRGB);
+    outlineRenderPass->addDepthAttachment();
+    outlineRenderPass->create(renderer.getExtent());
 
     Console::log("Creating ImGui render pass", "Graphics");
-    imguiRenderPass = RenderPassBuilder(renderer.getExtent())
-        .AddColorAttachment(VK_FORMAT_B8G8R8A8_SRGB)
-        .AddDepthAttachment()
-        .SetDrawFunction_Mesh(DrawFunctions::renderFullScreenQuad)
-        .build();
+    imguiRenderPass = std::make_unique<RenderPass>();
+    imguiRenderPass->addColorAttachment(VK_FORMAT_B8G8R8A8_SRGB);
+    imguiRenderPass->addDepthAttachment();
+    imguiRenderPass->create(renderer.getExtent());
     
     Console::log("Creating Final render pass", "Graphics");
     finalRenderPass = std::make_unique<RenderPass>();
@@ -698,11 +695,142 @@ void Graphics::loadMaterials()
     Shared::materials.emplace_back(std::move(_skybox));
 }
 
+void Graphics::bindCameraDescriptor(FrameInfo& frameInfo, GraphicsPipeline* pipeline)
+{
+    std::vector<VkDescriptorSet> descriptorSets = { frameInfo.cameraDescriptorSet };
+
+    vkCmdBindDescriptorSets(
+        frameInfo.commandBuffer, 
+        VK_PIPELINE_BIND_POINT_GRAPHICS, 
+        pipeline->getPipelineLayout(), 
+        0,
+        static_cast<uint32_t>(descriptorSets.size()),
+        descriptorSets.data(), 
+        0,
+        nullptr
+    );
+}
+
+void Graphics::bindGlobalDescriptor(FrameInfo& frameInfo, GraphicsPipeline* pipeline)
+{
+
+    std::vector<VkDescriptorSet> descriptorSets = { frameInfo.globalDescriptorSet };
+
+    vkCmdBindDescriptorSets(
+        frameInfo.commandBuffer, 
+        VK_PIPELINE_BIND_POINT_GRAPHICS, 
+        pipeline->getPipelineLayout(), 
+        1,
+        static_cast<uint32_t>(descriptorSets.size()),
+        descriptorSets.data(), 
+        0,
+        nullptr
+    );
+}
+
 void Graphics::drawSkybox()
 {
     core::Transform tempTransform{};
     tempTransform.setPosition(camera->transform.getPosition());
     drawMesh(skyboxMesh, 5, tempTransform.getTransform());
+}
+
+void Graphics::renderMeshes(FrameInfo& frameInfo, const std::vector<MeshRenderData> &renderQueue)
+{
+    VkCommandBuffer& commandBuffer = frameInfo.commandBuffer;
+
+    // pipelineManager.renderObjects(frameInfo, gameObjects, commandBuffer);
+    GraphicsPipeline* prevPipeline = nullptr;
+    std::vector<VkDescriptorSet> localDescriptorSets;
+    VkPipelineLayout pipelineLayout = nullptr;
+    Material::id_t prevMaterial = UINT64_MAX;
+    for(const MeshRenderData &renderData : renderQueue)
+    {
+        const Shader* shader = Shared::materials[renderData.materialIndex].getShader();
+        GraphicsPipeline* pipeline = shader->getPipeline();
+        uint32_t setIndex = pipeline->getID() + 1;
+        if(pipeline != prevPipeline) // Bind camera and global data
+        {
+            pipeline->bind(frameInfo.commandBuffer);
+            pipelineLayout = pipeline->getPipelineLayout();
+            bindCameraDescriptor(frameInfo, pipeline);
+            bindGlobalDescriptor(frameInfo, pipeline);
+            prevPipeline = pipeline;
+        }
+        localDescriptorSets = { Shared::materials[renderData.materialIndex].getDescriptorSet() };
+
+        if(prevMaterial != renderData.materialIndex) // Bind material info if changed
+        {
+            vkCmdBindDescriptorSets(
+                commandBuffer, 
+                VK_PIPELINE_BIND_POINT_GRAPHICS, 
+                pipelineLayout, 
+                2,
+                1,
+                localDescriptorSets.data(), 
+                0,
+                nullptr
+            );
+            prevMaterial = renderData.materialIndex;
+        }
+
+        PushConstants push{}; // TODO: Instance specific data
+        push.objectID = renderData.meshID; // TODO: Change to scene local ID
+        vkCmdPushConstants(
+            commandBuffer, 
+            pipelineLayout, 
+            VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT, 
+            0, 
+            sizeof(PushConstants), 
+            &push
+        );
+
+        std::unique_ptr<GraphicsMesh> &graphicsMesh = graphicsMeshes[renderData.meshID];
+        if(graphicsMesh != nullptr)
+        {
+            graphicsMesh->bind(commandBuffer, renderData.instanceBuffer);
+            graphicsMesh->draw(commandBuffer, renderData.transforms.size());
+        }
+    }
+}
+
+void Graphics::renderGameObjectIDs(FrameInfo& frameInfo)
+{
+    VkCommandBuffer& commandBuffer = frameInfo.commandBuffer;
+
+    // pipelineManager.renderObjects(frameInfo, gameObjects, commandBuffer);
+    std::vector<VkDescriptorSet> localDescriptorSets;
+    const Shader* shader = Shared::shaders[3].get();
+    GraphicsPipeline* pipeline = shader->getPipeline();
+    VkPipelineLayout pipelineLayout = pipeline->getPipelineLayout();
+    uint32_t setIndex = pipeline->getID() + 1;
+
+    pipeline->bind(frameInfo.commandBuffer);
+    bindCameraDescriptor(frameInfo, pipeline);
+
+
+    for(MeshRenderData &renderData : sceneRenderQueue)
+    {
+        PushConstants push{};
+
+        push.objectID = renderData.objectID;
+        // Console::debug(std::to_string(push.objectID), "Graphics");
+        vkCmdPushConstants(
+            commandBuffer, 
+            pipelineLayout, 
+            VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT, 
+            0, 
+            sizeof(PushConstants), 
+            &push
+        );
+
+        std::unique_ptr<GraphicsMesh> &graphicsMesh = graphicsMeshes[renderData.meshID];
+        if(graphicsMesh != nullptr)
+        {
+            graphicsMesh->bind(commandBuffer, renderData.instanceBuffer);
+            graphicsMesh->draw(commandBuffer, renderData.transforms.size());
+        }
+    }
 }
 
 void Graphics::graphicsInitImgui()
@@ -779,18 +907,18 @@ int Graphics::getClickedObjID(uint32_t x, uint32_t y)
 // Mesh management
 void Graphics::setGraphicsMesh(const core::Mesh& mesh)
 {
-    Shared::graphicsMeshes[mesh->getInstanceID()] = std::make_unique<GraphicsMesh>(mesh.get());
+    graphicsMeshes[mesh->getInstanceID()] = std::make_unique<GraphicsMesh>(mesh.get());
 }
 
 void Graphics::destroyGraphicsMeshes()
 {
-    Shared::graphicsMeshes.clear(); // Destroy all graphicsmeshes
+    graphicsMeshes.clear(); // Destroy all graphicsmeshes
     sceneRenderQueue.clear(); // Ensure no meshes are queued for drawing
 }
 
 void Graphics::drawMesh(const core::Mesh& mesh, uint32_t materialIndex, const glm::mat4& transform, uint32_t objectID)
 {
-    if(!Shared::graphicsMeshes.contains(mesh->getInstanceID()))
+    if(!graphicsMeshes.contains(mesh->getInstanceID()))
     {
         Console::log("Mesh " + std::to_string(mesh->getInstanceID()) + " has no GraphicsMesh. Creating one now...", "Graphics");
         setGraphicsMesh(mesh);
@@ -801,7 +929,7 @@ void Graphics::drawMesh(const core::Mesh& mesh, uint32_t materialIndex, const gl
 
 void Graphics::drawMeshInstanced(const core::Mesh& mesh, uint32_t materialIndex, const std::vector<glm::mat4> &transforms)
 {
-    if(!Shared::graphicsMeshes.contains(mesh->getInstanceID()))
+    if(!graphicsMeshes.contains(mesh->getInstanceID()))
     {
         Console::log("Mesh " + std::to_string(mesh->getInstanceID()) + " has no GraphicsMesh. Creating one now...", "Graphics");
         setGraphicsMesh(mesh);
@@ -813,7 +941,7 @@ void Graphics::drawMeshInstanced(const core::Mesh& mesh, uint32_t materialIndex,
 
 void Graphics::drawMeshOutline(const core::Mesh& mesh, const glm::mat4& transform)
 {
-    if(!Shared::graphicsMeshes.contains(mesh->getInstanceID()))
+    if(!graphicsMeshes.contains(mesh->getInstanceID()))
     {
         Console::log("Mesh " + std::to_string(mesh->getInstanceID()) + " has no GraphicsMesh. Creating one now...", "Graphics");
         setGraphicsMesh(mesh);

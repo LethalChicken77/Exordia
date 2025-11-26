@@ -26,7 +26,7 @@ namespace graphics
             std::unique_ptr<RenderPass> &getFinalRenderPass();
             // std::unique_ptr<RenderPass> &getRenderPass(const std::string& name);
 
-            void execute(RenderContext& frameInfo);
+            void execute(FrameInfo& frameInfo);
             Texture *getRenderTexture(std::string_view name);
             Texture *getResult(std::string_view name);
         private:

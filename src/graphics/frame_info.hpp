@@ -6,7 +6,7 @@
 
 namespace graphics
 {
-    struct RenderContext
+    struct FrameInfo
     {
         uint32_t frameIndex;
         double frameTime;
