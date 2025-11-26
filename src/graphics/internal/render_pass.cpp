@@ -238,40 +238,12 @@ RenderPassBuilder::RenderPassBuilder(VkExtent2D initialExtent) : newPass(initial
 
 RenderPassBuilder &RenderPassBuilder::AddExternalColorAttachment(Texture *texture)
 {
-    // TODO: Implement
-    return *this;
+
 }
 
-RenderPassBuilder &RenderPassBuilder::AddColorAttachment(std::string_view passName, VkFormat imageFormat, VkImageLayout imageLayout)
-{
-    return AddColorAttachment(
-        passName, 
-        TextureProperties::getDefaultProperties(), 
-        SamplerProperties::getDefaultProperties(), 
-        imageFormat, 
-        imageLayout);
-}
-
-RenderPassBuilder &RenderPassBuilder::AddColorAttachment(std::string_view passName, TextureProperties textureProps, VkFormat imageFormat, VkImageLayout imageLayout)
-{
-    return AddColorAttachment(
-        passName, 
-        textureProps, 
-        SamplerProperties::getDefaultProperties(), 
-        imageFormat, 
-        imageLayout);
-}
-
-RenderPassBuilder &RenderPassBuilder::AddColorAttachment(std::string_view passName, SamplerProperties samplerProps, VkFormat imageFormat, VkImageLayout imageLayout)
-{
-    return AddColorAttachment(
-        passName, 
-        TextureProperties::getDefaultProperties(), 
-        samplerProps, 
-        imageFormat, 
-        imageLayout);
-}
-
+RenderPassBuilder &RenderPassBuilder::AddColorAttachment(std::string_view passName, VkFormat imageFormat, VkImageLayout imageLayout);
+RenderPassBuilder &RenderPassBuilder::AddColorAttachment(std::string_view passName, TextureProperties textureProps, VkFormat imageFormat, VkImageLayout imageLayout);
+RenderPassBuilder &RenderPassBuilder::AddColorAttachment(std::string_view passName, SamplerProperties samplerProps, VkFormat imageFormat, VkImageLayout imageLayout);
 RenderPassBuilder &RenderPassBuilder::AddColorAttachment(std::string_view passName, TextureProperties textureProps, SamplerProperties samplerProps, VkFormat imageFormat, VkImageLayout imageLayout)
 {
     std::unique_ptr<Texture> tex = std::make_unique<Texture>(textureProps, samplerProps, newPass.extent.width, newPass.extent.height);
@@ -279,7 +251,6 @@ RenderPassBuilder &RenderPassBuilder::AddColorAttachment(std::string_view passNa
     newPass.images.push_back(std::move(tex));
 
     newPass.colorImageLayout = imageLayout; // TODO: keep a list of layouts so different attachments can have different layouts
-    return *this;
 }
 
 RenderPassBuilder &RenderPassBuilder::AddDepthAttachment(VkImageLayout imageLayout)
@@ -294,15 +265,12 @@ RenderPassBuilder &RenderPassBuilder::AddDepthAttachment(VkImageLayout imageLayo
     newPass.depthImage->createTextureUninitialized();
 
     newPass.depthImageLayout = imageLayout;
-    return *this;
 }
 
-RenderPassBuilder &RenderPassBuilder::SetDrawFunction(void (*func)(FrameInfo))
+RenderPassBuilder &RenderPassBuilder::SetDrawFunction(void (*func)())
 {
     // TODO: implement
     // newPass.drawFunction = func;
-
-    return *this;
 }
 
 std::unique_ptr<RenderPass> RenderPassBuilder::Build()
