@@ -1,19 +1,25 @@
 #pragma once
 #include "backend/vulkan_backend.hpp"
+#include "graphics_data.hpp"
 
 namespace graphics
 {
 
+// Main graphics class
+// Interface for the rest of the engine to use graphics functionality
 class Graphics
 {
     public:
-        Graphics() = default;
+        Graphics(const std::string& appName, const std::string& engName);
         ~Graphics();
 
         Graphics(const Graphics&) = delete;
         Graphics& operator=(const Graphics&) = delete;
-    private:
-        internal::VulkanBackend backend;
+
+        Window &GetWindow() { return graphicsData.GetWindow(); }
+        GLFWwindow* GetGLFWWindow() { return graphicsData.GetWindow().GetWindow(); }
+
+        bool IsOpen() const { return graphicsData.GetWindow().IsOpen(); }
 };
 
 } // namespace graphics

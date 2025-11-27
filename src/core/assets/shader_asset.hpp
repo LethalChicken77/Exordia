@@ -3,14 +3,21 @@
 
 namespace core
 {
-class ShaderAsset : public AssetData
+class ShaderAsset_T : public AssetData
 {
 
 };
 
-class Shader : public Asset<ShaderAsset>
+class Shader
 {
     public:
-        using Asset<ShaderAsset>::Asset;
+        SmartRef<ShaderAsset_T> vertexShader;
+        SmartRef<ShaderAsset_T> fragmentShader;
+};
+
+class ComputeShader
+{
+    public:
+        SmartRef<ShaderAsset_T> computeShader;
 };
 } // namespace core

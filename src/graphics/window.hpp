@@ -1,8 +1,8 @@
 #pragma once
 #include <string>
-#include <vulkan/vulkan.h>
 #include <GLFW/glfw3.h>
 #include <functional>
+#include <vulkan/vulkan.h> // Only for VkExtent2D
 
 namespace graphics
 {
@@ -29,10 +29,7 @@ public:
     GLFWwindow* GetWindow() { return window; }
     bool WindowResized() { return frameBufferResized; }
     void ResetWindowResizedFlag() { frameBufferResized = false; }
-    
-    void CreateWindowSurface(VkInstance instance);
 
-    VkSurfaceKHR GetSurface() { return surface; }
 
     // TODO: Make callbacks work properly
     static void WindowRefreshCallback(GLFWwindow *window);
@@ -51,6 +48,5 @@ private:
 
     std::string name;
     GLFWwindow* window;
-    VkSurfaceKHR surface;
 };
 }

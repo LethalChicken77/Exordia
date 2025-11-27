@@ -29,12 +29,29 @@ static VKAPI_ATTR VkBool32 VKAPI_CALL debugCallback(
 }
 
 
-VulkanBackend::VulkanBackend(const std::string& appName, const std::string& engName)
-    : applicationName(appName), engineName(engName)
+void VulkanBackend::Init(const std::string& appName, const std::string& engName, GLFWwindow* window)
 {
+    Console::log("Creating Vulkan Backend", "VulkanBackend");
+    applicationName = &appName;
+    engineName = &engName;
     createInstance();
     initPhysicalDevice();
+    createSurface(window);
     createDevice();
+}
+
+VulkanBackend::~VulkanBackend()
+{
+    if(enableValidationLayers)
+    {
+        auto func = (PFN_vkDestroyDebugUtilsMessengerEXT)vkGetInstanceProcAddr(instance.handle, "vkDestroyDebugUtilsMessengerEXT");
+        if(func != nullptr)
+        {
+            func(instance.handle, debugMessenger, nullptr);
+        }
+    }
+    if(surface != VK_NULL_HANDLE)
+        vkDestroySurfaceKHR(VK_NULL_HANDLE, surface, nullptr);
 }
 
 void VulkanBackend::createInstance() 
@@ -46,9 +63,9 @@ void VulkanBackend::createInstance()
 
     VkApplicationInfo appInfo = {};
     appInfo.sType = VK_STRUCTURE_TYPE_APPLICATION_INFO;
-    appInfo.pApplicationName = applicationName.c_str();
+    appInfo.pApplicationName = applicationName->c_str();
     appInfo.applicationVersion = VK_MAKE_VERSION(1, 0, 0);
-    appInfo.pEngineName = engineName.c_str();
+    appInfo.pEngineName = engineName->c_str();
     appInfo.engineVersion = VK_MAKE_VERSION(1, 0, 0);
     appInfo.apiVersion = VK_API_VERSION_1_2;
 
@@ -143,5 +160,13 @@ bool VulkanBackend::hasGflwRequiredInstanceExtensions()
         }
     }
     return true;
+}
+
+void VulkanBackend::createSurface(GLFWwindow* window)
+{
+    if (glfwCreateWindowSurface(instance.handle, window, nullptr, &surface) != VK_SUCCESS) 
+    {
+        throw std::runtime_error("Failed to create window surface!");
+    }
 }
 } // namespace graphics::internal

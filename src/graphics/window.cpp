@@ -52,18 +52,8 @@ void Window::Clear()
 
 void Window::Close()
 {
-    if(surface != VK_NULL_HANDLE)
-        vkDestroySurfaceKHR(VK_NULL_HANDLE, surface, nullptr);
     glfwDestroyWindow(window);
     glfwTerminate();
-}
-
-void Window::CreateWindowSurface(VkInstance instance)
-{
-    if (glfwCreateWindowSurface(instance, window, nullptr, &surface) != VK_SUCCESS) 
-    {
-        throw std::runtime_error("failed to create window surface!");
-    }
 }
 
 std::function<void()> Window::onRefreshCallback = nullptr;

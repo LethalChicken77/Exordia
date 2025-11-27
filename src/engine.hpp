@@ -6,7 +6,6 @@
 #include <memory>
 
 #include "modules.hpp"
-#include "graphics/backend/window.hpp"
 #include "graphics/graphics.hpp"
 #include "primitives/camera.hpp"
 #include "core/game_object.hpp"
@@ -32,7 +31,7 @@ public:
 
     void init();
     void close();
-    bool isOpen() const { return graphicsModule.getWindow()->IsOpen(); }
+    bool isOpen() const { return graphicsModule.GetWindow().IsOpen(); }
 
     void run();
 
@@ -47,7 +46,7 @@ private:
 
     Scene scene;
 
-    graphics::Camera camera;
+    Camera camera;
 };
 
 } // namespace core

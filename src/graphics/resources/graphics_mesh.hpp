@@ -1,6 +1,5 @@
 #pragma once
 
-#include "graphics/internal/device.hpp"
 #include "buffer.hpp"
 
 #define GLM_FORCE_RADIANS

@@ -2,7 +2,7 @@
 // Library headers
 #include <vulkan/vulkan.h>
 // Project headers
-#include "window.hpp"
+#include "graphics/window.hpp"
 
 namespace graphics::internal
 {
@@ -12,6 +12,8 @@ class PhysicalDevice
 public:
     PhysicalDevice();
     ~PhysicalDevice();
+
+    const VkPhysicalDevice &GetPhysicalDevice() { return physicalDevice; }
     
 private:
     VkPhysicalDevice physicalDevice = VK_NULL_HANDLE;
@@ -24,8 +26,7 @@ public:
     Device(graphics::Window &window);
     ~Device();
 
-    VkDevice GetDevice() { return device; }
-    VkSurfaceKHR GetSurface() { return surface; }
+    const VkDevice &GetDevice() { return device; }
     VkQueue GraphicsQueueHandle() { return graphicsQueue; }
     VkQueue PresentQueueHandle() { return presentQueue; }
 private:

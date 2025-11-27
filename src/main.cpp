@@ -10,7 +10,7 @@
 #include "utils/console.hpp"
 #include "engine.hpp"
 #include "utils/debug.hpp"
-#include "graphics/backend/window.hpp"
+#include "graphics/window.hpp"
 #include "core/input.hpp"
 
 #define STB_IMAGE_IMPLEMENTATION
@@ -23,9 +23,6 @@
 #include <dwmapi.h>
 // #pragma comment(lib, "Dwmapi.lib")
 #endif
-
-const std::string APPLICATION_NAME = "Game";
-const std::string ENGINE_NAME = "VEngine";
 
 using namespace core;
 using namespace graphics;
@@ -86,17 +83,17 @@ void SetTitleBarColor(GLFWwindow* window, COLORREF titleBarColor, COLORREF borde
 
 int main() 
 {
-    graphicsModule.init(APPLICATION_NAME, ENGINE_NAME);
+    // graphicsModule.init(APPLICATION_NAME, ENGINE_NAME);
 
     // Set window icon
-    setWindowIcons(graphicsModule.getWindow()->GetWindow());
+    setWindowIcons(graphicsModule.GetWindow().GetWindow());
     
 #ifdef WINDOWS_BUILD
     // Set title bar color
-    SetTitleBarColor(graphicsModule.getWindow()->GetWindow(), RGB(0x19, 0x15, 0x14), RGB(0x19, 0x15, 0x14));
+    SetTitleBarColor(graphicsModule.GetWindow().GetWindow(), RGB(0x19, 0x15, 0x14), RGB(0x19, 0x15, 0x14));
 #endif
 
-    if(!graphicsModule.isOpen())
+    if(!graphicsModule.IsOpen())
     {
         Console::error("Failed to initialize graphics");
         return -1;
@@ -104,12 +101,10 @@ int main()
 
     Engine engine{};
 
-    // glm::vec3 test = {1, 2, 3};
-
     engine.run();
     
-    graphicsModule.waitForDevice();
-    graphicsModule.cleanup();
+    // graphicsModule.WaitForDevice();
+    // graphicsModule.cleanup();
 
     return 0;
 }

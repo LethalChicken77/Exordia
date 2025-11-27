@@ -1,3 +1,4 @@
+#pragma once
 #include <memory>
 #include <string>
 #include <vector>
@@ -12,9 +13,12 @@ namespace graphics::internal
 class VulkanBackend
 {
     public:
-        VulkanBackend(const std::string& appName, const std::string& engName);
+        VulkanBackend() = default;
         ~VulkanBackend();
 
+        void Init(const std::string& appName, const std::string& engName, GLFWwindow* window); // Initialize backend, must be called before use
+
+        const VkSurfaceKHR &GetSurface() { return surface; }
         // VkBuffer AllocateBuffer();
         // VkImage AllocateImage();
     private:
@@ -40,15 +44,19 @@ class VulkanBackend
         };
         VkInstanceRAII instance{};
         PhysicalDevice physicalDevice;
-        std::unique_ptr<Device> device{};
+        // Device device;
+        std::unique_ptr<Device> device{}; // Why smart pointer?
         VkDebugUtilsMessengerEXT debugMessenger;
+        VkSurfaceKHR surface;
 
-        const std::string& applicationName;
-        const std::string& engineName;
+        // Point to centralized values
+        const std::string* applicationName;
+        const std::string* engineName;
 
         void createInstance();
         void initPhysicalDevice();
         void createDevice();
+        void createSurface(GLFWwindow* window);
 
         // Utilities
         void populateDebugMessengerCreateInfo(VkDebugUtilsMessengerCreateInfoEXT &createInfo);
