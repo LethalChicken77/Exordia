@@ -1,7 +1,10 @@
 #include <unordered_set>
+#include <format>
 
 #include "vulkan_backend.hpp"
 #include "utils/console.hpp"
+
+#include "backend_data.hpp"
 
 namespace graphics::internal
 {
@@ -35,8 +38,13 @@ void VulkanBackend::Init(const std::string& appName, const std::string& engName,
     applicationName = &appName;
     engineName = &engName;
     createInstance();
-    initPhysicalDevice();
+
+#ifdef DEBUG
+    setupDebugMessenger();
+#endif
+
     createSurface(window);
+    physicalDevice.pickPhysicalDevice(instance, &surface);
     createDevice();
 }
 
@@ -44,14 +52,16 @@ VulkanBackend::~VulkanBackend()
 {
     if(enableValidationLayers)
     {
-        auto func = (PFN_vkDestroyDebugUtilsMessengerEXT)vkGetInstanceProcAddr(instance.handle, "vkDestroyDebugUtilsMessengerEXT");
+        auto func = (PFN_vkDestroyDebugUtilsMessengerEXT)vkGetInstanceProcAddr(instance, "vkDestroyDebugUtilsMessengerEXT");
         if(func != nullptr)
         {
-            func(instance.handle, debugMessenger, nullptr);
+            func(instance, debugMessenger, nullptr);
         }
     }
     if(surface != VK_NULL_HANDLE)
         vkDestroySurfaceKHR(VK_NULL_HANDLE, surface, nullptr);
+    if(instance != VK_NULL_HANDLE) 
+        vkDestroyInstance(instance, nullptr);
 }
 
 void VulkanBackend::createInstance() 
@@ -91,7 +101,7 @@ void VulkanBackend::createInstance()
         createInfo.pNext = nullptr;
     }
 
-    if (vkCreateInstance(&createInfo, nullptr, &instance.handle) != VK_SUCCESS) {
+    if (vkCreateInstance(&createInfo, nullptr, &instance) != VK_SUCCESS) {
         throw std::runtime_error("failed to create instance!");
     }
 
@@ -100,9 +110,47 @@ void VulkanBackend::createInstance()
     }
 }
 
-// Utilities
-void VulkanBackend::populateDebugMessengerCreateInfo(VkDebugUtilsMessengerCreateInfoEXT &createInfo) 
+void VulkanBackend::createDevice()
 {
+
+}
+
+// Debug stuff
+VkResult createDebugUtilsMessengerEXT(
+    VkInstance instance,
+    const VkDebugUtilsMessengerCreateInfoEXT *pCreateInfo,
+    const VkAllocationCallbacks *pAllocator,
+    VkDebugUtilsMessengerEXT *pDebugMessenger) 
+{
+    auto func = (PFN_vkCreateDebugUtilsMessengerEXT)vkGetInstanceProcAddr(
+        instance,
+        "vkCreateDebugUtilsMessengerEXT");
+    if (func != nullptr) 
+    {
+        return func(instance, pCreateInfo, pAllocator, pDebugMessenger);
+    } 
+    else 
+    {
+        return VK_ERROR_EXTENSION_NOT_PRESENT;
+    }
+}
+
+void destroyDebugUtilsMessengerEXT(VkInstance instance,
+    VkDebugUtilsMessengerEXT debugMessenger,
+    const VkAllocationCallbacks *pAllocator)
+{
+    PFN_vkDestroyDebugUtilsMessengerEXT func = (PFN_vkDestroyDebugUtilsMessengerEXT)vkGetInstanceProcAddr(
+        instance,
+        "vkDestroyDebugUtilsMessengerEXT");
+    if (func != nullptr)
+        func(instance, debugMessenger, pAllocator);
+}
+
+void VulkanBackend::setupDebugMessenger() 
+{
+    if (!enableValidationLayers) return;
+    VkDebugUtilsMessengerCreateInfoEXT createInfo;
+    
     createInfo = {};
     createInfo.sType = VK_STRUCTURE_TYPE_DEBUG_UTILS_MESSENGER_CREATE_INFO_EXT;
     createInfo.messageSeverity =    /*VK_DEBUG_UTILS_MESSAGE_SEVERITY_VERBOSE_BIT_EXT |
@@ -116,6 +164,10 @@ void VulkanBackend::populateDebugMessengerCreateInfo(VkDebugUtilsMessengerCreate
 
     createInfo.pfnUserCallback = debugCallback;
     createInfo.pUserData = nullptr;  // Optional
+
+    if (createDebugUtilsMessengerEXT(instance, &createInfo, nullptr, &debugMessenger) != VK_SUCCESS) {
+        throw std::runtime_error("failed to set up debug messenger!");
+    }
 }
 
 std::vector<const char *> VulkanBackend::getRequiredExtensions() 
@@ -164,7 +216,7 @@ bool VulkanBackend::hasGflwRequiredInstanceExtensions()
 
 void VulkanBackend::createSurface(GLFWwindow* window)
 {
-    if (glfwCreateWindowSurface(instance.handle, window, nullptr, &surface) != VK_SUCCESS) 
+    if (glfwCreateWindowSurface(instance, window, nullptr, &surface) != VK_SUCCESS) 
     {
         throw std::runtime_error("Failed to create window surface!");
     }

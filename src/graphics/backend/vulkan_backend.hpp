@@ -27,25 +27,10 @@ class VulkanBackend
     #else
         const bool enableValidationLayers = true;
     #endif
-        const std::vector<const char *> validationLayers = {"VK_LAYER_KHRONOS_validation"};
-        const std::vector<const char *> deviceExtensions = {VK_KHR_SWAPCHAIN_EXTENSION_NAME, // Uncomment extensions to use them
-            VK_KHR_SHADER_NON_SEMANTIC_INFO_EXTENSION_NAME, 
-            // VK_EXT_FILTER_CUBIC_EXTENSION_NAME, 
-            // VK_EXT_SHADER_ATOMIC_FLOAT_EXTENSION_NAME 
-        };
 
-        struct VkInstanceRAII
-        {
-            VkInstance handle = VK_NULL_HANDLE;
-            ~VkInstanceRAII()
-            {
-                if(handle) { vkDestroyInstance(handle, nullptr); }
-            }
-        };
-        VkInstanceRAII instance{};
+        VkInstance instance{};
         PhysicalDevice physicalDevice;
-        // Device device;
-        std::unique_ptr<Device> device{}; // Why smart pointer?
+        std::unique_ptr<Device> device{};
         VkDebugUtilsMessengerEXT debugMessenger;
         VkSurfaceKHR surface;
 
@@ -54,11 +39,11 @@ class VulkanBackend
         const std::string* engineName;
 
         void createInstance();
-        void initPhysicalDevice();
         void createDevice();
         void createSurface(GLFWwindow* window);
 
         // Utilities
+        void setupDebugMessenger();
         void populateDebugMessengerCreateInfo(VkDebugUtilsMessengerCreateInfoEXT &createInfo);
         std::vector<const char *> getRequiredExtensions();
         bool hasGflwRequiredInstanceExtensions();

@@ -1,4 +1,5 @@
 #define WINDOWS_BUILD
+#define DEBUG
 
 #include <iostream>
 #include <glm/glm.hpp>

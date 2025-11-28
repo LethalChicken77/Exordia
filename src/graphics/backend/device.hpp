@@ -1,37 +1,26 @@
 #pragma once
-// Library headers
-#include <vulkan/vulkan.h>
-// Project headers
-#include "graphics/window.hpp"
+#include "physical_device.hpp"
 
 namespace graphics::internal
 {
 
-class PhysicalDevice
-{
-public:
-    PhysicalDevice();
-    ~PhysicalDevice();
-
-    const VkPhysicalDevice &GetPhysicalDevice() { return physicalDevice; }
-    
-private:
-    VkPhysicalDevice physicalDevice = VK_NULL_HANDLE;
-    void pickPhysicalDevice();
-};
-
+/// Container class for a logical device.
 class Device
 {
 public:
-    Device(graphics::Window &window);
+    Device(graphics::Window &window, const PhysicalDevice &physicalDevice);
     ~Device();
+    Device(const Device&) = delete;
+    Device& operator=(const Device&) = delete;
+    Device(const Device&&) = delete;
+    Device&& operator=(const Device&&) = delete;
 
     const VkDevice &GetDevice() { return device; }
     VkQueue GraphicsQueueHandle() { return graphicsQueue; }
     VkQueue PresentQueueHandle() { return presentQueue; }
 private:
     VkDevice device;
-    VkSurfaceKHR surface; // 
+    // VkSurfaceKHR surface;
     VkQueue graphicsQueue;
     VkQueue presentQueue;
 
@@ -41,4 +30,4 @@ private:
     void createSurface();
 };
 
-} // namespace graphics
+} // namespace graphics::internal
