@@ -13,6 +13,12 @@ namespace graphics::internal
 
 PhysicalDevice::PhysicalDevice() {}
 
+void PhysicalDevice::init(VkInstance instance, VkSurfaceKHR* surface)
+{
+    pickPhysicalDevice(instance, surface);
+    // vkGetPhysicalDeviceMemoryProperties(physicalDevice, &memoryProperties);
+}
+
 void PhysicalDevice::pickPhysicalDevice(VkInstance instance, VkSurfaceKHR* surface)
 {
     uint32_t deviceCount = 0;
@@ -26,7 +32,7 @@ void PhysicalDevice::pickPhysicalDevice(VkInstance instance, VkSurfaceKHR* surfa
 
     for (const VkPhysicalDevice &device : devices) 
     {
-        if (isDeviceSuitable(device, surface)) 
+        if (findDeviceCapabilities(device, surface)) 
         {
             physicalDevice = device;
             break;
@@ -41,22 +47,23 @@ void PhysicalDevice::pickPhysicalDevice(VkInstance instance, VkSurfaceKHR* surfa
     Console::log("Physical device: " + std::string(properties.deviceName), "PhysicalDevice");
 }
 
-bool PhysicalDevice::isDeviceSuitable(VkPhysicalDevice device, VkSurfaceKHR* surface) 
+bool PhysicalDevice::findDeviceCapabilities(VkPhysicalDevice device, VkSurfaceKHR* surface) 
 {
-    QueueFamilyIndices indices = findQueueFamilies(device, surface);
+    queueFamilyIndices = findQueueFamilies(device, surface);
 
     bool extensionsSupported = checkDeviceExtensionSupport(device);
 
     bool swapChainAdequate = false;
-    if (extensionsSupported) {
-        SwapChainSupportDetails swapChainSupport = querySwapChainSupport(device, surface);
-        swapChainAdequate = !swapChainSupport.formats.empty() && !swapChainSupport.presentModes.empty();
+    if (extensionsSupported) 
+    {
+        swapchainSupport = querySwapChainSupport(device, surface);
+        swapChainAdequate = !swapchainSupport.formats.empty() && !swapchainSupport.presentModes.empty();
     }
 
     VkPhysicalDeviceFeatures supportedFeatures;
     vkGetPhysicalDeviceFeatures(device, &supportedFeatures);
 
-    return indices.isComplete() && extensionsSupported && swapChainAdequate &&
+    return queueFamilyIndices.isComplete() && extensionsSupported && swapChainAdequate &&
             supportedFeatures.samplerAnisotropy;
 }
 
@@ -113,9 +120,9 @@ PhysicalDevice::QueueFamilyIndices PhysicalDevice::findQueueFamilies(VkPhysicalD
     return indices;
 }
 
-PhysicalDevice::SwapChainSupportDetails PhysicalDevice::querySwapChainSupport(VkPhysicalDevice device, VkSurfaceKHR* surface) 
+PhysicalDevice::SwapchainSupportDetails PhysicalDevice::querySwapChainSupport(VkPhysicalDevice device, VkSurfaceKHR* surface) 
 {
-    SwapChainSupportDetails details;
+    SwapchainSupportDetails details;
     vkGetPhysicalDeviceSurfaceCapabilitiesKHR(device, *surface, &details.capabilities);
 
     uint32_t formatCount;
@@ -139,5 +146,36 @@ PhysicalDevice::SwapChainSupportDetails PhysicalDevice::querySwapChainSupport(Vk
     }
     return details;
 }
+
+// uint32_t PhysicalDevice::FindMemoryType(uint32_t typeFilter, VkMemoryPropertyFlags properties)
+// {
+//     for (uint32_t i = 0; i < memoryProperties.memoryTypeCount; i++) 
+//     {
+//         if ((typeFilter & (1 << i)) && 
+//             (memoryProperties.memoryTypes[i].propertyFlags & properties) == properties)
+//             return i;
+//     }
+
+//     throw std::runtime_error("Failed to find suitable memory type!");
+// }
+
+// VkFormat PhysicalDevice::FindSupportedFormat(const std::vector<VkFormat> &candidates, VkImageTiling tiling, VkFormatFeatureFlags features) 
+// {
+//     for (VkFormat format : candidates) 
+//     {
+//         VkFormatProperties props;
+//         vkGetPhysicalDeviceFormatProperties(physicalDevice, format, &props);
+
+//         if (tiling == VK_IMAGE_TILING_LINEAR && (props.linearTilingFeatures & features) == features) 
+//         {
+//             return format;
+//         } 
+//         else if (tiling == VK_IMAGE_TILING_OPTIMAL && (props.optimalTilingFeatures & features) == features) 
+//         {
+//             return format;
+//         }
+//     }
+//     throw std::runtime_error("Failed to find supported format!");
+// }
 
 } // namespace graphics::internal

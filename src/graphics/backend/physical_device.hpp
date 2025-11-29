@@ -1,6 +1,6 @@
 #pragma once
 // Library headers
-#include <vulkan/vulkan.h>
+#include <Volk/volk.h>
 // Project headers
 #include "graphics/window.hpp"
 
@@ -13,12 +13,7 @@ class VulkanBackend;
 class PhysicalDevice
 {
 public:
-    const VkPhysicalDevice &GetPhysicalDevice() { return physicalDevice; }
-    
-private:
-    PhysicalDevice();
-    ~PhysicalDevice();
-    struct SwapChainSupportDetails {
+    struct SwapchainSupportDetails {
         VkSurfaceCapabilitiesKHR capabilities;
         std::vector<VkSurfaceFormatKHR> formats;
         std::vector<VkPresentModeKHR> presentModes;
@@ -32,15 +27,32 @@ private:
         bool isComplete() { return graphicsFamilyHasValue && presentFamilyHasValue; }
     };
 
+    const VkPhysicalDevice &GetPhysicalDevice() const { return physicalDevice; }
+    const VkPhysicalDeviceProperties &GetProperties() const { return properties; }
+    const QueueFamilyIndices &GetQueueFamilyIndices() const { return queueFamilyIndices; }
+    const SwapchainSupportDetails &GetSwapchainSupportDetails() const { return swapchainSupport; }
+
+    // uint32_t FindMemoryType(uint32_t typeFilter, VkMemoryPropertyFlags properties);
+    // VkFormat PhysicalDevice::FindSupportedFormat(const std::vector<VkFormat> &candidates, VkImageTiling tiling, VkFormatFeatureFlags features);
+    
+private:
+    PhysicalDevice();
+    ~PhysicalDevice();
+
     VkPhysicalDevice physicalDevice = VK_NULL_HANDLE;
-    VkPhysicalDeviceProperties properties;
+    VkPhysicalDeviceProperties properties{};
+    QueueFamilyIndices queueFamilyIndices{};
+    SwapchainSupportDetails swapchainSupport{};
+    // VkPhysicalDeviceMemoryProperties memoryProperties{};
+
+    void init(VkInstance instance, VkSurfaceKHR* surface);
     void pickPhysicalDevice(VkInstance instance, VkSurfaceKHR* surface);
+    bool findDeviceCapabilities(VkPhysicalDevice physicalDevice, VkSurfaceKHR* surface);
     
     // Utilities
-    bool isDeviceSuitable(VkPhysicalDevice physicalDevice, VkSurfaceKHR* surface);
     bool checkDeviceExtensionSupport(VkPhysicalDevice device);
     QueueFamilyIndices findQueueFamilies(VkPhysicalDevice device, VkSurfaceKHR* surface);
-    SwapChainSupportDetails querySwapChainSupport(VkPhysicalDevice device, VkSurfaceKHR* surface);
+    SwapchainSupportDetails querySwapChainSupport(VkPhysicalDevice device, VkSurfaceKHR* surface);
 
     friend class VulkanBackend;
 };

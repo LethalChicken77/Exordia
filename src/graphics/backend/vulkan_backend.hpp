@@ -3,7 +3,7 @@
 #include <string>
 #include <vector>
 
-#include <vulkan/vulkan.h>
+#include <Volk/volk.h>
 
 #include "device.hpp"
 
@@ -30,7 +30,7 @@ class VulkanBackend
 
         VkInstance instance{};
         PhysicalDevice physicalDevice;
-        std::unique_ptr<Device> device{};
+        Device device;
         VkDebugUtilsMessengerEXT debugMessenger;
         VkSurfaceKHR surface;
 
