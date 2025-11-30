@@ -9,7 +9,7 @@
 namespace graphics::internal
 {
 
-Device::~Device()
+void Device::cleanup()
 {
     if(commandPool != VK_NULL_HANDLE)
         vkDestroyCommandPool(device, commandPool, nullptr);

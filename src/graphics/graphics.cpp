@@ -7,6 +7,12 @@ namespace graphics
     Graphics::Graphics(const std::string& appName, const std::string& engName)
     {
         Console::log("Initializing graphics module", "Graphics");
-        graphicsData.backend.Init(appName, engName, graphicsData.GetWindow().GetWindow());
+        graphicsData.window.Init(800, 600, engName + " - " + appName);
+        graphicsData.backend.Init(appName, engName, graphicsData.GetGLFWWindow());
+    }
+
+    Graphics::~Graphics()
+    {
+        Console::log("Shutting down graphics module", "Graphics");
     }
 } // namespace graphics

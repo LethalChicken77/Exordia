@@ -11,7 +11,7 @@ class Console
         {
             NONE = 0,
             INFO = 1,
-            DEBUG = 2,
+            DEBUG_T = 2, // DEBUG is already defined
             WARNING = 3,
             ERROR = 4
         } type;

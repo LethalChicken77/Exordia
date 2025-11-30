@@ -1,6 +1,6 @@
 #pragma once
 // Library headers
-#include <Volk/volk.h>
+#include <vulkan/vulkan.h>
 // Project headers
 #include "graphics/window.hpp"
 
@@ -37,7 +37,6 @@ public:
     
 private:
     PhysicalDevice();
-    ~PhysicalDevice();
 
     VkPhysicalDevice physicalDevice = VK_NULL_HANDLE;
     VkPhysicalDeviceProperties properties{};

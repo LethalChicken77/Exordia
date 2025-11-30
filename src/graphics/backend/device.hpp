@@ -11,8 +11,8 @@ class VulkanBackend;
 class Device
 {
 public:
-    Device(graphics::Window &window);
-    ~Device();
+    Device() = default;
+    ~Device() = default;
     Device(const Device&) = delete;
     Device& operator=(const Device&) = delete;
     Device(const Device&&) = delete;
@@ -32,6 +32,8 @@ private:
     const PhysicalDevice *pDevice;
     void createLogicalDevice(const PhysicalDevice &physicalDevice, bool enableValidationLayers);
     void createCommandPool();
+    
+    void cleanup();
 
     friend class VulkanBackend;
 };

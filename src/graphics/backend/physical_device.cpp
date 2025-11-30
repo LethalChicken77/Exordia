@@ -26,7 +26,7 @@ void PhysicalDevice::pickPhysicalDevice(VkInstance instance, VkSurfaceKHR* surfa
     if (deviceCount == 0) {
         throw std::runtime_error("Failed to find any GPUs with Vulkan support!");
     }
-    Console::log(std::format("Device count: %d", deviceCount), "VulkanBackend");
+    Console::log(std::format("Device count: {}", deviceCount), "PhysicalDevice");
     std::vector<VkPhysicalDevice> devices(deviceCount);
     vkEnumeratePhysicalDevices(instance, &deviceCount, devices.data());
 

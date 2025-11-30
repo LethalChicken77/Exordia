@@ -43,21 +43,21 @@ Mesh::Mesh(std::vector<Vertex> &vertices, const std::string& objectName)
 {
     ptr = ObjectManager::Instantiate<MeshData>(objectName);
     ptr->SetMesh(vertices, std::vector<uint32_t>{});
-    graphicsModule.setGraphicsMesh(*this);
+    // graphicsModule.setGraphicsMesh(*this);
 }
 
 Mesh::Mesh(std::vector<Vertex> &vertices, std::vector<uint32_t> &indices, const std::string& objectName)
 {
     ptr = ObjectManager::Instantiate<MeshData>(objectName);
     ptr->SetMesh(vertices, indices);
-    graphicsModule.setGraphicsMesh(*this);
+    // graphicsModule.setGraphicsMesh(*this);
 }
 
 Mesh::Mesh(std::vector<Vertex> &vertices, std::vector<Triangle> &triangles, const std::string& objectName)
 {
     ptr = ObjectManager::Instantiate<MeshData>(objectName);
     ptr->SetMesh(vertices, triangles);
-    graphicsModule.setGraphicsMesh(*this);
+    // graphicsModule.setGraphicsMesh(*this);
 }
 
 void Mesh::generateNormals()

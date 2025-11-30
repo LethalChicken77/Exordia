@@ -1,6 +1,6 @@
 #pragma once
 #include <array>
-#include <Volk/volk.h>
+#include <vulkan/vulkan.h>
 
 namespace graphics::internal
 {

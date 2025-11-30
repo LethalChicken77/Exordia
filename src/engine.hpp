@@ -1,7 +1,6 @@
 #pragma once
 #include <string>
 #include <vector>
-#include <vulkan/vulkan.h>
 #include <GLFW/glfw3.h>
 #include <memory>
 
@@ -46,7 +45,8 @@ private:
 
     Scene scene;
 
-    Camera camera;
+    Camera camera{};
+    Transform cameraTransform{};
 };
 
 } // namespace core

@@ -1,8 +1,11 @@
+#include <cstring>
+
 #include <unordered_set>
 #include <format>
 
 #include "vulkan_backend.hpp"
 #include "utils/console.hpp"
+#include "utils/debug.hpp"
 
 #include "backend_data.hpp"
 
@@ -58,10 +61,17 @@ VulkanBackend::~VulkanBackend()
             func(instance, debugMessenger, nullptr);
         }
     }
-    if(surface != VK_NULL_HANDLE)
-        vkDestroySurfaceKHR(VK_NULL_HANDLE, surface, nullptr);
-    if(instance != VK_NULL_HANDLE) 
+    if(device.device != VK_NULL_HANDLE)
+    {
+        device.cleanup();
+    }
+    if(instance != VK_NULL_HANDLE)
+    {
+        if(surface != VK_NULL_HANDLE)
+            vkDestroySurfaceKHR(instance, surface, nullptr);
+
         vkDestroyInstance(instance, nullptr);
+    }
 }
 
 void VulkanBackend::createInstance() 
@@ -171,6 +181,23 @@ void VulkanBackend::setupDebugMessenger()
     }
 }
 
+void VulkanBackend::populateDebugMessengerCreateInfo(VkDebugUtilsMessengerCreateInfoEXT &createInfo) 
+{
+    createInfo = {};
+    createInfo.sType = VK_STRUCTURE_TYPE_DEBUG_UTILS_MESSENGER_CREATE_INFO_EXT;
+    createInfo.messageSeverity = 
+        //VK_DEBUG_UTILS_MESSAGE_SEVERITY_VERBOSE_BIT_EXT |
+        //VK_DEBUG_UTILS_MESSAGE_SEVERITY_INFO_BIT_EXT |
+        VK_DEBUG_UTILS_MESSAGE_SEVERITY_WARNING_BIT_EXT |
+        VK_DEBUG_UTILS_MESSAGE_SEVERITY_ERROR_BIT_EXT;
+    createInfo.messageType = 
+        VK_DEBUG_UTILS_MESSAGE_TYPE_GENERAL_BIT_EXT |
+        VK_DEBUG_UTILS_MESSAGE_TYPE_VALIDATION_BIT_EXT |
+        VK_DEBUG_UTILS_MESSAGE_TYPE_PERFORMANCE_BIT_EXT;
+    createInfo.pfnUserCallback = debugCallback;
+    createInfo.pUserData = nullptr;  // Optional
+}
+
 std::vector<const char *> VulkanBackend::getRequiredExtensions() 
 {
     uint32_t glfwExtensionCount = 0;
@@ -217,9 +244,40 @@ bool VulkanBackend::hasGflwRequiredInstanceExtensions()
 
 void VulkanBackend::createSurface(GLFWwindow* window)
 {
-    if (glfwCreateWindowSurface(instance, window, nullptr, &surface) != VK_SUCCESS) 
+    VkResult result = glfwCreateWindowSurface(instance, window, nullptr, &surface);
+    if(result != VK_SUCCESS) 
     {
-        throw std::runtime_error("Failed to create window surface!");
+        throw std::runtime_error("Failed to create window surface: " + Debug::VkResultToString(result));
     }
+}
+
+bool VulkanBackend::checkValidationLayerSupport() 
+{
+    uint32_t layerCount;
+    vkEnumerateInstanceLayerProperties(&layerCount, nullptr);
+
+    std::vector<VkLayerProperties> availableLayers(layerCount);
+    vkEnumerateInstanceLayerProperties(&layerCount, availableLayers.data());
+
+    for (const char *layerName : validationLayers) 
+    {
+        bool layerFound = false;
+
+        for (const VkLayerProperties &layerProperties : availableLayers) 
+        {
+            if (strcmp(layerName, layerProperties.layerName) == 0) 
+            {
+                layerFound = true;
+                break;
+            }
+        }
+
+        if (!layerFound) 
+        {
+            return false;
+        }
+    }
+
+    return true;
 }
 } // namespace graphics::internal

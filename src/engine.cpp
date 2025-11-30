@@ -51,63 +51,64 @@ void Engine::close()
 
 void Engine::update(double deltaTime)
 {
-    glm::vec3 forward = camera.transform.forward();
+    glm::vec3 forward = cameraTransform.forward();
     forward.y = 0;
     forward = glm::normalize(forward);
-    forward *= glm::sign(camera.transform.up().y);
-    glm::vec3 right = camera.transform.right();
+    forward *= glm::sign(cameraTransform.up().y);
+    glm::vec3 right = cameraTransform.right();
     float movementSpeed = 10.f;
     if(core::Input::getKey(GLFW_KEY_A))
     {
-        camera.transform.addPosition(-movementSpeed * (float)deltaTime * right);
+        cameraTransform.addPosition(-movementSpeed * (float)deltaTime * right);
     }
     if(core::Input::getKey(GLFW_KEY_D))
     {
-        camera.transform.addPosition(movementSpeed * (float)deltaTime * right);
+        cameraTransform.addPosition(movementSpeed * (float)deltaTime * right);
     }
     if(core::Input::getKey(GLFW_KEY_W))
     {
-        camera.transform.addPosition(movementSpeed * (float)deltaTime * forward);
+        cameraTransform.addPosition(movementSpeed * (float)deltaTime * forward);
     }
     if(core::Input::getKey(GLFW_KEY_S))
     {
-        camera.transform.addPosition(-movementSpeed * (float)deltaTime * forward);
+        cameraTransform.addPosition(-movementSpeed * (float)deltaTime * forward);
     }
 
     if(core::Input::getKey(GLFW_KEY_SPACE))
     {
-        camera.transform.addPosition(glm::vec3(0, 10.f * deltaTime, 0));
+        cameraTransform.addPosition(glm::vec3(0, 10.f * deltaTime, 0));
     }
     if(core::Input::getKey(GLFW_KEY_LEFT_SHIFT))
     {
-        camera.transform.addPosition(glm::vec3(0, -10.f * deltaTime, 0));
+        cameraTransform.addPosition(glm::vec3(0, -10.f * deltaTime, 0));
     }
 
-    if(core::Input::getButtonDown(GLFW_MOUSE_BUTTON_LEFT) && !core::Input::getButton(GLFW_MOUSE_BUTTON_RIGHT))
-    {
-        glm::vec2 mousePos = core::Input::getMousePosition();
-        int mouseXPos = mousePos.x;
-        int mouseYPos = mousePos.y;
-        Console::debug(std::to_string(mouseXPos) + " " + std::to_string(mouseYPos));
-        Console::debug(std::to_string(graphicsModule.getClickedObjID(mouseXPos, mouseYPos)));
-        scene->selectedObject = graphicsModule.getClickedObjID(mouseXPos, mouseYPos);
-    }
+    // TODO: Reimplement object selection
+    // if(core::Input::getButtonDown(GLFW_MOUSE_BUTTON_LEFT) && !core::Input::getButton(GLFW_MOUSE_BUTTON_RIGHT))
+    // {
+    //     glm::vec2 mousePos = core::Input::getMousePosition();
+    //     int mouseXPos = mousePos.x;
+    //     int mouseYPos = mousePos.y;
+    //     Console::debug(std::to_string(mouseXPos) + " " + std::to_string(mouseYPos));
+    //     Console::debug(std::to_string(graphicsModule.getClickedObjID(mouseXPos, mouseYPos)));
+    //     scene->selectedObject = graphicsModule.getClickedObjID(mouseXPos, mouseYPos);
+    // }
 
     if(core::Input::getButtonDown(GLFW_MOUSE_BUTTON_RIGHT))
     {
-        glfwSetInputMode(graphicsModule.getWindow()->GetWindow(), GLFW_CURSOR, GLFW_CURSOR_DISABLED);
+        glfwSetInputMode(graphicsModule.GetGLFWWindow(), GLFW_CURSOR, GLFW_CURSOR_DISABLED);
     }
     if(core::Input::getButton(GLFW_MOUSE_BUTTON_RIGHT))
     {
         // std::cout << "Mouse position: " << core::Input::getMousePosition().x << ", " << core::Input::getMousePosition().y << std::endl;
         glm::vec2 mouseDelta = -core::Input::getMouseDelta();
         mouseDelta = glm::pow(glm::abs(mouseDelta), glm::vec2(1.1f)) * glm::vec2(glm::sign(mouseDelta.x), glm::sign(mouseDelta.y));
-        camera.transform.rotateYaw(-mouseDelta.x * 0.016f * 0.1f, false);
-        camera.transform.rotatePitch(-mouseDelta.y * 0.016f * 0.1f, true);
+        cameraTransform.rotateYaw(-mouseDelta.x * 0.016f * 0.1f, false);
+        cameraTransform.rotatePitch(-mouseDelta.y * 0.016f * 0.1f, true);
     }
     if(core::Input::getButtonUp(GLFW_MOUSE_BUTTON_RIGHT))
     {
-        glfwSetInputMode(graphicsModule.getWindow()->GetWindow(), GLFW_CURSOR, GLFW_CURSOR_NORMAL);
+        glfwSetInputMode(graphicsModule.GetGLFWWindow(), GLFW_CURSOR, GLFW_CURSOR_NORMAL);
     }
 
     scene->update(deltaTime);
@@ -138,9 +139,9 @@ void Engine::run()
 
     // Modify colors
 
-    ImGui_ImplGlfw_InitForVulkan(graphicsModule.getWindow()->GetWindow(), true);
-    graphicsModule.graphicsInitImgui();
-    ImGui::GetIO().ConfigFlags |= ImGuiConfigFlags_DockingEnable;
+    // ImGui_ImplGlfw_InitForVulkan(graphicsModule.GetGLFWWindow(), true);
+    // graphicsModule.graphicsInitImgui();
+    // ImGui::GetIO().ConfigFlags |= ImGuiConfigFlags_DockingEnable;
 
 
     Input::initializeKeys();
@@ -154,11 +155,11 @@ void Engine::run()
     //     {0.01f, 100.0f, 20.0f},
     //     true
     // );
-    camera.transform.setPosition(glm::vec3(0.0f, 2.0f, -5.0f));
-    camera.transform.setPosition(glm::vec3(glm::radians(20.0f), 0.0f, 0.0f));
+    cameraTransform.setPosition(glm::vec3(0.0f, 2.0f, -5.0f));
+    cameraTransform.setPosition(glm::vec3(glm::radians(20.0f), 0.0f, 0.0f));
     // camera.transform.parent = &scene->getGameObjects()[0]->transform;
 
-    graphicsModule.setCamera(&camera);
+    // graphicsModule.SetCamera(&camera);
 
     VkDescriptorSet viewPortDS = nullptr;
 
@@ -166,52 +167,53 @@ void Engine::run()
     double time = 0.0f;
     double deltaTime = 0.0f;
     // Main loop
-    while (graphicsModule.isOpen()) {
+    while (graphicsModule.IsOpen()) {
         // Poll for and process events
         glfwPollEvents();
         
-        if(core::Input::getKeyDown(GLFW_KEY_R))
-        {
-            graphicsModule.reloadShaders();
-        }
+        // TODO: Reimplement
+        // if(core::Input::getKeyDown(GLFW_KEY_R))
+        // {
+        //     graphicsModule.ReloadShaders();
+        // }
 
 
-        ImGui_ImplVulkan_NewFrame();
-        ImGui_ImplGlfw_NewFrame();
-        ImGui::NewFrame();
+        // ImGui_ImplVulkan_NewFrame();
+        // ImGui_ImplGlfw_NewFrame();
+        // ImGui::NewFrame();
 
-        ImGui::DockSpaceOverViewport(0, ImGui::GetMainViewport(), ImGuiDockNodeFlags_PassthruCentralNode);
+        // ImGui::DockSpaceOverViewport(0, ImGui::GetMainViewport(), ImGuiDockNodeFlags_PassthruCentralNode);
 
-        ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0,0));
-        ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(0,0));
-        ImGui::Begin("Viewport", nullptr, ImGuiWindowFlags_NoDecoration);
-        ImVec2 size = ImGui::GetContentRegionAvail();
-        graphicsModule.viewportSize = VkExtent2D{(uint32_t)size.x, (uint32_t)size.y};
-        graphicsModule.updateExtent();
-        viewPortDS = graphicsModule.getViewportDescriptorSet();
-        if(viewPortDS != nullptr)
-        {
-            ImGui::Image((void*)reinterpret_cast<uintptr_t>(viewPortDS), size);
-        }
-        ImGui::End();
-        ImGui::PopStyleVar(2);
+        // ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0,0));
+        // ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(0,0));
+        // ImGui::Begin("Viewport", nullptr, ImGuiWindowFlags_NoDecoration);
+        // ImVec2 size = ImGui::GetContentRegionAvail();
+        // graphicsModule.viewportSize = VkExtent2D{(uint32_t)size.x, (uint32_t)size.y};
+        // graphicsModule.updateExtent();
+        // viewPortDS = graphicsModule.getViewportDescriptorSet();
+        // if(viewPortDS != nullptr)
+        // {
+        //     ImGui::Image((void*)reinterpret_cast<uintptr_t>(viewPortDS), size);
+        // }
+        // ImGui::End();
+        // ImGui::PopStyleVar(2);
 
-        Console::drawImGui();
-        ObjectManager::drawImGui();
+        // Console::drawImGui();
+        // ObjectManager::drawImGui();
 
-        ImGui::Begin("Material Properties");
+        // ImGui::Begin("Material Properties");
 
-        for(Material &mat : Shared::materials)
-        {
-            mat.drawImGui();
-        }
+        // for(Material &mat : Shared::materials)
+        // {
+        //     mat.drawImGui();
+        // }
         
-        ImGui::End();
+        // ImGui::End();
 
-        bool imguiHovered = ImGui::IsWindowHovered(ImGuiHoveredFlags_AnyWindow);
-        ImGui::Render();
+        // bool imguiHovered = ImGui::IsWindowHovered(ImGuiHoveredFlags_AnyWindow);
+        // ImGui::Render();
         // Input
-        Input::processInput(graphicsModule.getWindow()->GetWindow());
+        Input::processInput(graphicsModule.GetGLFWWindow());
         
         if(core::Input::getKeyDown(GLFW_KEY_ESCAPE))
         {
@@ -220,10 +222,10 @@ void Engine::run()
 
         update(deltaTime);
 
-        graphicsModule.drawSkybox();
+        // graphicsModule.drawSkybox();
         scene->drawScene();
         // Render here
-        graphicsModule.drawFrame();
+        // graphicsModule.drawFrame();
 
 
         // Update Time

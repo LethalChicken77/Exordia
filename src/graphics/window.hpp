@@ -11,7 +11,7 @@ class Window
 public:
     bool open;
 
-    Window(uint32_t width, uint32_t height, const std::string& title);
+    Window();
     ~Window();
 
     Window(const Window&) = delete;
@@ -38,7 +38,7 @@ public:
     static void SetOnRefreshCallback(std::function<void()> callback) { onRefreshCallback = callback; }
 
 private:
-    void init();
+    void Init(uint32_t width, uint32_t height, const std::string& title);
     
     uint32_t width;
     uint32_t height;
@@ -47,6 +47,8 @@ private:
     static std::function<void()> onRefreshCallback;
 
     std::string name;
-    GLFWwindow* window;
+    GLFWwindow *window;
+
+    friend class Graphics;
 };
 }

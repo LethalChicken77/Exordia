@@ -1,10 +1,11 @@
 #define WINDOWS_BUILD
 #define DEBUG
 
+#define IMGUI_IMPL_VULKAN_USE_VOLK
+
 #include <iostream>
 #include <glm/glm.hpp>
 #include <GLFW/glfw3.h>
-#include <vulkan/vulkan.h>
 #include <memory>
 
 #include "modules.hpp"
@@ -87,11 +88,11 @@ int main()
     // graphicsModule.init(APPLICATION_NAME, ENGINE_NAME);
 
     // Set window icon
-    setWindowIcons(graphicsModule.GetWindow().GetWindow());
+    setWindowIcons(graphicsModule.GetGLFWWindow());
     
 #ifdef WINDOWS_BUILD
     // Set title bar color
-    SetTitleBarColor(graphicsModule.GetWindow().GetWindow(), RGB(0x19, 0x15, 0x14), RGB(0x19, 0x15, 0x14));
+    SetTitleBarColor(graphicsModule.GetGLFWWindow(), RGB(0x19, 0x15, 0x14), RGB(0x19, 0x15, 0x14));
 #endif
 
     if(!graphicsModule.IsOpen())

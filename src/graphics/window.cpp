@@ -1,16 +1,14 @@
 #include <iostream>
 #include "window.hpp"
 #include "utils/debug.hpp"
-#include <vulkan/vulkan.h>
+#include "utils/console.hpp"
 #include <GLFW/glfw3.h>
 #include <stdexcept>
 
 namespace graphics
 {
-Window::Window(uint32_t _width, uint32_t _height, const std::string& title)
-    : width(_width), height(_height), name(title)
+Window::Window()
 {
-    init();
 }
 
 Window::~Window()
@@ -18,8 +16,12 @@ Window::~Window()
     Close();
 }
 
-void Window::init()
+void Window::Init(uint32_t _width, uint32_t _height, const std::string& title)
 {
+    Console::log("Initializing window: " + name, "Window");
+    width = _width;
+    height = _height;
+    name = title;
     // Initialize GLFW
     if(!glfwInit())
     {

@@ -47,7 +47,7 @@ void Console::log(const string& message, const string& source, bool terminalOnly
 
 void Console::debug(const string& message, const string& source, bool terminalOnly)
 {
-    ConsoleMessage newMessage = constructMessage(message, source, ConsoleMessage::DEBUG);
+    ConsoleMessage newMessage = constructMessage(message, source, ConsoleMessage::DEBUG_T);
     cout << "[DEBUG] " << newMessage.message << consoleEndl; // Print to standard output
     if(!terminalOnly)
         pushMessage(newMessage);
@@ -129,7 +129,7 @@ void Console::drawImGui()
                     ImGui::SameLine();
                     break;
 
-                case ConsoleMessage::DEBUG:
+                case ConsoleMessage::DEBUG_T:
                     ImGui::TextColored(ImVec4(1,1,1,1), "[DEBUG]");
                     ImGui::SameLine();
                     break;
