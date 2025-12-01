@@ -20,9 +20,11 @@ set(CMAKE_CXX_STANDARD_REQUIRED True)
 # set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -fsanitize=address")
 # set(ASAN_LIB_PATH "/ucrt64/lib/clang/20/lib/x86_64-w64-windows-gnu")
 
+set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -fuse-ld=lld")
 add_compile_options(
     -g
     # -O3
+    # -flto # Link Time Optimization
     # -ffast-math
     -fno-caret-diagnostics
     -fno-diagnostics-show-option

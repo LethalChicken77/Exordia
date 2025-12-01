@@ -17,6 +17,16 @@ void Device::cleanup()
         vkDestroyDevice(device, nullptr);
 }
 
+void Device::CreateBuffer(
+    VkDeviceSize size,
+    VkBufferUsageFlags usage,
+    VkMemoryPropertyFlags properties,
+    VkBuffer &buffer,
+    VkDeviceMemory &bufferMemory)
+{
+}
+
+// Private methods
 void Device::createLogicalDevice(const PhysicalDevice &physicalDevice, bool enableValidationLayers)
 {
     Console::log("Creating logical device", "Device");

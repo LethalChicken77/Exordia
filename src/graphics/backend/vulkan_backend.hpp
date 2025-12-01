@@ -21,6 +21,11 @@ class VulkanBackend
         const VkSurfaceKHR &GetSurface() { return surface; }
         // VkBuffer AllocateBuffer();
         // VkImage AllocateImage();
+
+        Device &GetDevice() { return device; }
+        PhysicalDevice &GetPhysicalDevice() { return physicalDevice; }
+
+        inline void WaitForDevice() { device.WaitIdle(); }
     private:
     #ifdef NDEBUG
         const bool enableValidationLayers = false;

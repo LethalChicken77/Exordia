@@ -21,6 +21,42 @@ public:
     const VkDevice &GetDevice() { return device; }
     VkQueue GraphicsQueueHandle() { return graphicsQueue; }
     VkQueue PresentQueueHandle() { return presentQueue; }
+
+    /// @brief Creates a buffer and allocates memory for it
+    /// @param size Buffer size in bytes
+    /// @param usage Buffer usage flags
+    /// @param properties Buffer memory properties
+    /// @param buffer Location to store created buffer
+    /// @param bufferMemory Location to store allocated memory
+    void CreateBuffer(
+        VkDeviceSize size,
+        VkBufferUsageFlags usage,
+        VkMemoryPropertyFlags properties,
+        VkBuffer &buffer,
+        VkDeviceMemory &bufferMemory);
+
+    /// @brief Creates an image and allocates memory for it
+    /// @param width 
+    /// @param height 
+    /// @param depth
+    /// @param format Type of data stored in the image
+    /// @param tiling Tiling arrangement of the image data
+    /// @param usage Usage flags for the image
+    /// @param properties Image memory properties
+    /// @param image Location to store created image
+    /// @param imageMemory Location to store allocated memory
+    void CreateImage(
+        uint32_t width,
+        uint32_t height,
+        uint32_t depth, // For 3D images
+        VkFormat format,
+        VkImageTiling tiling,
+        VkImageUsageFlags usage,
+        VkMemoryPropertyFlags properties,
+        VkImage &image,
+        VkDeviceMemory &imageMemory);
+
+    inline void WaitIdle() { vkDeviceWaitIdle(device); }
 private:
     VkDevice device;
     VkQueue graphicsQueue;

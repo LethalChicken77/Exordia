@@ -1,1 +1,0 @@
-// Internal texture data

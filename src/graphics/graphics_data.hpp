@@ -9,7 +9,7 @@ class Graphics;
 class GraphicsData
 {
 public:
-    const internal::VulkanBackend &GetBackend() { return backend; }
+    internal::VulkanBackend &GetBackend() { return backend; }
     Window &GetWindow() { return window; }
     GLFWwindow *GetGLFWWindow() { return window.GetWindow(); }
     // Global pool
@@ -21,7 +21,8 @@ private:
     internal::VulkanBackend backend;
     friend class Graphics;
 };
-// extern GraphicsData graphicsData;
+
+// Construct in data/bss after main starts rather than before
 inline GraphicsData& graphicsData = []() -> GraphicsData& {
     static GraphicsData instance;
     return instance;

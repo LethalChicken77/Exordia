@@ -73,7 +73,7 @@ void setWindowIcons(GLFWwindow* window)
 void SetTitleBarColor(GLFWwindow* window, COLORREF titleBarColor, COLORREF borderColor) {
     HWND hwnd = glfwGetWin32Window(window);
     if (hwnd) {
-        std::cout << "Setting title color" << std::endl;
+        // std::cout << "Setting title color" << std::endl;
         // Use DwmSetWindowAttribute to set the title bar color
         const DWORD titleBarColorAttribute = DWMWA_CAPTION_COLOR;
         const DWORD borderColorAttribute = DWMWA_BORDER_COLOR;
