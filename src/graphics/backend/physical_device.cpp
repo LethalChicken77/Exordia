@@ -159,7 +159,7 @@ uint32_t PhysicalDevice::FindMemoryType(uint32_t typeFilter, VkMemoryPropertyFla
         }
     }
 
-    throw std::runtime_error("failed to find suitable memory type!");
+    throw std::runtime_error("Failed to find suitable memory type");
 }
 
 // VkFormat PhysicalDevice::FindSupportedFormat(const std::vector<VkFormat> &candidates, VkImageTiling tiling, VkFormatFeatureFlags features) 
