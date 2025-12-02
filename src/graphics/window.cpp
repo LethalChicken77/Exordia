@@ -18,7 +18,7 @@ Window::~Window()
 
 void Window::Init(uint32_t _width, uint32_t _height, const std::string& title)
 {
-    Console::log("Initializing window: " + name, "Window");
+    Console::log("Initializing window: " + title, "Window");
     width = _width;
     height = _height;
     name = title;

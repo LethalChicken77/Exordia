@@ -35,7 +35,7 @@ class VulkanBackend
 
         VkInstance instance{};
         PhysicalDevice physicalDevice;
-        Device device;
+        Device device{&physicalDevice};
         VkDebugUtilsMessengerEXT debugMessenger;
         VkSurfaceKHR surface;
 

@@ -11,7 +11,7 @@ class VulkanBackend;
 class Device
 {
 public:
-    Device() = default;
+    Device(const PhysicalDevice *_pDevice) : pDevice(_pDevice) {}
     ~Device() = default;
     Device(const Device&) = delete;
     Device& operator=(const Device&) = delete;
@@ -55,8 +55,18 @@ public:
         VkMemoryPropertyFlags properties,
         VkImage &image,
         VkDeviceMemory &imageMemory);
+    
+    // Utilities
 
+    /// @brief Idle until the device is ready 
     inline void WaitIdle() { vkDeviceWaitIdle(device); }
+
+    /// @brief Create a temporary command buffer
+    /// @return Vulkan command buffer handle
+    VkCommandBuffer BeginSingleTimeCommands();
+    /// @brief End temporary command buffer
+    /// @param commandBuffer Temporary command buffer to end
+    void EndSingleTimeCommands(VkCommandBuffer commandBuffer);
 private:
     VkDevice device;
     VkQueue graphicsQueue;

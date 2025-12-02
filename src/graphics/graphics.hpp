@@ -16,10 +16,10 @@ class Graphics
         Graphics(const Graphics&) = delete;
         Graphics& operator=(const Graphics&) = delete;
 
-        Window &GetWindow() { return graphicsData.GetWindow(); }
-        GLFWwindow* GetGLFWWindow() { return graphicsData.GetWindow().GetWindow(); }
+        Window &GetWindow() { return graphicsData->GetWindow(); }
+        GLFWwindow* GetGLFWWindow() { return graphicsData->GetWindow().GetWindow(); }
 
-        bool IsOpen() const { return graphicsData.GetWindow().IsOpen(); }
+        bool IsOpen() const { return graphicsData->GetWindow().IsOpen(); }
 };
 
 } // namespace graphics

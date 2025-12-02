@@ -13,7 +13,7 @@ Buffer::Buffer(
     bufferSize = instanceSize * instanceCount;
     this->instanceCount = instanceCount;
 
-    graphicsData.GetBackend().GetDevice().CreateBuffer(
+    graphicsData->GetBackend().GetDevice().CreateBuffer(
         bufferSize,
         usageFlags,
         memoryPropertyFlags,

@@ -147,17 +147,20 @@ PhysicalDevice::SwapchainSupportDetails PhysicalDevice::querySwapChainSupport(Vk
     return details;
 }
 
-// uint32_t PhysicalDevice::FindMemoryType(uint32_t typeFilter, VkMemoryPropertyFlags properties)
-// {
-//     for (uint32_t i = 0; i < memoryProperties.memoryTypeCount; i++) 
-//     {
-//         if ((typeFilter & (1 << i)) && 
-//             (memoryProperties.memoryTypes[i].propertyFlags & properties) == properties)
-//             return i;
-//     }
+uint32_t PhysicalDevice::FindMemoryType(uint32_t typeFilter, VkMemoryPropertyFlags properties) const
+{
+    VkPhysicalDeviceMemoryProperties memProperties;
+    vkGetPhysicalDeviceMemoryProperties(physicalDevice, &memProperties);
+    for (uint32_t i = 0; i < memProperties.memoryTypeCount; i++) 
+    {
+        if ((typeFilter & (1 << i)) && (memProperties.memoryTypes[i].propertyFlags & properties) == properties) 
+        {
+            return i;
+        }
+    }
 
-//     throw std::runtime_error("Failed to find suitable memory type!");
-// }
+    throw std::runtime_error("failed to find suitable memory type!");
+}
 
 // VkFormat PhysicalDevice::FindSupportedFormat(const std::vector<VkFormat> &candidates, VkImageTiling tiling, VkFormatFeatureFlags features) 
 // {

@@ -1,4 +1,6 @@
 #pragma once
+#include <memory>
+
 #include "backend/vulkan_backend.hpp"
 
 namespace graphics
@@ -22,9 +24,11 @@ private:
     friend class Graphics;
 };
 
-// Construct in data/bss after main starts rather than before
-inline GraphicsData& graphicsData = []() -> GraphicsData& {
-    static GraphicsData instance;
-    return instance;
-}();
+extern std::unique_ptr<GraphicsData> graphicsData;
+// Failed attempt lol
+// // Construct in data/bss after main starts rather than before
+// GraphicsData& graphicsData = []() -> GraphicsData& {
+//     static GraphicsData instance;
+//     return instance;
+// }();
 } // namespace graphics
