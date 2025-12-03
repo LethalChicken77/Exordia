@@ -22,12 +22,6 @@ public:
     VkQueue GraphicsQueueHandle() { return graphicsQueue; }
     VkQueue PresentQueueHandle() { return presentQueue; }
 
-    /// @brief Creates a buffer and allocates memory for it
-    /// @param size Buffer size in bytes
-    /// @param usage Buffer usage flags
-    /// @param properties Buffer memory properties
-    /// @param buffer Location to store created buffer
-    /// @param bufferMemory Location to store allocated memory
     void CreateBuffer(
         VkDeviceSize size,
         VkBufferUsageFlags usage,

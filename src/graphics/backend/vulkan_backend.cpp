@@ -8,6 +8,7 @@
 #include "utils/debug.hpp"
 
 #include "backend_data.hpp"
+#define DEBUG
 
 namespace graphics::internal
 {

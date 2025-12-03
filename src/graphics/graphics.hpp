@@ -1,4 +1,6 @@
 #pragma once
+#include <memory>
+
 #include "backend/vulkan_backend.hpp"
 #include "graphics_data.hpp"
 

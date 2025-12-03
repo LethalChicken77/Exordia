@@ -18,6 +18,12 @@ void Device::cleanup()
         vkDestroyDevice(device, nullptr);
 }
 
+/// @brief Creates a buffer and allocates memory for it
+/// @param size Buffer size in bytes
+/// @param usage Buffer usage flags
+/// @param properties Buffer memory properties
+/// @param buffer Location to store created buffer
+/// @param bufferMemory Location to store allocated memory
 void Device::CreateBuffer(
     VkDeviceSize size,
     VkBufferUsageFlags usage,
