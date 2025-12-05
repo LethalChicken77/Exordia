@@ -40,6 +40,7 @@ public:
     VkResult Invalidate(VkDeviceSize size = VK_WHOLE_SIZE, VkDeviceSize offset = 0);
 
     void WriteToIndex(void* data, int index, uint32_t count = 1);
+    void ReadFromIndex(void* data, int index, uint32_t count = 1);
     VkResult FlushIndex(int index, uint32_t count = 1);
     VkDescriptorBufferInfo DescriptorInfoForIndex(int index, uint32_t count = 1);
     VkResult InvalidateIndex(int index, uint32_t count = 1);
@@ -48,7 +49,7 @@ public:
     void* GetDataStart() const { return bufferData; }
     uint32_t GetInstanceCount() const { return instanceCount; }
     VkDeviceSize GetInstanceSize() const { return instanceSize; }
-    VkDeviceSize GetAlignmentSize() const { return instanceSize; }
+    VkDeviceSize GetAlignmentSize() const { return alignmentSize; }
     VkBufferUsageFlags GetUsageFlags() const { return usageFlags; }
     VkMemoryPropertyFlags GetMemoryPropertyFlags() const { return memoryPropertyFlags; }
     VkDeviceSize GetBufferSize() const { return bufferSize; }
@@ -62,6 +63,7 @@ private:
     VkDeviceSize bufferSize;
     uint32_t instanceCount;
     VkDeviceSize instanceSize;
+    VkDeviceSize alignmentSize;
     
     VkBufferUsageFlags usageFlags;
     VkMemoryPropertyFlags memoryPropertyFlags;

@@ -13,27 +13,17 @@ namespace graphics
 /// @param memoryPropertyFlags Vulkan memory property flags
 /// @param minOffsetAlignment (Optional) Minimum offset alignment required by the device (default: 1)
 Buffer::Buffer(
-    VkDeviceSize instanceSize,
-    uint32_t instanceCount,
-    VkBufferUsageFlags usageFlags,
-    VkMemoryPropertyFlags memoryPropertyFlags,
-    VkDeviceSize minOffsetAlignment) : device(graphicsData->GetBackend().GetDevice())
-{
-    // Using 'this' to avoid confusion between parameter and member variable
-    this->instanceSize = getAlignment(instanceSize, minOffsetAlignment);
-    bufferSize = instanceSize * instanceCount;
-    this->instanceCount = instanceCount;
-    this->usageFlags = usageFlags;
-    this->memoryPropertyFlags = memoryPropertyFlags;
-
-    device.CreateBuffer(
-        bufferSize,
-        usageFlags,
-        memoryPropertyFlags,
-        buffer,
-        bufferMemory
-    );
-}
+    VkDeviceSize _instanceSize,
+    uint32_t _instanceCount,
+    VkBufferUsageFlags _usageFlags,
+    VkMemoryPropertyFlags _memoryPropertyFlags,
+    VkDeviceSize _minOffsetAlignment) : Buffer(
+        graphicsData->GetBackend().GetDevice(),
+        _instanceSize,
+        _instanceCount,
+        _usageFlags,
+        _memoryPropertyFlags,
+        _minOffsetAlignment) {}
 
 /// @brief Create buffer using specified device
 /// @param device Device to create buffer on
@@ -43,19 +33,22 @@ Buffer::Buffer(
 /// @param memoryPropertyFlags Vulkan memory property flags
 /// @param minOffsetAlignment (Optional) Minimum offset alignment required by the device
 Buffer::Buffer(
-    internal::Device &device,
-    VkDeviceSize instanceSize,
-    uint32_t instanceCount,
-    VkBufferUsageFlags usageFlags,
-    VkMemoryPropertyFlags memoryPropertyFlags,
-    VkDeviceSize minOffsetAlignment) : device(device)
+    internal::Device &_device,
+    VkDeviceSize _instanceSize,
+    uint32_t _instanceCount,
+    VkBufferUsageFlags _usageFlags,
+    VkMemoryPropertyFlags _memoryPropertyFlags,
+    VkDeviceSize _minOffsetAlignment) : device(_device)
 {
-    this->instanceSize = getAlignment(instanceSize, minOffsetAlignment);
-    bufferSize = instanceSize * instanceCount;
-    this->instanceCount = instanceCount;
-    this->usageFlags = usageFlags;
-    this->memoryPropertyFlags = memoryPropertyFlags;
-
+    instanceSize = _instanceSize;
+    instanceCount = _instanceCount;
+    alignmentSize = getAlignment(_instanceSize, _minOffsetAlignment);
+    bufferSize = alignmentSize * _instanceCount;
+    usageFlags = _usageFlags;
+    memoryPropertyFlags = _memoryPropertyFlags;
+    #ifdef DEBUG
+    Console::log(std::format("Creating buffer: instance size: {}, aligned size: {}, instance count: {}, total size: {}", _instanceSize, instanceSize, instanceCount, bufferSize), "Buffer");
+    #endif
     device.CreateBuffer(
         bufferSize,
         usageFlags,
@@ -136,7 +129,7 @@ void Buffer::WriteData(void* data, VkDeviceSize size, VkDeviceSize offset)
     }
     if(size + offset > bufferSize)
     {
-        Console::error(std::format("Write size exceeds buffer bounds (size: {}, offset: {}, size + offset: {} bufferSize: {})", size, offset, size + offset, bufferSize), "Buffer");
+        Console::error(std::format("Write size exceeds buffer bounds (size: {}, offset: {}, size + offset: {} buffer size: {})", size, offset, size + offset, instanceCount * instanceSize), "Buffer");
         return;
     }
     #endif
@@ -172,7 +165,7 @@ void Buffer::ReadData(void* resultData, VkDeviceSize size, VkDeviceSize offset)
     }
     if(size + offset > bufferSize)
     {
-        Console::error(std::format("Write size exceeds buffer bounds (size: {}, offset: {}, size + offset: {} bufferSize: {})", size, offset, size + offset, bufferSize), "Buffer");
+        Console::error(std::format("Write size exceeds buffer bounds (size: {}, offset: {}, size + offset: {} buffer size: {})", size, offset, size + offset, instanceCount * instanceSize), "Buffer");
         return;
     }
     #endif
@@ -237,6 +230,15 @@ VkResult Buffer::Invalidate(VkDeviceSize size, VkDeviceSize offset)
 void Buffer::WriteToIndex(void* data, int index, uint32_t count)
 {
     WriteData(data, instanceSize * count, index * instanceSize);
+}
+
+/// @brief Read data from the buffer at a specific index. Macro for ReadData.
+/// @param data Pointer to the data to read into
+/// @param index Index of the instance to read from
+/// @param count Size of output data in terms of instance size (default: 1)
+void Buffer::ReadFromIndex(void* data, int index, uint32_t count)
+{
+    ReadData(data, instanceSize * count, index * instanceSize);
 }
 
 /// @brief Flush a memory range of the buffer at a specific index. Macro for Flush.
