@@ -1,5 +1,4 @@
 #define WINDOWS_BUILD
-#define DEBUG
 
 #define IMGUI_IMPL_VULKAN_USE_VOLK
 

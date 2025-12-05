@@ -12,26 +12,30 @@ message(STATUS "Compiler version: ${CMAKE_CXX_COMPILER_VERSION}")
 set(CMAKE_CXX_STANDARD 23)
 set(CMAKE_CXX_STANDARD_REQUIRED True)
 
-# Set flags
-# set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -g")
-# set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -g")
-# set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -O3")# -ffast-math")
-# set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fsanitize=address")
-# set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -fsanitize=address")
-# set(ASAN_LIB_PATH "/ucrt64/lib/clang/20/lib/x86_64-w64-windows-gnu")
+set(CMAKE_BUILD_TYPE Debug) # Options: Debug, Release, RelWithDebInfo, MinSizeRel
 
+set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -fuse-ld=lld")
-add_compile_options(
-    -g
-    # -O3
-    # -flto # Link Time Optimization
-    # -ffast-math
-    -fno-caret-diagnostics
-    -fno-diagnostics-show-option
-    -fno-diagnostics-show-note-include-stack
-    -fcolor-diagnostics
-)
 
+if(CMAKE_BUILD_TYPE STREQUAL "Debug")
+    add_compile_options(
+        -g
+        -fno-caret-diagnostics
+        -fno-diagnostics-show-option
+        -fno-diagnostics-show-note-include-stack
+        -fcolor-diagnostics
+    )
+elseif(CMAKE_BUILD_TYPE STREQUAL "Release")
+    add_compile_options(
+        -O3
+        -flto # Link Time Optimization
+        -ffast-math
+        -fno-caret-diagnostics
+        -fno-diagnostics-show-option
+        -fno-diagnostics-show-note-include-stack
+        -fcolor-diagnostics
+    )
+endif()
 # set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -L${ASAN_LIB_PATH} -lclang_rt.asan_dynamic -lclang_rt.asan_dynamic_runtime_thunk")
 
 
@@ -108,6 +112,13 @@ target_include_directories(GameEngine PRIVATE "${CMAKE_SOURCE_DIR}/lib/stbimage"
 target_include_directories(GameEngine PRIVATE "${CMAKE_SOURCE_DIR}/lib/imgui-1.91.8")
 target_include_directories(GameEngine PRIVATE "${CMAKE_SOURCE_DIR}/lib/nativefiledialog-release_116/src/include")
 target_include_directories(GameEngine PRIVATE SYSTEM "${Vulkan_INCLUDE_DIRS}/slang")
+
+if(CMAKE_BUILD_TYPE STREQUAL "Debug")
+target_compile_definitions(GameEngine PRIVATE DEBUG)
+endif()
+target_compile_definitions(GameEngine PRIVATE GLFW_INCLUDE_NONE)
+# target_compile_definitions(GameEngine PRIVATE GRAPHICS_TESTS)
+# target_compile_definitions(GameEngine PRIVATE DISABLE_VALIDATION) # Disable validation checks for performance. Ensure correctness manually.
 
 # target_link_options(GameEngine PRIVATE
 #     -static-libstdc++

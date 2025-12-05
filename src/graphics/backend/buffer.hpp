@@ -2,6 +2,8 @@
 #include <vulkan/vulkan.h>
 
 #include "graphics/graphics_data.hpp"
+#define DEBUG // Enable debug logging
+// #define DISABLE_VALIDATION // Disable validation checks for performance. Ensure correctness manually.
 
 namespace graphics
 {
@@ -31,19 +33,19 @@ public:
     VkResult Map(VkDeviceSize size = VK_WHOLE_SIZE, VkDeviceSize offset = 0);
     void Unmap();
 
-    void WriteToBuffer(void* data, VkDeviceSize size = VK_WHOLE_SIZE, VkDeviceSize offset = 0);
-    void ReadFromBuffer(void* data, VkDeviceSize size = VK_WHOLE_SIZE, VkDeviceSize offset = 0);
+    void WriteData(void* data, VkDeviceSize size = VK_WHOLE_SIZE, VkDeviceSize offset = 0);
+    void ReadData(void* data, VkDeviceSize size = VK_WHOLE_SIZE, VkDeviceSize offset = 0);
     VkResult Flush(VkDeviceSize size = VK_WHOLE_SIZE, VkDeviceSize offset = 0);
     VkDescriptorBufferInfo DescriptorInfo(VkDeviceSize size = VK_WHOLE_SIZE, VkDeviceSize offset = 0);
     VkResult Invalidate(VkDeviceSize size = VK_WHOLE_SIZE, VkDeviceSize offset = 0);
 
-    void WriteToIndex(void* data, int index);
-    VkResult FlushIndex(int index);
-    VkDescriptorBufferInfo DescriptorInfoForIndex(int index);
-    VkResult InvalidateIndex(int index);
+    void WriteToIndex(void* data, int index, uint32_t count = 1);
+    VkResult FlushIndex(int index, uint32_t count = 1);
+    VkDescriptorBufferInfo DescriptorInfoForIndex(int index, uint32_t count = 1);
+    VkResult InvalidateIndex(int index, uint32_t count = 1);
 
     VkBuffer GetBuffer() const { return buffer; }
-    void* GetDataStart() const { return data; }
+    void* GetDataStart() const { return bufferData; }
     uint32_t GetInstanceCount() const { return instanceCount; }
     VkDeviceSize GetInstanceSize() const { return instanceSize; }
     VkDeviceSize GetAlignmentSize() const { return instanceSize; }
@@ -55,7 +57,7 @@ private:
 
     VkBuffer buffer;
     VkDeviceMemory bufferMemory;
-    void *data = nullptr;
+    void *bufferData = nullptr;
 
     VkDeviceSize bufferSize;
     uint32_t instanceCount;
@@ -66,6 +68,12 @@ private:
     
     static VkDeviceSize getAlignment(VkDeviceSize instanceSize, VkDeviceSize minOffsetAlignment);
 
+    // Helper functions
+
+    inline bool isCreated() const { return buffer != VK_NULL_HANDLE && bufferMemory != VK_NULL_HANDLE; }
+    inline bool isMapped() const { return bufferData != nullptr; }
+    inline bool isHostVisible() const { return (memoryPropertyFlags & VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT) != 0; }
+    inline bool isHostCoherent() const { return (memoryPropertyFlags & VK_MEMORY_PROPERTY_HOST_COHERENT_BIT) != 0; }
 };
 
 } // namespace graphics::internal

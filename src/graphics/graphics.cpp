@@ -3,6 +3,8 @@
 #include "utils/console.hpp"
 #include "backend/buffer.hpp"
 
+#include "graphics_tests.hpp"
+
 namespace graphics
 {
     std::unique_ptr<Buffer> testBuffer;
@@ -12,22 +14,10 @@ namespace graphics
         graphicsData = std::make_unique<GraphicsData>();
         graphicsData->window.Init(800, 600, engName + " - " + appName);
         graphicsData->backend.Init(appName, engName, graphicsData->GetGLFWWindow());
-
-        testBuffer = std::make_unique<Buffer>(
-            sizeof(float),
-            1024,
-            VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT,
-            VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT
-        );
-        Console::log("Test buffer created", "Graphics");
-        testBuffer->Map();
-        Console::log("Test buffer mapped", "Graphics");
-        testBuffer->Unmap();
-        Console::log("Test buffer unmapped", "Graphics");
-        testBuffer->Map();
-        Console::log("Test buffer mapped again", "Graphics");
-        testBuffer->Map();
-        Console::log("Test buffer mapped again (Should error)", "Graphics");
+        
+        #ifdef GRAPHICS_TESTS
+        tests::RunAllTests();
+        #endif
     }
 
     Graphics::~Graphics()
