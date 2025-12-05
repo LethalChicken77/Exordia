@@ -17,7 +17,8 @@ Buffer::Buffer(
     uint32_t _instanceCount,
     VkBufferUsageFlags _usageFlags,
     VkMemoryPropertyFlags _memoryPropertyFlags,
-    VkDeviceSize _minOffsetAlignment) : Buffer(
+    VkDeviceSize _minOffsetAlignment
+) : Buffer(
         graphicsData->GetBackend().GetDevice(),
         _instanceSize,
         _instanceCount,
@@ -60,10 +61,15 @@ Buffer::Buffer(
 
 Buffer::~Buffer() 
 {
+    #ifndef DISABLE_VALIDATION
     if(buffer != VK_NULL_HANDLE)
         vkDestroyBuffer(device.GetDevice(), buffer, nullptr);
     if(bufferMemory != VK_NULL_HANDLE)
         vkFreeMemory(device.GetDevice(), bufferMemory, nullptr);
+    #else
+    vkDestroyBuffer(device.GetDevice(), buffer, nullptr);
+    vkFreeMemory(device.GetDevice(), bufferMemory, nullptr);
+    #endif
 }
 
 /// @brief Assigns a memory range of the buffer to CPU accessible memory

@@ -25,28 +25,16 @@ public:
     void CreateBuffer(
         VkDeviceSize size,
         VkBufferUsageFlags usage,
-        VkMemoryPropertyFlags properties,
+        VkMemoryPropertyFlags memoryProperties,
         VkBuffer &buffer,
         VkDeviceMemory &bufferMemory);
 
-    /// @brief Creates an image and allocates memory for it
-    /// @param width 
-    /// @param height 
-    /// @param depth
-    /// @param format Type of data stored in the image
-    /// @param tiling Tiling arrangement of the image data
-    /// @param usage Usage flags for the image
-    /// @param properties Image memory properties
-    /// @param image Location to store created image
-    /// @param imageMemory Location to store allocated memory
     void CreateImage(
         uint32_t width,
         uint32_t height,
-        uint32_t depth, // For 3D images
-        VkFormat format,
-        VkImageTiling tiling,
-        VkImageUsageFlags usage,
-        VkMemoryPropertyFlags properties,
+        uint32_t depth,
+        VkImageCreateInfo &createInfo,
+        VkMemoryPropertyFlags memoryProperties,
         VkImage &image,
         VkDeviceMemory &imageMemory);
     

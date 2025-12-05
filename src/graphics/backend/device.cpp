@@ -27,7 +27,7 @@ void Device::cleanup()
 void Device::CreateBuffer(
     VkDeviceSize size,
     VkBufferUsageFlags usage,
-    VkMemoryPropertyFlags properties,
+    VkMemoryPropertyFlags memoryProperties,
     VkBuffer &buffer,
     VkDeviceMemory &bufferMemory)
 {
@@ -49,7 +49,7 @@ void Device::CreateBuffer(
     VkMemoryAllocateInfo allocInfo{};
     allocInfo.sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO;
     allocInfo.allocationSize = memRequirements.size;
-    allocInfo.memoryTypeIndex = pDevice->FindMemoryType(memRequirements.memoryTypeBits, properties);
+    allocInfo.memoryTypeIndex = pDevice->FindMemoryType(memRequirements.memoryTypeBits, memoryProperties);
 
     result = vkAllocateMemory(device, &allocInfo, nullptr, &bufferMemory);
     if(result != VK_SUCCESS) 
@@ -58,6 +58,46 @@ void Device::CreateBuffer(
     }
 
     vkBindBufferMemory(device, buffer, bufferMemory, 0);
+}
+
+/// @brief Create an image
+/// @param width X/U dimension
+/// @param height Y/V dimension
+/// @param depth Z/W dimension
+/// @param createInfo Vulkan image creation info
+/// @param image Location to store created image
+/// @param imageMemory Location to store allocated memory
+void Device::CreateImage(
+    uint32_t width,
+    uint32_t height,
+    uint32_t depth,
+    VkImageCreateInfo &createInfo,
+    VkMemoryPropertyFlags memoryProperties,
+    VkImage &image,
+    VkDeviceMemory &imageMemory)
+{
+    if(vkCreateImage(device, &createInfo, nullptr, &image) != VK_SUCCESS)
+    {
+        throw std::runtime_error("Failed to create image");
+    }
+
+    VkMemoryRequirements memRequirements;
+    vkGetImageMemoryRequirements(device, image, &memRequirements);
+
+    VkMemoryAllocateInfo allocInfo{};
+    allocInfo.sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO;
+    allocInfo.allocationSize = memRequirements.size;
+    allocInfo.memoryTypeIndex = pDevice->FindMemoryType(memRequirements.memoryTypeBits, memoryProperties);
+
+    if(vkAllocateMemory(device, &allocInfo, nullptr, &imageMemory) != VK_SUCCESS)
+    {
+        throw std::runtime_error("Failed to allocate image memory");
+    }
+
+    if(vkBindImageMemory(device, image, imageMemory, 0) != VK_SUCCESS)
+    {
+        throw std::runtime_error("Failed to bind image memory");
+    }
 }
 
 VkCommandBuffer Device::BeginSingleTimeCommands()

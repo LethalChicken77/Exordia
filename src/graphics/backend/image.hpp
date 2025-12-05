@@ -1,7 +1,9 @@
 #pragma once
 #include <vulkan/vulkan.h>
 
-namespace graphics::internal
+#include "vulkan_backend.hpp"
+
+namespace graphics
 {
 
 struct ImageProperties
@@ -11,11 +13,11 @@ struct ImageProperties
     VkImageUsageFlags usage;
     VkImageType imageType;
     VkImageViewType imageViewType;
-    VkImageLayout finalLayout;
     VkSampleCountFlagBits sampleCount;
+    uint32_t mipLevels;
+    uint32_t arrayLayers;
     VkSharingMode sharingMode;
     VkImageSubresourceRange imageSubResourceRange;
-    VkMemoryPropertyFlags memoryProperties;
 
     static ImageProperties getDefaultProperties()
     {
@@ -25,8 +27,9 @@ struct ImageProperties
             VK_IMAGE_USAGE_TRANSFER_DST_BIT | VK_IMAGE_USAGE_SAMPLED_BIT,
             VK_IMAGE_TYPE_2D,
             VK_IMAGE_VIEW_TYPE_2D,
-            VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL,
             VK_SAMPLE_COUNT_1_BIT,
+            1,
+            1,
             VK_SHARING_MODE_EXCLUSIVE,
             {
                 VK_IMAGE_ASPECT_COLOR_BIT,
@@ -34,8 +37,7 @@ struct ImageProperties
                 1,
                 0,
                 1
-            },
-            VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT
+            }
         };
     }
 };
@@ -43,16 +45,67 @@ struct ImageProperties
 class Image
 {
 public:
-    Image() = default;
-    ~Image() = default;
+    Image(
+        VkDeviceSize width,
+        VkDeviceSize height,
+        const ImageProperties &properties = ImageProperties::getDefaultProperties(),
+        VkMemoryPropertyFlags memoryProperties = VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT
+    );
+    Image(
+        internal::Device &device,
+        VkDeviceSize width,
+        VkDeviceSize height,
+        const ImageProperties &properties = ImageProperties::getDefaultProperties(),
+        VkMemoryPropertyFlags memoryProperties = VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT
+    );
+    Image(
+        VkDeviceSize width,
+        VkDeviceSize height,
+        VkDeviceSize depth,
+        const ImageProperties &properties = ImageProperties::getDefaultProperties(),
+        VkMemoryPropertyFlags memoryProperties = VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT
+    );
+    Image(
+        internal::Device &device,
+        VkDeviceSize width,
+        VkDeviceSize height,
+        VkDeviceSize depth,
+        const ImageProperties &properties = ImageProperties::getDefaultProperties(),
+        VkMemoryPropertyFlags memoryProperties = VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT
+    );
+    ~Image();
 
     Image(const Image&) = delete;
     Image& operator=(const Image&) = delete;
 
+    /// @brief Get Vulkan descriptor for this image. Does not include a sampler.
+    /// @return Vulkan descriptor image info
+    VkDescriptorImageInfo GetDescriptorInfo() const
+    {
+        VkDescriptorImageInfo imageInfo{};
+        imageInfo.imageLayout = finalLayout;
+        imageInfo.imageView = imageView;
+        imageInfo.sampler = VK_NULL_HANDLE;
+        return imageInfo;
+    }
 private:
-    ImageProperties properties;
-    VkImage image;
-    VkDeviceMemory imageMemory;
-    VkImageView imageView;
+    internal::Device &device;
+
+    VkImage image = VK_NULL_HANDLE;
+    VkImageView imageView = VK_NULL_HANDLE;
+    VkDeviceMemory imageMemory = VK_NULL_HANDLE;
+
+    ImageProperties properties = ImageProperties::getDefaultProperties();
+    VkImageLayout currentLayout = VK_IMAGE_LAYOUT_UNDEFINED;
+    VkImageLayout finalLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
+    VkMemoryPropertyFlags memoryPropertyFlags{};
+
+    VkDeviceSize width = 0;
+    VkDeviceSize height = 0;
+    VkDeviceSize depth = 0;
+
+    void createImage();
+    void createImageView();
+    void copyDataToImage();
 };
 } // namespace graphics::internal

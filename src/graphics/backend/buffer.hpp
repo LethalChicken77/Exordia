@@ -2,7 +2,6 @@
 #include <vulkan/vulkan.h>
 
 #include "graphics/graphics_data.hpp"
-#define DEBUG // Enable debug logging
 // #define DISABLE_VALIDATION // Disable validation checks for performance. Ensure correctness manually.
 
 namespace graphics
