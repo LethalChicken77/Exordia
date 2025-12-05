@@ -22,6 +22,8 @@ namespace graphics
             graphics::ImageProperties::getDefaultProperties(),
             VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT
         );
+
+        Console::warn("Graphics module initialized", "Graphics");
     }
 
     Graphics::~Graphics()

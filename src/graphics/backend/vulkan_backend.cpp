@@ -8,7 +8,6 @@
 #include "utils/debug.hpp"
 
 #include "backend_data.hpp"
-#define DEBUG
 
 namespace graphics::internal
 {
@@ -79,7 +78,7 @@ void VulkanBackend::createInstance()
 {
     if (enableValidationLayers && !checkValidationLayerSupport()) 
     {
-        throw std::runtime_error("validation layers requested, but not available!");
+        throw std::runtime_error("Validation layers requested, but not available!");
     }
 
     VkApplicationInfo appInfo = {};
@@ -113,7 +112,7 @@ void VulkanBackend::createInstance()
     }
 
     if (vkCreateInstance(&createInfo, nullptr, &instance) != VK_SUCCESS) {
-        throw std::runtime_error("failed to create instance!");
+        throw std::runtime_error("Failed to create instance!");
     }
 
     if(!hasGflwRequiredInstanceExtensions()){
@@ -178,7 +177,7 @@ void VulkanBackend::setupDebugMessenger()
     createInfo.pUserData = nullptr;  // Optional
 
     if (createDebugUtilsMessengerEXT(instance, &createInfo, nullptr, &debugMessenger) != VK_SUCCESS) {
-        throw std::runtime_error("failed to set up debug messenger!");
+        throw std::runtime_error("Failed to set up debug messenger!");
     }
 }
 
@@ -222,19 +221,19 @@ bool VulkanBackend::hasGflwRequiredInstanceExtensions()
     std::vector<VkExtensionProperties> extensions(extensionCount);
     vkEnumerateInstanceExtensionProperties(nullptr, &extensionCount, extensions.data());
 
-    Console::log("Available extensions:", "GraphicsBackend");
+    Console::log("Available extensions:", "VulkanBackend");
     std::unordered_set<std::string> availableExtensions;
     for (const VkExtensionProperties &extension : extensions) 
     {
-        Console::log("\t" + std::string(extension.extensionName), "GraphicsBackend");
+        Console::log("\t" + std::string(extension.extensionName));
         availableExtensions.insert(extension.extensionName);
     }
 
-    Console::log("Required extensions:", "GraphicsBackend");
+    Console::log("Required extensions:", "VulkanBackend");
     auto requiredExtensions = getRequiredExtensions();
     for (const char* &required : requiredExtensions) 
     {
-        Console::log("\t" + std::string(required), "GraphicsBackend");
+        Console::log("\t" + std::string(required));
         if (availableExtensions.find(required) == availableExtensions.end()) 
         {
             return false;

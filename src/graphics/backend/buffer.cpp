@@ -48,7 +48,7 @@ Buffer::Buffer(
     usageFlags = _usageFlags;
     memoryPropertyFlags = _memoryPropertyFlags;
     #ifdef DEBUG
-    Console::log(std::format("Creating buffer: instance size: {}, aligned size: {}, instance count: {}, total size: {}", _instanceSize, instanceSize, instanceCount, bufferSize), "Buffer");
+    Console::debug(std::format("Creating buffer: instance size: {}, aligned size: {}, instance count: {}, total size: {}", _instanceSize, instanceSize, instanceCount, bufferSize), "Buffer");
     #endif
     device.CreateBuffer(
         bufferSize,

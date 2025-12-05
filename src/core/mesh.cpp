@@ -485,7 +485,9 @@ Mesh Mesh::loadObj(const std::string& filename, const std::string& objectName)
         }
     }
 
-    std::cout << "Loaded " << vertices.size() << " vertices and " << triangles.size() << " triangles\n";
+    #ifdef DEBUG
+    Console::debug(std::format("Loaded {} vertices and {} triangles from OBJ file {}", vertices.size(), triangles.size(), filename), "Mesh");
+    #endif
 
     Mesh mesh(vertices, triangles, objectName);
     mesh.generateTangents(); // Not included in OBJ, so we must generate them

@@ -5,7 +5,7 @@ namespace core
 {
 void Scene_t::loadScene()
 {
-    std::cout << "Loading scene" << std::endl;
+    Console::log("Loading scene: " + name, "Scene");
     // Original vertex buffer testing code, must keep
     // Triangle
     // std::vector<GraphicsMesh::Vertex> vertices {
@@ -47,7 +47,7 @@ void Scene_t::loadScene()
     gameObjects.push_back(std::move(obj));
     gameObjects.push_back(std::move(obj2));
     gameObjects.push_back(std::move(obj3));
-    std::cout << "Loaded game objects" << std::endl;
+    Console::log("Scene loaded with " + std::to_string(gameObjects.size()) + " game objects.", "Scene");
 }
 
 void Scene_t::update(double deltaTime)

@@ -13,7 +13,7 @@ Console::ConsoleMessage Console::constructMessage(const string& message, const s
     string result = "";
     if(source != "")
     {
-        result += "[" + source + "] ";
+        result += "<" + source + "> - ";
     }
     result += message;
     ConsoleMessage newMessage{result, type};
@@ -40,7 +40,7 @@ void Console::logRaw(const string& message, bool terminalOnly)
 void Console::log(const string& message, const string& source, bool terminalOnly)
 {
     ConsoleMessage newMessage = constructMessage(message, source, ConsoleMessage::INFO);
-    cout << ANSIgray << "[INFO] " << ANSIreset << newMessage.message << consoleEndl; // Print to standard output
+    cout << ANSIgray << "[INFO]\t" << ANSIreset << newMessage.message << consoleEndl; // Print to standard output
     if(!terminalOnly)
         pushMessage(newMessage);
 }
@@ -48,7 +48,7 @@ void Console::log(const string& message, const string& source, bool terminalOnly
 void Console::debug(const string& message, const string& source, bool terminalOnly)
 {
     ConsoleMessage newMessage = constructMessage(message, source, ConsoleMessage::DEBUG_T);
-    cout << "[DEBUG] " << newMessage.message << consoleEndl; // Print to standard output
+    cout << ANSIgreen << "[DEBUG]\t" << ANSIreset << newMessage.message << consoleEndl; // Print to standard output
     if(!terminalOnly)
         pushMessage(newMessage);
 }
@@ -64,7 +64,7 @@ void Console::warn(const string& message, const string& source, bool terminalOnl
 void Console::error(const string& message, const string& source, bool terminalOnly)
 {
     ConsoleMessage newMessage = constructMessage(message, source, ConsoleMessage::ERROR);
-    cout << ANSIred << "[ERROR] " << ANSIreset << newMessage.message << endl; // Print to standard output
+    cout << ANSIred << "[ERROR]\t" << ANSIreset << newMessage.message << endl; // Print to standard output
     if(!terminalOnly)
         pushMessage(newMessage);
 }
@@ -130,7 +130,7 @@ void Console::drawImGui()
                     break;
 
                 case ConsoleMessage::DEBUG_T:
-                    ImGui::TextColored(ImVec4(1,1,1,1), "[DEBUG]");
+                    ImGui::TextColored(ImVec4(0,1,0,1), "[DEBUG]");
                     ImGui::SameLine();
                     break;
                 

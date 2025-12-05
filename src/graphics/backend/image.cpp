@@ -63,7 +63,7 @@ Image::Image(
     memoryPropertyFlags = _memoryProperties;
 
     #ifdef DEBUG
-    Console::log(std::format("Creating image: width: {}, height: {}, depth: {}", _width, _height, _depth), "Image");
+    Console::debug(std::format("Creating image: width: {}, height: {}, depth: {}", _width, _height, _depth), "Image");
     #endif
 
     createImage();

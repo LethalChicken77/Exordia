@@ -38,4 +38,5 @@ class Console
         static constexpr std::string ANSIred = "\033[31m";
         static constexpr std::string ANSIyellow = "\033[33m";
         static constexpr std::string ANSIgray = "\033[90m";
+        static constexpr std::string ANSIgreen = "\033[32m";
 };
