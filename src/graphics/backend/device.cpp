@@ -1,3 +1,6 @@
+#define VMA_IMPLEMENTATION
+#include <vma/vk_mem_alloc.h>
+
 #include <set>
 #include <stdexcept>
 
@@ -10,94 +13,16 @@
 namespace graphics::internal
 {
 
+Device::Device(const PhysicalDevice *_pDevice) : pDevice(_pDevice){}
+
 void Device::cleanup()
 {
+    if(allocator != VK_NULL_HANDLE)
+        vmaDestroyAllocator(allocator);
     if(commandPool != VK_NULL_HANDLE)
         vkDestroyCommandPool(device, commandPool, nullptr);
     if(device != VK_NULL_HANDLE)
         vkDestroyDevice(device, nullptr);
-}
-
-/// @brief Creates a buffer and allocates memory for it
-/// @param size Buffer size in bytes
-/// @param usage Buffer usage flags
-/// @param properties Buffer memory properties
-/// @param buffer Location to store created buffer
-/// @param bufferMemory Location to store allocated memory
-void Device::CreateBuffer(
-    VkDeviceSize size,
-    VkBufferUsageFlags usage,
-    VkMemoryPropertyFlags memoryProperties,
-    VkBuffer &buffer,
-    VkDeviceMemory &bufferMemory)
-{
-    VkBufferCreateInfo bufferInfo{};
-    bufferInfo.sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO;
-    bufferInfo.size = size;
-    bufferInfo.usage = usage;
-    bufferInfo.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
-
-    VkResult result = vkCreateBuffer(device, &bufferInfo, nullptr, &buffer);
-    if(result != VK_SUCCESS) 
-    {
-        throw std::runtime_error("Failed to create buffer: " + Debug::VkResultToString(result));
-    }
-
-    VkMemoryRequirements memRequirements;
-    vkGetBufferMemoryRequirements(device, buffer, &memRequirements);
-
-    VkMemoryAllocateInfo allocInfo{};
-    allocInfo.sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO;
-    allocInfo.allocationSize = memRequirements.size;
-    allocInfo.memoryTypeIndex = pDevice->FindMemoryType(memRequirements.memoryTypeBits, memoryProperties);
-
-    result = vkAllocateMemory(device, &allocInfo, nullptr, &bufferMemory);
-    if(result != VK_SUCCESS) 
-    {
-        throw std::runtime_error("Failed to allocate buffer memory: " + Debug::VkResultToString(result));
-    }
-
-    vkBindBufferMemory(device, buffer, bufferMemory, 0);
-}
-
-/// @brief Create an image
-/// @param width X/U dimension
-/// @param height Y/V dimension
-/// @param depth Z/W dimension
-/// @param createInfo Vulkan image creation info
-/// @param image Location to store created image
-/// @param imageMemory Location to store allocated memory
-void Device::CreateImage(
-    uint32_t width,
-    uint32_t height,
-    uint32_t depth,
-    VkImageCreateInfo &createInfo,
-    VkMemoryPropertyFlags memoryProperties,
-    VkImage &image,
-    VkDeviceMemory &imageMemory)
-{
-    if(vkCreateImage(device, &createInfo, nullptr, &image) != VK_SUCCESS)
-    {
-        throw std::runtime_error("Failed to create image");
-    }
-
-    VkMemoryRequirements memRequirements;
-    vkGetImageMemoryRequirements(device, image, &memRequirements);
-
-    VkMemoryAllocateInfo allocInfo{};
-    allocInfo.sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO;
-    allocInfo.allocationSize = memRequirements.size;
-    allocInfo.memoryTypeIndex = pDevice->FindMemoryType(memRequirements.memoryTypeBits, memoryProperties);
-
-    if(vkAllocateMemory(device, &allocInfo, nullptr, &imageMemory) != VK_SUCCESS)
-    {
-        throw std::runtime_error("Failed to allocate image memory");
-    }
-
-    if(vkBindImageMemory(device, image, imageMemory, 0) != VK_SUCCESS)
-    {
-        throw std::runtime_error("Failed to bind image memory");
-    }
 }
 
 VkCommandBuffer Device::BeginSingleTimeCommands()
@@ -187,7 +112,7 @@ void Device::createLogicalDevice(const PhysicalDevice &physicalDevice, bool enab
     }
 
     if (vkCreateDevice(pDevice->GetPhysicalDevice(), &createInfo, nullptr, &device) != VK_SUCCESS) {
-        throw std::runtime_error("failed to create logical device!");
+        throw std::runtime_error("Failed to create logical device");
     }
 
     vkGetDeviceQueue(device, indices.graphicsFamily, 0, &graphicsQueue);
@@ -205,7 +130,20 @@ void Device::createCommandPool()
 
     if (vkCreateCommandPool(device, &poolInfo, nullptr, &commandPool) != VK_SUCCESS) 
     {
-        throw std::runtime_error("failed to create command pool!");
+        throw std::runtime_error("Failed to create command pool");
+    }
+}
+
+void Device::createAllocator(VkInstance &instance)
+{
+    VmaAllocatorCreateInfo allocatorInfo = {};
+    allocatorInfo.physicalDevice = pDevice->GetPhysicalDevice();
+    allocatorInfo.device = device;
+    allocatorInfo.instance = instance;
+
+    if (vmaCreateAllocator(&allocatorInfo, &allocator) != VK_SUCCESS) 
+    {
+        throw std::runtime_error("Failed to create VMA allocator");
     }
 }
 } // namespace graphics::internal

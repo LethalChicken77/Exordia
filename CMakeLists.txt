@@ -100,6 +100,7 @@ file(GLOB_RECURSE SOURCES
     "${CMAKE_SOURCE_DIR}/src/*.hpp"
     "${CMAKE_SOURCE_DIR}/src/*.c"
     "${CMAKE_SOURCE_DIR}/src/*.h"
+    ${Vulkan_INCLUDE_DIRS}/vma/vk_mem_alloc.h
 )
 
 # Add executable
@@ -112,12 +113,13 @@ target_include_directories(GameEngine PRIVATE "${CMAKE_SOURCE_DIR}/lib/stbimage"
 target_include_directories(GameEngine PRIVATE "${CMAKE_SOURCE_DIR}/lib/imgui-1.91.8")
 target_include_directories(GameEngine PRIVATE "${CMAKE_SOURCE_DIR}/lib/nativefiledialog-release_116/src/include")
 target_include_directories(GameEngine PRIVATE SYSTEM "${Vulkan_INCLUDE_DIRS}/slang")
+# target_include_directories(GameEngine PRIVATE "${Vulkan_INCLUDE_DIRS}/vma")
 
 if(CMAKE_BUILD_TYPE STREQUAL "Debug")
 target_compile_definitions(GameEngine PRIVATE DEBUG)
 endif()
 target_compile_definitions(GameEngine PRIVATE GLFW_INCLUDE_NONE)
-# target_compile_definitions(GameEngine PRIVATE GRAPHICS_TESTS)
+target_compile_definitions(GameEngine PRIVATE GRAPHICS_TESTS)
 # target_compile_definitions(GameEngine PRIVATE DISABLE_VALIDATION) # Disable validation checks for performance. Ensure correctness manually.
 
 # target_link_options(GameEngine PRIVATE

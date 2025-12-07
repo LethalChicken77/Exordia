@@ -124,6 +124,7 @@ void VulkanBackend::createDevice()
 {
     device.createLogicalDevice(physicalDevice, enableValidationLayers);
     device.createCommandPool();
+    device.createAllocator(instance);
 }
 
 // Debug stuff

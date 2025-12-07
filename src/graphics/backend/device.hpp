@@ -11,7 +11,7 @@ class VulkanBackend;
 class Device
 {
 public:
-    Device(const PhysicalDevice *_pDevice) : pDevice(_pDevice) {}
+    Device(const PhysicalDevice *_pDevice);
     ~Device() = default;
     Device(const Device&) = delete;
     Device& operator=(const Device&) = delete;
@@ -21,22 +21,6 @@ public:
     const VkDevice &GetDevice() { return device; }
     VkQueue GraphicsQueueHandle() { return graphicsQueue; }
     VkQueue PresentQueueHandle() { return presentQueue; }
-
-    void CreateBuffer(
-        VkDeviceSize size,
-        VkBufferUsageFlags usage,
-        VkMemoryPropertyFlags memoryProperties,
-        VkBuffer &buffer,
-        VkDeviceMemory &bufferMemory);
-
-    void CreateImage(
-        uint32_t width,
-        uint32_t height,
-        uint32_t depth,
-        VkImageCreateInfo &createInfo,
-        VkMemoryPropertyFlags memoryProperties,
-        VkImage &image,
-        VkDeviceMemory &imageMemory);
     
     // Utilities
 
@@ -49,6 +33,8 @@ public:
     /// @brief End temporary command buffer
     /// @param commandBuffer Temporary command buffer to end
     void EndSingleTimeCommands(VkCommandBuffer commandBuffer);
+
+    const VmaAllocator &GetAllocator() const { return allocator; }
 private:
     VkDevice device;
     VkQueue graphicsQueue;
@@ -60,6 +46,7 @@ private:
     const PhysicalDevice *pDevice;
     void createLogicalDevice(const PhysicalDevice &physicalDevice, bool enableValidationLayers);
     void createCommandPool();
+    void createAllocator(VkInstance &instance);
     
     void cleanup();
 

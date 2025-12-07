@@ -13,7 +13,7 @@ Console::ConsoleMessage Console::constructMessage(const string& message, const s
     string result = "";
     if(source != "")
     {
-        result += "<" + source + "> - ";
+        result += "[" + source + "] - ";
     }
     result += message;
     ConsoleMessage newMessage{result, type};

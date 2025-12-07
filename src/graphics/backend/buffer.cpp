@@ -10,20 +10,19 @@ namespace graphics
 /// @param instanceSize Size of each instance in the buffer
 /// @param instanceCount Number of instances in the buffer
 /// @param usageFlags Vulkan buffer usage flags
-/// @param memoryPropertyFlags Vulkan memory property flags
 /// @param minOffsetAlignment (Optional) Minimum offset alignment required by the device (default: 1)
 Buffer::Buffer(
     VkDeviceSize _instanceSize,
     uint32_t _instanceCount,
     VkBufferUsageFlags _usageFlags,
-    VkMemoryPropertyFlags _memoryPropertyFlags,
+    VkMemoryPropertyFlags requiredMemoryProperties,
     VkDeviceSize _minOffsetAlignment
 ) : Buffer(
         graphicsData->GetBackend().GetDevice(),
         _instanceSize,
         _instanceCount,
         _usageFlags,
-        _memoryPropertyFlags,
+        requiredMemoryProperties,
         _minOffsetAlignment) {}
 
 /// @brief Create buffer using specified device
@@ -31,14 +30,13 @@ Buffer::Buffer(
 /// @param instanceSize Size of each instance in the buffer
 /// @param instanceCount Number of instances in the buffer
 /// @param usageFlags Vulkan buffer usage flags
-/// @param memoryPropertyFlags Vulkan memory property flags
 /// @param minOffsetAlignment (Optional) Minimum offset alignment required by the device
 Buffer::Buffer(
     internal::Device &_device,
     VkDeviceSize _instanceSize,
     uint32_t _instanceCount,
     VkBufferUsageFlags _usageFlags,
-    VkMemoryPropertyFlags _memoryPropertyFlags,
+    VkMemoryPropertyFlags requiredMemoryProperties,
     VkDeviceSize _minOffsetAlignment) : device(_device)
 {
     instanceSize = _instanceSize;
@@ -46,29 +44,33 @@ Buffer::Buffer(
     alignmentSize = getAlignment(_instanceSize, _minOffsetAlignment);
     bufferSize = alignmentSize * _instanceCount;
     usageFlags = _usageFlags;
-    memoryPropertyFlags = _memoryPropertyFlags;
     #ifdef DEBUG
     Console::debug(std::format("Creating buffer: instance size: {}, aligned size: {}, instance count: {}, total size: {}", _instanceSize, instanceSize, instanceCount, bufferSize), "Buffer");
     #endif
-    device.CreateBuffer(
-        bufferSize,
-        usageFlags,
-        memoryPropertyFlags,
-        buffer,
-        bufferMemory
-    );
+    
+    VkBufferCreateInfo bufferInfo{};
+    bufferInfo.sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO;
+    bufferInfo.size = bufferSize;
+    bufferInfo.usage = usageFlags;
+    bufferInfo.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
+    
+    VmaAllocationCreateInfo allocCreateInfo = {};
+    allocCreateInfo.flags = VMA_ALLOCATION_CREATE_HOST_ACCESS_RANDOM_BIT;
+    allocCreateInfo.usage = VMA_MEMORY_USAGE_AUTO;
+    allocCreateInfo.requiredFlags = requiredMemoryProperties;
+
+    VkResult result = vmaCreateBuffer(device.GetAllocator(), &bufferInfo, &allocCreateInfo, &buffer, &bufferAllocation, &bufferAllocationInfo);
 }
 
 Buffer::~Buffer() 
 {
+    Console::log("Destroying buffer", "Buffer");
     #ifndef DISABLE_VALIDATION
-    if(buffer != VK_NULL_HANDLE)
-        vkDestroyBuffer(device.GetDevice(), buffer, nullptr);
-    if(bufferMemory != VK_NULL_HANDLE)
-        vkFreeMemory(device.GetDevice(), bufferMemory, nullptr);
+    Unmap();
+    if(bufferAllocation != VK_NULL_HANDLE)
+        vmaDestroyBuffer(device.GetAllocator(), buffer, bufferAllocation);
     #else
-    vkDestroyBuffer(device.GetDevice(), buffer, nullptr);
-    vkFreeMemory(device.GetDevice(), bufferMemory, nullptr);
+    vmaDestroyBuffer(device.GetAllocator(), buffer, bufferAllocation);
     #endif
 }
 
@@ -78,29 +80,13 @@ Buffer::~Buffer()
 /// @return Status of the map call
 VkResult Buffer::Map(VkDeviceSize size, VkDeviceSize offset)
 {
-    #ifndef DISABLE_VALIDATION
-    if(!isCreated())
-    {
-        Console::error("Buffer must be created before mapping", "Buffer");
-        return VK_ERROR_UNKNOWN;
-    }
-    if(isMapped())
-    {
-        Console::warn("Buffer is already mapped", "Buffer");
-        return VK_ERROR_UNKNOWN;
-    }
-    if(!isHostVisible())
-    {
-        Console::error("Buffer memory is not host visible and cannot be mapped", "Buffer");
-        return VK_ERROR_UNKNOWN;
-    }
-    #endif
-
-    VkResult result = vkMapMemory(device.GetDevice(), bufferMemory, offset, size, 0, &bufferData);
+    void* tempData = nullptr;
+    VkResult result = vmaMapMemory(device.GetAllocator(), bufferAllocation, &tempData);
+    bufferAllocationInfo.pMappedData = tempData;
     #ifdef DEBUG
     if(result != VK_SUCCESS)
     {
-        Console::error(std::format("Failed to map buffer memory: ", Debug::VkResultToString(result)), "Buffer");
+        Console::error(std::format("Failed to map buffer memory: {}", Debug::VkResultToString(result)), "Buffer");
     }
     #endif
     return result;
@@ -109,10 +95,10 @@ VkResult Buffer::Map(VkDeviceSize size, VkDeviceSize offset)
 /// @brief Unmaps a previously mapped memory range
 void Buffer::Unmap() 
 {
-    if(bufferData) 
+    if(bufferAllocationInfo.pMappedData) 
     {
-        vkUnmapMemory(device.GetDevice(), bufferMemory);
-        bufferData = nullptr;
+        vmaUnmapMemory(device.GetAllocator(), bufferAllocation);
+        bufferAllocationInfo.pMappedData = nullptr;
     }
 }
 
@@ -142,11 +128,11 @@ void Buffer::WriteData(void* data, VkDeviceSize size, VkDeviceSize offset)
 
     if (size == VK_WHOLE_SIZE) 
     {
-        memcpy(bufferData, data, bufferSize);
+        memcpy(bufferAllocationInfo.pMappedData, data, bufferSize);
     } 
     else 
     {
-        char *memOffset = (char *)bufferData;
+        char *memOffset = (char *)bufferAllocationInfo.pMappedData;
         memOffset += offset;
         memcpy(memOffset, data, size);
     }
@@ -178,11 +164,11 @@ void Buffer::ReadData(void* resultData, VkDeviceSize size, VkDeviceSize offset)
 
     if (size == VK_WHOLE_SIZE) 
     {
-        memcpy(resultData, bufferData, bufferSize);
+        memcpy(resultData, bufferAllocationInfo.pMappedData, bufferSize);
     } 
     else 
     {
-        char *memOffset = (char *)bufferData;
+        char *memOffset = (char *)bufferAllocationInfo.pMappedData;
         memOffset += offset;
         memcpy(resultData, memOffset, size);
     }
@@ -193,13 +179,8 @@ void Buffer::ReadData(void* resultData, VkDeviceSize size, VkDeviceSize offset)
 /// @param offset Offset in bytes from beginning (default: 0)
 /// @return Status of the flush call
 VkResult Buffer::Flush(VkDeviceSize size, VkDeviceSize offset)
-{
-    VkMappedMemoryRange mappedRange{};
-    mappedRange.sType = VK_STRUCTURE_TYPE_MAPPED_MEMORY_RANGE;
-    mappedRange.memory = bufferMemory;
-    mappedRange.offset = offset;
-    mappedRange.size = size;
-    return vkFlushMappedMemoryRanges(device.GetDevice(), 1, &mappedRange);
+{    
+    return vmaFlushAllocation(device.GetAllocator(), bufferAllocation, offset, size);
 }
 
 /// @brief Get the descriptor info for the buffer
@@ -221,12 +202,7 @@ VkDescriptorBufferInfo Buffer::DescriptorInfo(VkDeviceSize size, VkDeviceSize of
 /// @return Result of the invalidate call
 VkResult Buffer::Invalidate(VkDeviceSize size, VkDeviceSize offset)
 {
-    VkMappedMemoryRange mappedRange{};
-    mappedRange.sType = VK_STRUCTURE_TYPE_MAPPED_MEMORY_RANGE;
-    mappedRange.memory = bufferMemory;
-    mappedRange.offset = offset;
-    mappedRange.size = size;
-    return vkInvalidateMappedMemoryRanges(device.GetDevice(), 1, &mappedRange);
+    return vmaInvalidateAllocation(device.GetAllocator(), bufferAllocation, offset, size);
 }
 
 /// @brief Write data to the buffer at a specific index. Macro for WriteData.

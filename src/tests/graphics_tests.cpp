@@ -3,7 +3,7 @@
 #include <memory>
 #include "graphics_tests.hpp"
 #include "graphics/graphics_data.hpp"
-#include "backend/buffer.hpp"
+#include "graphics/backend/buffer.hpp"
 #include "utils/console.hpp"
 #include "utils/debug.hpp"
 namespace graphics::tests
@@ -58,6 +58,12 @@ namespace graphics::tests
 
     void BasicBufferTest()
     {
+        testBuffer = std::make_unique<Buffer>(
+            sizeof(float),
+            4,
+            VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT,
+            VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT
+        );
         Console::log("Test buffer created", "Graphics");
         testBuffer->Map();
         Console::log("Test buffer mapped", "Graphics");
@@ -82,12 +88,14 @@ namespace graphics::tests
 
         testBuffer->Unmap();
         Console::log("Test buffer unmapped", "Graphics");
+        testBuffer.reset();
     }
 
     void RunAllTests()
     {
-        TestBufferCreation();
-        TestBufferMapping();
+        // TestBufferCreation();
+        // TestBufferMapping();
+        BasicBufferTest();
     }
 }
 
