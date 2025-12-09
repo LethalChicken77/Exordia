@@ -1,7 +1,5 @@
 #define WINDOWS_BUILD
 
-#define IMGUI_IMPL_VULKAN_USE_VOLK
-
 #include <iostream>
 #include <glm/glm.hpp>
 #include <GLFW/glfw3.h>

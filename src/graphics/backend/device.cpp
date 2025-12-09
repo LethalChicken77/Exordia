@@ -84,6 +84,12 @@ void Device::createLogicalDevice(bool enableValidationLayers)
     // atomicFloatFeatures.shaderImageFloat32Atomics = VK_TRUE; // Enable float32 atomics on images
     // atomicFloatFeatures.shaderImageFloat32AtomicAdd = VK_TRUE; // Enable float32 atomics on images
 
+    // Enable dynamic rendering feature
+    VkPhysicalDeviceDynamicRenderingFeatures dynamicRenderingFeature{};
+    dynamicRenderingFeature.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_DYNAMIC_RENDERING_FEATURES;
+    dynamicRenderingFeature.dynamicRendering = VK_TRUE;
+    dynamicRenderingFeature.pNext = nullptr;
+
     VkPhysicalDeviceFeatures deviceFeatures{};
     deviceFeatures.samplerAnisotropy = VK_TRUE;
     deviceFeatures.fillModeNonSolid = VK_TRUE; // Allow wireframe rendering
@@ -97,7 +103,7 @@ void Device::createLogicalDevice(bool enableValidationLayers)
     createInfo.pEnabledFeatures = &deviceFeatures;
     createInfo.enabledExtensionCount = static_cast<uint32_t>(deviceExtensions.size());
     createInfo.ppEnabledExtensionNames = deviceExtensions.data();
-    createInfo.pNext = nullptr;//&atomicFloatFeatures; // Add the atomic float features to the device create info
+    createInfo.pNext = &dynamicRenderingFeature;//&atomicFloatFeatures; // Add the atomic float features to the device create info
 
     // Might not really be necessary anymore because device specific validation layers
     // have been deprecated
@@ -136,10 +142,16 @@ void Device::createCommandPool()
 
 void Device::createAllocator(VkInstance &instance)
 {
+    VmaVulkanFunctions vulkanFunctions = {};
+    vulkanFunctions.vkGetInstanceProcAddr = vkGetInstanceProcAddr;
+    vulkanFunctions.vkGetDeviceProcAddr = vkGetDeviceProcAddr;
+
     VmaAllocatorCreateInfo allocatorInfo = {};
+    allocatorInfo.vulkanApiVersion = VK_API_VERSION_1_4;
+    allocatorInfo.instance = instance;
     allocatorInfo.physicalDevice = pDevice.GetPhysicalDevice();
     allocatorInfo.device = device;
-    allocatorInfo.instance = instance;
+    allocatorInfo.pVulkanFunctions = &vulkanFunctions;
 
     if (vmaCreateAllocator(&allocatorInfo, &allocator) != VK_SUCCESS) 
     {

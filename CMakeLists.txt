@@ -1,16 +1,16 @@
-cmake_minimum_required(VERSION 3.10)
+cmake_minimum_required(VERSION 3.20)
 project(GameEngine LANGUAGES CXX C)
 
-# Set the compiler to MinGW
+# ─────────────────────────────────────────────────────────────
+# Compiler & basic settings
+# ─────────────────────────────────────────────────────────────
 set(CMAKE_C_COMPILER "C:/msys64/ucrt64/bin/Clang.exe")
 set(CMAKE_CXX_COMPILER "C:/msys64/ucrt64/bin/Clang++.exe")
+set(CMAKE_CXX_STANDARD 23)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 message(STATUS "Compiler path: ${CMAKE_CXX_COMPILER}")
 message(STATUS "Compiler version: ${CMAKE_CXX_COMPILER_VERSION}")
-
-# Specify the C++ standard
-set(CMAKE_CXX_STANDARD 23)
-set(CMAKE_CXX_STANDARD_REQUIRED True)
 
 set(CMAKE_BUILD_TYPE Debug) # Options: Debug, Release, RelWithDebInfo, MinSizeRel
 
@@ -44,26 +44,27 @@ set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR})
 
 set(CMAKE_AUTORCC OFF)
 
-# Find Vulkan
-find_package(Vulkan REQUIRED)
-# set(Vulkan_INCLUDE_DIRS "C:/VulkanSDK/1.4.309.0/Include")
-# set(Vulkan_LIBRARIES "C:/VulkanSDK/1.4.309.0/Lib/vulkan-1.lib")
-
+# ─────────────────────────────────────────────────────────────
+# Vulkan + Volk
+# ─────────────────────────────────────────────────────────────
+# Use the environment variable that the SDK always sets
+set(VULKAN_SDK "$ENV{VULKAN_SDK}")                     # e.g. C:/VulkanSDK/1.4.309.0
+message(STATUS "Vulkan SDK Path: ${VULKAN_SDK}")
 # Set GLFW Include Directory
 set(GLFW_INCLUDE_DIR "C:/glfw-3.4.bin.WIN64/include")
 include_directories(${GLFW_INCLUDE_DIR})
 
 # Include Vulkan headers
-include_directories(${Vulkan_INCLUDE_DIRS})
+# include_directories(${Vulkan_INCLUDE_DIRS})
 
 # Include directories for your project
-include_directories("${CMAKE_SOURCE_DIR}/include")
-include_directories("${CMAKE_SOURCE_DIR}/lib/tinyobjloader")
-include_directories("${CMAKE_SOURCE_DIR}/lib/miniz-3.0.2")
-include_directories("${CMAKE_SOURCE_DIR}/lib/tinyexr-1.0.12")
-include_directories("${CMAKE_SOURCE_DIR}/lib/stbimage")
-include_directories("${CMAKE_SOURCE_DIR}/lib/imgui")
-include_directories("${CMAKE_SOURCE_DIR}/lib/nativefiledialog-release_116/src/include")
+include_directories("include")
+include_directories("lib/tinyobjloader")
+include_directories("lib/miniz-3.0.2")
+include_directories("lib/tinyexr-1.0.12")
+include_directories("lib/stbimage")
+include_directories("lib/imgui")
+include_directories("lib/nativefiledialog-release_116/src/include")
 
 
 # add_library(slang SHARED IMPORTED)
@@ -86,21 +87,15 @@ set(IMGUI_SOURCES
     ${IMGUI_BACKENDS}/imgui_impl_vulkan.cpp
 )
 
-set(LIB_SOURCES
-    ${CMAKE_SOURCE_DIR}/lib/miniz-3.0.2/miniz.c
-    ${CMAKE_SOURCE_DIR}/lib/nativefiledialog-release_116/src/nfd_common.c
-    # ${CMAKE_SOURCE_DIR}/lib/nativefiledialog-release_116/src/nfd_gtk.c
-    ${CMAKE_SOURCE_DIR}/lib/nativefiledialog-release_116/src/nfd_win.cpp
-    # ${CMAKE_SOURCE_DIR}/lib/nativefiledialog-release_116/src/nfd_zenity.c
-)
-
 # Add all source files from ./src
 file(GLOB_RECURSE SOURCES 
     "${CMAKE_SOURCE_DIR}/src/*.cpp"
-    "${CMAKE_SOURCE_DIR}/src/*.hpp"
     "${CMAKE_SOURCE_DIR}/src/*.c"
-    "${CMAKE_SOURCE_DIR}/src/*.h"
-    ${Vulkan_INCLUDE_DIRS}/vma/vk_mem_alloc.h
+)
+file(GLOB_RECURSE LIB_SOURCES
+    "lib/miniz-3.0.2/*.c"
+    "lib/nativefiledialog-release_116/src/nfd_common.c"
+    "lib/nativefiledialog-release_116/src/nfd_win.cpp"
 )
 
 # Add executable
@@ -112,15 +107,26 @@ target_include_directories(GameEngine PRIVATE "${CMAKE_SOURCE_DIR}/lib/tinyexr-1
 target_include_directories(GameEngine PRIVATE "${CMAKE_SOURCE_DIR}/lib/stbimage")
 target_include_directories(GameEngine PRIVATE "${CMAKE_SOURCE_DIR}/lib/imgui-1.91.8")
 target_include_directories(GameEngine PRIVATE "${CMAKE_SOURCE_DIR}/lib/nativefiledialog-release_116/src/include")
-target_include_directories(GameEngine PRIVATE SYSTEM "${Vulkan_INCLUDE_DIRS}/slang")
+target_include_directories(GameEngine PRIVATE "${VULKAN_SDK}/Include")
+target_include_directories(GameEngine PRIVATE "${VULKAN_SDK}/Include/volk")
+target_include_directories(GameEngine PRIVATE SYSTEM "${VULKAN_SDK}/Include/slang")
 # target_include_directories(GameEngine PRIVATE "${Vulkan_INCLUDE_DIRS}/vma")
 
 if(CMAKE_BUILD_TYPE STREQUAL "Debug")
 target_compile_definitions(GameEngine PRIVATE DEBUG)
 endif()
+# target_compile_definitions(GameEngine PRIVATE VK_NO_PROTOTYPES)
+# target_compile_definitions(GameEngine PRIVATE VULKAN_HPP_DISPATCH_LOADER_DYNAMIC=1)
+# target_compile_definitions(GameEngine PRIVATE VOLK_ENFORCE_SUCCESS=1)
+# target_compile_definitions(GameEngine PRIVATE IMGUI_IMPL_VULKAN_USE_VOLK)
 target_compile_definitions(GameEngine PRIVATE GLFW_INCLUDE_NONE)
 target_compile_definitions(GameEngine PRIVATE GRAPHICS_TESTS)
 # target_compile_definitions(GameEngine PRIVATE DISABLE_VALIDATION) # Disable validation checks for performance. Ensure correctness manually.
+
+target_compile_options(GameEngine PRIVATE
+    -Wno-nullability-completeness    # Silence warnings from VMA
+    -Wno-nullability-extension
+)
 
 # target_link_options(GameEngine PRIVATE
 #     -static-libstdc++
@@ -128,15 +134,9 @@ target_compile_definitions(GameEngine PRIVATE GRAPHICS_TESTS)
 # )
 # Link libraries
 target_link_libraries(GameEngine PRIVATE 
-    C:/glfw-3.4.bin.WIN64/lib-mingw-w64/libglfw3.a  # Link GLFW
-    Vulkan::Vulkan                                   # Link Vulkan
-    # slang
-    "C:/VulkanSDK/1.4.309.0/Lib/slang.lib"
-    gdi32     # Windows libraries
-    user32
-    shell32
-# if(WIN32)
-    Dwmapi
-# endif()
-
+    "C:/glfw-3.4.bin.WIN64/lib-mingw-w64/libglfw3.a"    # Link GLFW
+    "${VULKAN_SDK}/Lib/vulkan-1.lib"                     # Link Vulkan
+    # "${VULKAN_SDK}/Lib/volk.lib"                     # Link Volk
+    "${VULKAN_SDK}/Lib/slang.lib"
+    gdi32 user32 shell32 Dwmapi
 )

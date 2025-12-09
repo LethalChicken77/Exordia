@@ -30,7 +30,9 @@ public:
     Swapchain& operator=(const Swapchain&) = delete;
 
     const VkSwapchainKHR &GetSwapchain() const { return swapchain; }
+    const VkImage &GetImage(uint32_t index) const { return swapchainImages[index]; }
     const VkImageView &GetImageView(uint32_t index) const { return swapchainImageViews[index]; }
+    const VkImageView &GetDepthImageView(uint32_t index) const { return depthImageViews[index]; }
     const VkExtent2D GetSwapChainExtent() const { return swapchainExtent; }
     const uint32_t GetWidth() const { return swapchainExtent.width; }
     const uint32_t GetHeight() const { return swapchainExtent.height; }
@@ -67,7 +69,7 @@ private:
 
     VkFormat swapchainImageFormat;
     VkFormat swapchainDepthFormat;
-    VkExtent2D swapchainExtent;
+    VkExtent2D swapchainExtent{};
 
     // Synchronization objects
 

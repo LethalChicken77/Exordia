@@ -9,56 +9,13 @@
 
 namespace graphics
 {
-    // std::unique_ptr<Image> testImage;
-    std::unique_ptr<Swapchain> testSwapchain{};
-
-    void recreateSwapChain()
-    {
-        VkExtent2D extent = graphicsData->GetWindow().GetExtent();
-        while(extent.width == 0 || extent.height == 0)
-        {
-            extent = graphicsData->GetWindow().GetExtent();
-            glfwWaitEvents();
-        }
-
-        vkDeviceWaitIdle(graphicsData->GetBackend().GetDevice().GetDevice());
-
-        if(testSwapchain == nullptr)
-        {
-            Console::log("Recreating swap chain", "Graphics");
-            testSwapchain = std::make_unique<Swapchain>(
-                graphicsData->GetBackend().GetDevice(),
-                graphicsData->GetWindow(),
-                SwapchainSettings::GetDefaultSettings()
-            );
-        }
-        else
-        {
-            std::shared_ptr<Swapchain> oldSwapchain = std::move(testSwapchain);
-            Console::log("Resizing swap chain", "Graphics");
-            testSwapchain = std::make_unique<Swapchain>(
-                graphicsData->GetBackend().GetDevice(),
-                graphicsData->GetWindow(),
-                SwapchainSettings::GetDefaultSettings(),
-                oldSwapchain->GetSwapchain()
-            );
-
-            if(!oldSwapchain->CompareSwapFormats(*testSwapchain.get()))
-            {
-                // TODO: Handle this better
-                throw std::runtime_error("Swap chain image or depth format has changed!");
-            }
-        }
-        // currentRenderPass = swapChain->getRenderPass();
-        // SHeesh
-    }
-
     Graphics::Graphics(const std::string& appName, const std::string& engName)
     {
         Console::log("Initializing graphics module", "Graphics");
         graphicsData = std::make_unique<GraphicsData>();
         graphicsData->window.init(800, 600, engName + " - " + appName);
         graphicsData->backend.init(appName, engName, graphicsData->window);
+        graphicsData->renderer.init();
 
         // testImage = std::make_unique<Image>(
         //     graphicsData->GetBackend().GetDevice(),
@@ -77,5 +34,31 @@ namespace graphics
     Graphics::~Graphics()
     {
         Console::log("Shutting down graphics module", "Graphics");
+    }
+
+    void Graphics::DrawFrame()
+    {
+        Renderer &renderer = graphicsData->renderer;
+        VkExtent2D extent = renderer.GetExtent();
+        if(extent.width <= 0 || extent.height <= 0) return; // Don't draw frame if minimized
+
+        std::vector<VkDescriptorSet> localDescriptorSets;
+        if(VkCommandBuffer commandBuffer = renderer.BeginFrame())
+        {
+            uint32_t frameIndex = renderer.GetFrameIndex();
+            renderer.BeginRenderDynamic(
+                commandBuffer,
+                renderer.GetSwapchain().GetImageView(frameIndex),
+                renderer.GetSwapchain().GetDepthImageView(frameIndex),
+                extent,
+                VkClearValue{.color = {{0.02f, 0.03f, 0.1f, 1.0f}}}
+            );
+            renderer.EndRenderDynamic(commandBuffer);
+            // RenderContext frameInfo{frameIndex, 0.0, commandBuffer, Descriptors::globalDescriptorSet, Descriptors::cameraDescriptorSets[frameIndex]};
+            renderer.EndFrame();
+        }
+        graphicsData->GetBackend().WaitForDevice();
+        // sceneRenderQueue.clear();
+        // outlineRenderQueue.clear();
     }
 } // namespace graphics

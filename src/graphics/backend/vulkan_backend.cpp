@@ -2,6 +2,7 @@
 
 #include <unordered_set>
 #include <format>
+#include <vulkan/vulkan.h>
 
 #include "vulkan_backend.hpp"
 #include "utils/console.hpp"
@@ -42,15 +43,17 @@ void VulkanBackend::init(const std::string& appName, const std::string& engName,
     Console::log("Creating Vulkan Backend", "VulkanBackend");
     applicationName = &appName;
     engineName = &engName;
-    createInstance();
 
+    // VK_CHECK(volkInitialize());
+    createInstance();
+    // volkLoadInstance(instance);
 #ifdef DEBUG
     setupDebugMessenger();
 #endif
-
     window.createSurface(instance);
     physicalDevice.pickPhysicalDevice(instance, &window.GetSurface());
     createDevice();
+    // volkLoadDevice(device.GetDevice());
 }
 
 VulkanBackend::~VulkanBackend()
@@ -83,13 +86,13 @@ void VulkanBackend::createInstance()
         throw std::runtime_error("Validation layers requested, but not available!");
     }
 
-    VkApplicationInfo appInfo = {};
+    appInfo = {};
     appInfo.sType = VK_STRUCTURE_TYPE_APPLICATION_INFO;
     appInfo.pApplicationName = applicationName->c_str();
     appInfo.applicationVersion = VK_MAKE_VERSION(1, 0, 0);
     appInfo.pEngineName = engineName->c_str();
     appInfo.engineVersion = VK_MAKE_VERSION(1, 0, 0);
-    appInfo.apiVersion = VK_API_VERSION_1_2;
+    appInfo.apiVersion = VK_API_VERSION_1_4;
 
     VkInstanceCreateInfo createInfo = {};
     createInfo.sType = VK_STRUCTURE_TYPE_INSTANCE_CREATE_INFO;

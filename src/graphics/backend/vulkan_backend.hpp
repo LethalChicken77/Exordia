@@ -32,6 +32,8 @@ class VulkanBackend
     #endif
         void init(const std::string& appName, const std::string& engName, Window& window); // Initialize backend, must be called before use
 
+        VkApplicationInfo appInfo{};
+        
         VkInstance instance{};
         PhysicalDevice physicalDevice;
         Device device{physicalDevice};

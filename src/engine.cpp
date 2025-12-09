@@ -220,18 +220,19 @@ void Engine::run()
             break;
         }
 
+        // Update Time
+        double oldTime = time;
+        time = glfwGetTime();
+        deltaTime = time - oldTime;
+        
         update(deltaTime);
 
         // graphicsModule.drawSkybox();
         scene->drawScene();
         // Render here
-        // graphicsModule.drawFrame();
+        graphicsModule.DrawFrame();
 
 
-        // Update Time
-        double oldTime = time;
-        time = glfwGetTime();
-        deltaTime = time - oldTime;
         // std::cout << "Delta time: " << deltaTime << std::endl;
     }
     close();

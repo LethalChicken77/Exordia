@@ -82,7 +82,8 @@ std::string Debug::mat4ToString(const glm::mat4& m)
 // Details obtained from https://docs.vulkan.org/refpages/latest/refpages/source/VkResult.html
 std::string Debug::VkResultToString(VkResult result)
 {
-    std::string base = "VkResult " + std::to_string(result) + ": ";
+    // std::string base = "VkResult " + std::to_string(result) + ": ";
+    std::string base = "";
     switch (result)
     {
         case VK_SUCCESS: return base + "Success: Command successfully completed";
