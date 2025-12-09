@@ -9,6 +9,8 @@
 
 #include "backend_data.hpp"
 
+#include "graphics/graphics_data.hpp"
+
 namespace graphics::internal
 {
 // local callback functions
@@ -35,7 +37,7 @@ static VKAPI_ATTR VkBool32 VKAPI_CALL debugCallback(
 }
 
 
-void VulkanBackend::Init(const std::string& appName, const std::string& engName, GLFWwindow* window)
+void VulkanBackend::init(const std::string& appName, const std::string& engName, Window& window)
 {
     Console::log("Creating Vulkan Backend", "VulkanBackend");
     applicationName = &appName;
@@ -46,8 +48,8 @@ void VulkanBackend::Init(const std::string& appName, const std::string& engName,
     setupDebugMessenger();
 #endif
 
-    createSurface(window);
-    physicalDevice.pickPhysicalDevice(instance, &surface);
+    window.createSurface(instance);
+    physicalDevice.pickPhysicalDevice(instance, &window.GetSurface());
     createDevice();
 }
 
@@ -67,8 +69,8 @@ VulkanBackend::~VulkanBackend()
     }
     if(instance != VK_NULL_HANDLE)
     {
-        if(surface != VK_NULL_HANDLE)
-            vkDestroySurfaceKHR(instance, surface, nullptr);
+        if(graphicsData->GetWindow().GetSurface() != VK_NULL_HANDLE)
+            vkDestroySurfaceKHR(instance, graphicsData->GetWindow().GetSurface(), nullptr);
 
         vkDestroyInstance(instance, nullptr);
     }
@@ -122,7 +124,7 @@ void VulkanBackend::createInstance()
 
 void VulkanBackend::createDevice()
 {
-    device.createLogicalDevice(physicalDevice, enableValidationLayers);
+    device.createLogicalDevice(enableValidationLayers);
     device.createCommandPool();
     device.createAllocator(instance);
 }
@@ -241,15 +243,6 @@ bool VulkanBackend::hasGflwRequiredInstanceExtensions()
         }
     }
     return true;
-}
-
-void VulkanBackend::createSurface(GLFWwindow* window)
-{
-    VkResult result = glfwCreateWindowSurface(instance, window, nullptr, &surface);
-    if(result != VK_SUCCESS) 
-    {
-        throw std::runtime_error("Failed to create window surface: " + Debug::VkResultToString(result));
-    }
 }
 
 bool VulkanBackend::checkValidationLayerSupport() 

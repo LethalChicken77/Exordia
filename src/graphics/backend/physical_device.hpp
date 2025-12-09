@@ -1,5 +1,6 @@
 #pragma once
 // Library headers
+#include <set>
 #include <vulkan/vulkan.h>
 // Project headers
 #include "graphics/window.hpp"
@@ -16,7 +17,7 @@ public:
     struct SwapchainSupportDetails {
         VkSurfaceCapabilitiesKHR capabilities;
         std::vector<VkSurfaceFormatKHR> formats;
-        std::vector<VkPresentModeKHR> presentModes;
+        std::set<VkPresentModeKHR> presentModes;
     };
 
     struct QueueFamilyIndices {
@@ -32,6 +33,8 @@ public:
     const QueueFamilyIndices &GetQueueFamilyIndices() const { return queueFamilyIndices; }
     const SwapchainSupportDetails &GetSwapchainSupportDetails() const { return swapchainSupport; }
     uint32_t FindMemoryType(uint32_t typeFilter, VkMemoryPropertyFlags properties) const;
+
+    VkFormat FindSupportedFormat(const std::vector<VkFormat> &candidates, VkImageTiling tiling, VkFormatFeatureFlags features) const;
 
     // uint32_t FindMemoryType(uint32_t typeFilter, VkMemoryPropertyFlags properties);
     // VkFormat PhysicalDevice::FindSupportedFormat(const std::vector<VkFormat> &candidates, VkImageTiling tiling, VkFormatFeatureFlags features);

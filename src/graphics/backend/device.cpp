@@ -13,7 +13,7 @@
 namespace graphics::internal
 {
 
-Device::Device(const PhysicalDevice *_pDevice) : pDevice(_pDevice){}
+Device::Device(const PhysicalDevice &_pDevice) : pDevice(_pDevice){}
 
 void Device::cleanup()
 {
@@ -60,11 +60,11 @@ void Device::EndSingleTimeCommands(VkCommandBuffer commandBuffer)
 }
 
 // Private methods
-void Device::createLogicalDevice(const PhysicalDevice &physicalDevice, bool enableValidationLayers)
+void Device::createLogicalDevice(bool enableValidationLayers)
 {
     Console::log("Creating logical device", "Device");
-    pDevice = &physicalDevice;
-    const PhysicalDevice::QueueFamilyIndices &indices = pDevice->GetQueueFamilyIndices();
+    // pDevice = &physicalDevice;
+    const PhysicalDevice::QueueFamilyIndices &indices = pDevice.GetQueueFamilyIndices();
     std::vector<VkDeviceQueueCreateInfo> queueCreateInfos;
     std::set<uint32_t> uniqueQueueFamilies = {indices.graphicsFamily, indices.presentFamily};
 
@@ -111,7 +111,7 @@ void Device::createLogicalDevice(const PhysicalDevice &physicalDevice, bool enab
         createInfo.enabledLayerCount = 0;
     }
 
-    if (vkCreateDevice(pDevice->GetPhysicalDevice(), &createInfo, nullptr, &device) != VK_SUCCESS) {
+    if (vkCreateDevice(pDevice.GetPhysicalDevice(), &createInfo, nullptr, &device) != VK_SUCCESS) {
         throw std::runtime_error("Failed to create logical device");
     }
 
@@ -121,7 +121,7 @@ void Device::createLogicalDevice(const PhysicalDevice &physicalDevice, bool enab
 
 void Device::createCommandPool() 
 {
-    const PhysicalDevice::QueueFamilyIndices &indices = pDevice->GetQueueFamilyIndices();
+    const PhysicalDevice::QueueFamilyIndices &indices = pDevice.GetQueueFamilyIndices();
 
     VkCommandPoolCreateInfo poolInfo = {};
     poolInfo.sType = VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO;
@@ -137,7 +137,7 @@ void Device::createCommandPool()
 void Device::createAllocator(VkInstance &instance)
 {
     VmaAllocatorCreateInfo allocatorInfo = {};
-    allocatorInfo.physicalDevice = pDevice->GetPhysicalDevice();
+    allocatorInfo.physicalDevice = pDevice.GetPhysicalDevice();
     allocatorInfo.device = device;
     allocatorInfo.instance = instance;
 

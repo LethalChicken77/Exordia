@@ -1,9 +1,11 @@
 #pragma once
 #include <string>
+#include <vulkan/vulkan.h>
+#define GLFW_INCLUDE_VULKAN
 #include <GLFW/glfw3.h>
 #include <functional>
-#include <vulkan/vulkan.h> // Only for VkExtent2D
 
+namespace graphics::internal{class VulkanBackend;}
 namespace graphics
 {
 class Window
@@ -17,7 +19,6 @@ public:
     Window(const Window&) = delete;
     Window& operator=(const Window&) = delete;
 
-
     void Update();
     void Clear();
     void Close();
@@ -27,6 +28,7 @@ public:
     uint32_t GetHeight() const { return height; }
     VkExtent2D GetExtent() { return {static_cast<uint32_t>(width), static_cast<uint32_t>(height)}; }
     GLFWwindow* GetWindow() { return window; }
+    VkSurfaceKHR &GetSurface() { return surface; }
     bool WindowResized() { return frameBufferResized; }
     void ResetWindowResizedFlag() { frameBufferResized = false; }
 
@@ -38,7 +40,8 @@ public:
     static void SetOnRefreshCallback(std::function<void()> callback) { onRefreshCallback = callback; }
 
 private:
-    void Init(uint32_t width, uint32_t height, const std::string& title);
+    void init(uint32_t width, uint32_t height, const std::string& title);
+    void createSurface(VkInstance instance);
     
     uint32_t width;
     uint32_t height;
@@ -48,7 +51,9 @@ private:
 
     std::string name;
     GLFWwindow *window;
+    VkSurfaceKHR surface;
 
     friend class Graphics;
+    friend class internal::VulkanBackend;
 };
 }

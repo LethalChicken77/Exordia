@@ -7,23 +7,21 @@
 
 #include "device.hpp"
 
+namespace graphics{class Graphics;}
 namespace graphics::internal
 {
-
+    
 class VulkanBackend
 {
     public:
         VulkanBackend() = default;
         ~VulkanBackend();
 
-        void Init(const std::string& appName, const std::string& engName, GLFWwindow* window); // Initialize backend, must be called before use
-
-        const VkSurfaceKHR &GetSurface() { return surface; }
         // VkBuffer AllocateBuffer();
         // VkImage AllocateImage();
 
         Device &GetDevice() { return device; }
-        PhysicalDevice &GetPhysicalDevice() { return physicalDevice; }
+        const PhysicalDevice &GetPhysicalDevice() { return physicalDevice; }
 
         inline void WaitForDevice() { device.WaitIdle(); }
     private:
@@ -32,12 +30,12 @@ class VulkanBackend
     #else
         const bool enableValidationLayers = true;
     #endif
+        void init(const std::string& appName, const std::string& engName, Window& window); // Initialize backend, must be called before use
 
         VkInstance instance{};
         PhysicalDevice physicalDevice;
-        Device device{&physicalDevice};
+        Device device{physicalDevice};
         VkDebugUtilsMessengerEXT debugMessenger;
-        VkSurfaceKHR surface;
 
         // Point to centralized values
         const std::string* applicationName;
@@ -45,7 +43,6 @@ class VulkanBackend
 
         void createInstance();
         void createDevice();
-        void createSurface(GLFWwindow* window);
 
         // Utilities
         void setupDebugMessenger();
@@ -53,5 +50,7 @@ class VulkanBackend
         std::vector<const char *> getRequiredExtensions();
         bool hasGflwRequiredInstanceExtensions();
         bool checkValidationLayerSupport();
+
+        friend class graphics::Graphics;
 };
 } // namespace graphics::internal

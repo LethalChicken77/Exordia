@@ -2,7 +2,6 @@
 #include "window.hpp"
 #include "utils/debug.hpp"
 #include "utils/console.hpp"
-#include <GLFW/glfw3.h>
 #include <stdexcept>
 
 namespace graphics
@@ -16,7 +15,7 @@ Window::~Window()
     Close();
 }
 
-void Window::Init(uint32_t _width, uint32_t _height, const std::string& title)
+void Window::init(uint32_t _width, uint32_t _height, const std::string& title)
 {
     Console::log("Initializing window: " + title, "Window");
     width = _width;
@@ -45,6 +44,16 @@ void Window::Init(uint32_t _width, uint32_t _height, const std::string& title)
 
     open = true;
     return;
+}
+
+
+void Window::createSurface(VkInstance instance)
+{
+    VkResult result = glfwCreateWindowSurface(instance, window, nullptr, &surface);
+    if(result != VK_SUCCESS) 
+    {
+        throw std::runtime_error("Failed to create window surface: " + Debug::VkResultToString(result));
+    }
 }
 
 void Window::Clear()
