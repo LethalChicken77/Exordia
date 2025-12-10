@@ -32,7 +32,7 @@ VkCommandBuffer Renderer::startFrame()
     if(result == VK_ERROR_OUT_OF_DATE_KHR)
     {
         recreateSwapChain();
-        return NULL;
+        // return NULL;
     }
 
     if(result != VK_SUCCESS && result != VK_SUBOPTIMAL_KHR)

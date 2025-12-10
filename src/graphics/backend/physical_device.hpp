@@ -31,7 +31,10 @@ public:
     const VkPhysicalDevice &GetPhysicalDevice() const { return physicalDevice; }
     const VkPhysicalDeviceProperties &GetProperties() const { return properties; }
     const QueueFamilyIndices &GetQueueFamilyIndices() const { return queueFamilyIndices; }
-    const SwapchainSupportDetails &GetSwapchainSupportDetails() const { return swapchainSupport; }
+    SwapchainSupportDetails &GetSwapchainSupportDetails(VkSurfaceKHR* surface) { 
+        swapchainSupport = querySwapChainSupport(physicalDevice, surface);
+        return swapchainSupport;
+    }
     uint32_t FindMemoryType(uint32_t typeFilter, VkMemoryPropertyFlags properties) const;
 
     VkFormat FindSupportedFormat(const std::vector<VkFormat> &candidates, VkImageTiling tiling, VkFormatFeatureFlags features) const;

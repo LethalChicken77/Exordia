@@ -45,11 +45,11 @@ namespace graphics
         std::vector<VkDescriptorSet> localDescriptorSets;
         if(VkCommandBuffer commandBuffer = renderer.BeginFrame())
         {
-            uint32_t frameIndex = renderer.GetFrameIndex();
+            uint32_t imageIndex = renderer.GetImageIndex();
             renderer.BeginRenderDynamic(
                 commandBuffer,
-                renderer.GetSwapchain().GetImageView(frameIndex),
-                renderer.GetSwapchain().GetDepthImageView(frameIndex),
+                renderer.GetSwapchain().GetImageView(imageIndex),
+                renderer.GetSwapchain().GetDepthImageView(imageIndex),
                 extent,
                 VkClearValue{.color = {{0.02f, 0.03f, 0.1f, 1.0f}}}
             );

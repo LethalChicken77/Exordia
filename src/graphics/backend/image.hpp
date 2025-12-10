@@ -93,6 +93,8 @@ public:
     Image(const Image&, internal::Device& device);
     Image& operator=(const Image&) = delete;
 
+    static void TransitionImageLayout(Image& image, VkImageLayout oldLayout, VkImageLayout newLayout, VkCommandBuffer commandBuffer);
+
     void TransitionImageLayout(VkImageLayout newLayout);
     void TransitionImageLayout(VkImageLayout newLayout, VkCommandBuffer commandBuffer);
     void TransitionImageLayout(VkImageLayout oldLayout, VkImageLayout newLayout);

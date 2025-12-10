@@ -11,7 +11,7 @@ class VulkanBackend;
 class Device
 {
 public:
-    Device(const PhysicalDevice &_pDevice);
+    Device(PhysicalDevice &_pDevice);
     ~Device() = default;
     Device(const Device&) = delete;
     Device& operator=(const Device&) = delete;
@@ -34,7 +34,7 @@ public:
     void EndSingleTimeCommands(VkCommandBuffer commandBuffer);
 
     const VkDevice &GetDevice() const { return device; }
-    const PhysicalDevice &GetPhysicalDevice() const { return pDevice; }
+    PhysicalDevice &GetPhysicalDevice() { return pDevice; }
     const VmaAllocator &GetAllocator() const { return allocator; }
     const VkCommandPool &GetCommandPool() const { return commandPool; }
     const VkQueue &GetGraphicsQueue() const { return graphicsQueue; }
@@ -47,7 +47,7 @@ private:
 
     VmaAllocator allocator;
 
-    const PhysicalDevice &pDevice;
+    PhysicalDevice &pDevice;
     void createLogicalDevice(bool enableValidationLayers);
     void createCommandPool();
     void createAllocator(VkInstance &instance);

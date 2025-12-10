@@ -321,14 +321,24 @@ void Image::TransitionImageLayout(VkImageLayout oldLayout, VkImageLayout newLayo
 /// @param commandBuffer Command buffer to use for the transition
 void Image::TransitionImageLayout(VkImageLayout oldLayout, VkImageLayout newLayout, VkCommandBuffer commandBuffer)
 {
+    TransitionImageLayout(*this, oldLayout, newLayout, commandBuffer);
+}
+
+/// @brief Transition the image layout using a provided command buffer
+/// @param image Image to transition
+/// @param oldLayout
+/// @param newLayout 
+/// @param commandBuffer Command buffer to use for the transition
+void Image::TransitionImageLayout(Image& image, VkImageLayout oldLayout, VkImageLayout newLayout, VkCommandBuffer commandBuffer)
+{
     VkImageMemoryBarrier barrier{};
     barrier.sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER;
     barrier.oldLayout = oldLayout;
     barrier.newLayout = newLayout;
     barrier.srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
     barrier.dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
-    barrier.image = image;
-    barrier.subresourceRange.aspectMask = properties.imageSubResourceRange.aspectMask;
+    barrier.image = image.image;
+    barrier.subresourceRange.aspectMask = image.properties.imageSubResourceRange.aspectMask;
     barrier.subresourceRange.baseMipLevel = 0;
     barrier.subresourceRange.levelCount = 1;
     barrier.subresourceRange.baseArrayLayer = 0;
@@ -604,7 +614,7 @@ void Image::TransitionImageLayout(VkImageLayout oldLayout, VkImageLayout newLayo
         1, &barrier
     );
 
-    currentLayout = newLayout;
+    image.currentLayout = newLayout;
 }
 
 }

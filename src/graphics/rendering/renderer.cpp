@@ -2,6 +2,7 @@
 #include "graphics/graphics_data.hpp"
 #include "utils/console.hpp"
 #include "utils/debug.hpp"
+#include "graphics/backend/image.hpp"
 
 namespace graphics
 {
@@ -39,7 +40,7 @@ VkCommandBuffer Renderer::BeginFrame()
     if(result == VK_ERROR_OUT_OF_DATE_KHR)
     {
         RecreateSwapchain();
-        return NULL;
+        return VK_NULL_HANDLE;
     }
 
     if(result != VK_SUCCESS && result != VK_SUBOPTIMAL_KHR)
@@ -68,23 +69,8 @@ void Renderer::EndFrame()
         throw std::runtime_error("Cannot call EndFrame when frame is not in progress");
     }
 
-    VkImageMemoryBarrier barrier{};
-    barrier.sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER;
-    barrier.oldLayout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
-    barrier.newLayout = VK_IMAGE_LAYOUT_PRESENT_SRC_KHR;
-    barrier.srcAccessMask = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT;
-    barrier.dstAccessMask = 0;
-    barrier.srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
-    barrier.dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
-    barrier.image = swapchain->GetImage(currentFrameIndex);
-    barrier.subresourceRange = {VK_IMAGE_ASPECT_COLOR_BIT, 0, 1, 0, 1};
-
-    vkCmdPipelineBarrier(
-        currentCommandBuffer,
-        VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT,
-        VK_PIPELINE_STAGE_BOTTOM_OF_PIPE_BIT,
-        0, 0, nullptr, 0, nullptr, 1, &barrier
-    );
+    transitionToPresent(currentCommandBuffer, swapchain->GetImage(currentImageIndex));
+    firstUse[currentImageIndex] = false;
 
     VkResult result = vkEndCommandBuffer(currentCommandBuffer);
     if(result != VK_SUCCESS)
@@ -102,6 +88,7 @@ void Renderer::EndFrame()
     {
         throw std::runtime_error("Failed to submit command buffer");
     }
+
 
     frameInProgress = false;
     currentFrameIndex = (currentFrameIndex + 1) % Swapchain::MAX_FRAMES_IN_FLIGHT;
@@ -142,6 +129,8 @@ void Renderer::BeginRenderDynamic(VkCommandBuffer cmdBuffer, VkImageView colorVi
     renderingInfo.pColorAttachments = &colorAttachment;
     renderingInfo.pDepthAttachment = &depthAttachment;
 
+    transitionToRenderTarget(cmdBuffer, swapchain->GetImage(currentImageIndex));
+    
     vkCmdBeginRendering(cmdBuffer, &renderingInfo);
 
     // Set viewport and scissor
@@ -172,6 +161,7 @@ void Renderer::EndRenderDynamic(VkCommandBuffer cmdBuffer)
 void Renderer::RecreateSwapchain()
 {
     VkExtent2D extent = window.GetExtent();
+    Console::log(std::format("Recreating swap chain with extent {}x{}", extent.width, extent.height), "Renderer");
     while(extent.width == 0 || extent.height == 0)
     {
         extent = window.GetExtent();
@@ -199,6 +189,7 @@ void Renderer::RecreateSwapchain()
             SwapchainSettings::GetDefaultSettings(),
             oldSwapchain->GetSwapchain()
         );
+        Console::log(std::format("New extent {}x{}", swapchain->GetSwapChainExtent().width, swapchain->GetSwapChainExtent().height), "Renderer");
 
         if(!oldSwapchain->CompareSwapFormats(*swapchain.get()))
         {
@@ -206,6 +197,7 @@ void Renderer::RecreateSwapchain()
             throw std::runtime_error("Swap chain image or depth format has changed!");
         }
     }
+    firstUse.assign(swapchain->GetImageCount(), true);
 }
 
 void Renderer::createCommandBuffers()
@@ -229,4 +221,54 @@ void Renderer::createCommandBuffers()
         throw std::runtime_error("Failed to allocate command buffers: " + Debug::VkResultToString(result));
     }
 }
+
+
+void Renderer::transitionToPresent(VkCommandBuffer commandBuffer, VkImage image)
+{
+    VkImageMemoryBarrier barrier{};
+    barrier.sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER;
+
+    barrier.oldLayout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
+    barrier.srcAccessMask = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT;
+    
+    barrier.newLayout = VK_IMAGE_LAYOUT_PRESENT_SRC_KHR;
+    barrier.dstAccessMask = 0;
+
+    barrier.srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
+    barrier.dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
+    barrier.image = swapchain->GetImage(currentImageIndex);
+    barrier.subresourceRange = {VK_IMAGE_ASPECT_COLOR_BIT, 0, 1, 0, 1};
+
+    vkCmdPipelineBarrier(
+        commandBuffer,
+        VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT,
+        VK_PIPELINE_STAGE_BOTTOM_OF_PIPE_BIT,
+        0, 0, nullptr, 0, nullptr, 1, &barrier
+    );
+}
+
+void Renderer::transitionToRenderTarget(VkCommandBuffer commandBuffer, VkImage image)
+{
+    VkImageMemoryBarrier barrier{};
+    barrier.sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER;
+
+    barrier.oldLayout = firstUse[currentImageIndex] ? VK_IMAGE_LAYOUT_UNDEFINED : VK_IMAGE_LAYOUT_PRESENT_SRC_KHR;
+    barrier.srcAccessMask = 0;
+    
+    barrier.newLayout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
+    barrier.dstAccessMask = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT;
+    
+    barrier.srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
+    barrier.dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
+    barrier.image = swapchain->GetImage(currentImageIndex);
+    barrier.subresourceRange = {VK_IMAGE_ASPECT_COLOR_BIT, 0, 1, 0, 1};
+
+    vkCmdPipelineBarrier(
+        commandBuffer,
+        VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT,
+        VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT,
+        0, 0, nullptr, 0, nullptr, 1, &barrier
+    );
+}
+
 } // namespace graphics

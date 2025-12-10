@@ -77,6 +77,10 @@ VkResult Swapchain::AcquireNextImage(uint32_t *imageIndex)
     return result;
 }
 
+/// @brief Submit command buffers to the graphics queue and present the image
+/// @param buffers Command buffers to submit
+/// @param imageIndex 
+/// @return 
 VkResult Swapchain::SubmitCommandBuffers(const VkCommandBuffer *buffers, uint32_t *imageIndex) 
 {
     if (imagesInFlight[*imageIndex] != VK_NULL_HANDLE) 
@@ -138,8 +142,8 @@ void Swapchain::createSwapchain(VkSwapchainKHR oldSwapchain)
     #ifdef DEBUG
     Console::debug("Creating swapchain...", "Swapchain");
     #endif
-    const internal::PhysicalDevice &physicalDevice = device.GetPhysicalDevice();
-    internal::PhysicalDevice::SwapchainSupportDetails swapchainSupport = physicalDevice.GetSwapchainSupportDetails();
+    internal::PhysicalDevice &physicalDevice = device.GetPhysicalDevice();
+    internal::PhysicalDevice::SwapchainSupportDetails swapchainSupport = physicalDevice.GetSwapchainSupportDetails(&window.GetSurface());
 
     VkSurfaceFormatKHR surfaceFormat = chooseSwapSurfaceFormat(swapchainSupport.formats);
     VkPresentModeKHR presentMode = chooseSwapPresentMode(swapchainSupport.presentModes);
@@ -385,6 +389,7 @@ VkExtent2D Swapchain::chooseSwapExtent(const VkSurfaceCapabilitiesKHR &capabilit
     else 
     {
         VkExtent2D actualExtent = window.GetExtent();
+        Console::log(std::format("Choosing swap extent: {}x{}", actualExtent.width, actualExtent.height), "Swapchain");
         actualExtent.width = std::max(
             capabilities.minImageExtent.width,
             std::min(capabilities.maxImageExtent.width, actualExtent.width));

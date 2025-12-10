@@ -54,6 +54,7 @@ public:
         }
         return currentFrameIndex; 
     }
+    uint32_t GetImageIndex() const { return currentImageIndex; }
     const Swapchain &GetSwapchain() const { return *swapchain; }
 
 private:
@@ -64,6 +65,8 @@ private:
     std::vector<VkCommandBuffer> commandBuffers{};
     VkCommandBuffer currentCommandBuffer{};
 
+    std::vector<bool> firstUse{};
+
     uint32_t currentImageIndex = 0;
     uint32_t currentFrameIndex = 0;
     bool frameInProgress = false;
@@ -73,6 +76,9 @@ private:
     void recordCommandBuffer(int imageIndex);
     void createCommandBuffers();
     void recreateSwapChain();
+
+    void transitionToPresent(VkCommandBuffer commandBuffer, VkImage image);
+    void transitionToRenderTarget(VkCommandBuffer commandBuffer, VkImage image);
 
     friend class Graphics;
 };

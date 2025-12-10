@@ -13,7 +13,7 @@
 namespace graphics::internal
 {
 
-Device::Device(const PhysicalDevice &_pDevice) : pDevice(_pDevice){}
+Device::Device(PhysicalDevice &_pDevice) : pDevice(_pDevice){}
 
 void Device::cleanup()
 {
