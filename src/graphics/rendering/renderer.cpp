@@ -182,14 +182,13 @@ void Renderer::RecreateSwapchain()
     else
     {
         std::shared_ptr<Swapchain> oldSwapchain = std::move(swapchain);
-        Console::log("Resizing swap chain", "Graphics");
+        Console::log("Resizing swap chain", "Renderer");
         swapchain = std::make_unique<Swapchain>(
             graphicsData->GetBackend().GetDevice(),
             graphicsData->GetWindow(),
             SwapchainSettings::GetDefaultSettings(),
             oldSwapchain->GetSwapchain()
         );
-        Console::log(std::format("New extent {}x{}", swapchain->GetSwapChainExtent().width, swapchain->GetSwapChainExtent().height), "Renderer");
 
         if(!oldSwapchain->CompareSwapFormats(*swapchain.get()))
         {

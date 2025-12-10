@@ -1,6 +1,7 @@
 #include "swap_chain.hpp"
 #include <stdexcept>
 #include <limits>
+#include <format>
 
 #include "utils/console.hpp"
 #include "utils/debug.hpp"
@@ -14,6 +15,7 @@ Swapchain::Swapchain(internal::Device &_device, Window &_window, SwapchainSettin
     createImageViews();
     createDepthImages();
     createSyncObjects();
+    Console::log(std::format("\tNew extent {}x{}", GetSwapChainExtent().width, GetSwapChainExtent().height), "Swapchain");
 
     // Render pass init order
     // createSwapchain(oldSwapchain);
@@ -341,7 +343,7 @@ VkPresentModeKHR Swapchain::chooseSwapPresentMode(const std::set<VkPresentModeKH
 {
     if(availablePresentModes.contains(settings.overridePresentMode))
     {
-        Console::log("Present mode: Override selected", "Swapchain");
+        Console::log("\tPresent mode: Override selected", "Swapchain");
         return settings.overridePresentMode;
     }
 
@@ -350,7 +352,7 @@ VkPresentModeKHR Swapchain::chooseSwapPresentMode(const std::set<VkPresentModeKH
     {
         if(availablePresentModes.contains(VK_PRESENT_MODE_MAILBOX_KHR))
         {
-            Console::log("Present mode: Mailbox", "Swapchain");
+            Console::log("\tPresent mode: Mailbox", "Swapchain");
             return VK_PRESENT_MODE_MAILBOX_KHR;
         }
     }
@@ -358,25 +360,25 @@ VkPresentModeKHR Swapchain::chooseSwapPresentMode(const std::set<VkPresentModeKH
     {
         if(availablePresentModes.contains(VK_PRESENT_MODE_IMMEDIATE_KHR))
         {
-            Console::log("Present mode: Immediate", "Swapchain");
+            Console::log("\tPresent mode: Immediate", "Swapchain");
             return VK_PRESENT_MODE_IMMEDIATE_KHR;
         }
     }
     if(availablePresentModes.contains(VK_PRESENT_MODE_FIFO_LATEST_READY_EXT)) 
     {
-        Console::log("Present mode: FIFO Latest Ready", "Swapchain");
+        Console::log("\tPresent mode: FIFO Latest Ready", "Swapchain");
         return VK_PRESENT_MODE_FIFO_LATEST_READY_EXT;
     }
     if(!settings.requireVSync)
     {
         if(availablePresentModes.contains(VK_PRESENT_MODE_FIFO_RELAXED_KHR))
         {
-            Console::log("Present mode: FIFO Relaxed", "Swapchain");
+            Console::log("\tPresent mode: FIFO Relaxed", "Swapchain");
             return VK_PRESENT_MODE_FIFO_RELAXED_KHR;
         }
     }
 
-    Console::log("Present mode: FIFO", "Swapchain");
+    Console::log("\tPresent mode: FIFO", "Swapchain");
     return VK_PRESENT_MODE_FIFO_KHR;
 }
 
