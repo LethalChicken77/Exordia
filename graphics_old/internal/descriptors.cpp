@@ -94,7 +94,7 @@ DescriptorPool::DescriptorPool(
   descriptorPoolInfo.flags = poolFlags;
 
   VkResult result = VK_SUCCESS;
-  if ((result = vkCreateDescriptorPool(device.device(), &descriptorPoolInfo, nullptr, &descriptorPool)) !=
+  if ((result = vkCreateDescriptorPool(device.device(), &descriptorPoolInfo, nullptr, &pool)) !=
       VK_SUCCESS) {
     std::cout << "Error " << result << std::endl;
     throw std::runtime_error("failed to create descriptor pool!");
@@ -102,14 +102,14 @@ DescriptorPool::DescriptorPool(
 }
 
 DescriptorPool::~DescriptorPool() {
-  vkDestroyDescriptorPool(device.device(), descriptorPool, nullptr);
+  vkDestroyDescriptorPool(device.device(), pool, nullptr);
 }
 
 bool DescriptorPool::allocateDescriptor(
     const VkDescriptorSetLayout descriptorSetLayout, VkDescriptorSet &descriptor) const {
   VkDescriptorSetAllocateInfo allocInfo{};
   allocInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO;
-  allocInfo.descriptorPool = descriptorPool;
+  allocInfo.descriptorPool = pool;
   allocInfo.pSetLayouts = &descriptorSetLayout;
   allocInfo.descriptorSetCount = 1;
   // Might want to create a "DescriptorPoolManager" class that handles this case, and builds
@@ -125,13 +125,13 @@ bool DescriptorPool::allocateDescriptor(
 void DescriptorPool::freeDescriptors(std::vector<VkDescriptorSet> &descriptors) const {
   vkFreeDescriptorSets(
       device.device(),
-      descriptorPool,
+      pool,
       static_cast<uint32_t>(descriptors.size()),
       descriptors.data());
 }
 
 void DescriptorPool::resetPool() {
-  vkResetDescriptorPool(device.device(), descriptorPool, 0);
+  vkResetDescriptorPool(device.device(), pool, 0);
 }
 
 // *************** Descriptor Writer *********************

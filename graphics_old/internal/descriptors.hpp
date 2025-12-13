@@ -78,11 +78,11 @@ class DescriptorPool {
 
   void resetPool();
 
-  VkDescriptorPool getPool() const { return descriptorPool; }
+  VkDescriptorPool getPool() const { return pool; }
 
  private:
   Device &device;
-  VkDescriptorPool descriptorPool;
+  VkDescriptorPool pool;
 
   friend class DescriptorWriter;
 };

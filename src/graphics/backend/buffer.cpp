@@ -1,6 +1,10 @@
 #include "buffer.hpp"
 
 #include <format>
+
+#include "image.hpp"
+#include "graphics/graphics_data.hpp"
+
 #include "utils/console.hpp"
 #include "utils/debug.hpp"
 
@@ -247,6 +251,78 @@ VkDescriptorBufferInfo Buffer::DescriptorInfoForIndex(int index, uint32_t count)
 VkResult Buffer::InvalidateIndex(int index, uint32_t count)
 {
     return Invalidate(instanceSize, index * instanceSize);
+}
+
+/// @brief Copy the contents from another buffer into this buffer
+/// @param srcBuffer 
+/// @param size 
+void Buffer::CopyFromBuffer(const Buffer &srcBuffer, VkDeviceSize size) 
+{
+    if(&device != &srcBuffer.device)
+    {
+        Console::error("Cannot copy buffer as source buffer does not belong to the same VkDevice", "Buffer");
+        return;
+    }
+    // TODO: More validation
+    // TODO: Support offsets
+
+    VkCommandBuffer commandBuffer = device.BeginSingleTimeCommands();
+
+    VkBufferCopy copyRegion{};
+    copyRegion.srcOffset = 0;  // Optional
+    copyRegion.dstOffset = 0;  // Optional
+    copyRegion.size = size;
+    vkCmdCopyBuffer(commandBuffer, srcBuffer.GetBuffer(), buffer, 1, &copyRegion);
+
+    device.EndSingleTimeCommands(commandBuffer);
+}
+
+/// @brief Copy the contents from an image into this buffer
+/// @param srcImage 
+/// @param width 
+/// @param height 
+/// @param layerCount 
+void Buffer::CopyFromImage(const Image &srcImage, uint32_t width, uint32_t height, uint32_t layerCount) 
+{
+    VkBufferImageCopy region{};
+    region.bufferOffset = 0;
+    region.bufferRowLength = 0;
+    region.bufferImageHeight = 0;
+
+    region.imageSubresource.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
+    region.imageSubresource.mipLevel = 0;
+    region.imageSubresource.baseArrayLayer = 0;
+    region.imageSubresource.layerCount = layerCount;
+
+    region.imageOffset = {0, 0, 0};
+    region.imageExtent = {width, height, 1};
+
+    CopyFromImage(srcImage, width, height, layerCount, region);
+}
+
+/// @brief Copy the contents from an image into this buffer
+/// @param srcImage 
+/// @param width 
+/// @param height 
+/// @param layerCount 
+/// @param region 
+void Buffer::CopyFromImage(const Image &srcImage, uint32_t width, uint32_t height, uint32_t layerCount, const VkBufferImageCopy &region) 
+{
+    if(&device != &srcImage.device)
+    {
+        Console::error("Cannot copy buffer as source buffer does not belong to the same VkDevice", "Buffer");
+        return;
+    }
+    VkCommandBuffer commandBuffer = device.BeginSingleTimeCommands();
+
+    vkCmdCopyImageToBuffer(
+        commandBuffer,
+        srcImage.GetImage(),
+        VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL,
+        buffer,
+        1,
+        &region);
+    device.EndSingleTimeCommands(commandBuffer);
 }
 
 VkDeviceSize Buffer::getAlignment(VkDeviceSize instanceSize, VkDeviceSize minOffsetAlignment) 

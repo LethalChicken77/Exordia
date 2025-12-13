@@ -24,20 +24,12 @@ class Debug
         static std::string mat4ToString(const glm::mat4& m);
 
         static std::string VkResultToString(VkResult result);
+
+        static void VkCheckImpl(VkResult result, const std::string& msg, const char* file, int line);
 };
 
 #ifdef DEBUG
-    #define VK_CHECK(x)                                                 \
-        do                                                              \
-        {                                                               \
-            VkResult err = (x);                                         \
-            if (err)                                                    \
-            {                                                           \
-                Console::error(std::format("Vulkan error {} at {}:{}", (int)err, __FILE__, __LINE__)); \
-                std::cerr << "Detected Vulkan error: " << Debug::VkResultToString(err) << std::endl; \
-                assert(false && "Vulkan error - check log");            \
-            }                                                           \
-        } while (0)
+#define VK_CHECK(result, msg) Debug::VkCheckImpl(result, msg, __FILE__, __LINE__)
 #else
-    #define VK_CHECK(x) (x)   // in release just ignore the result
+#define VK_CHECK(result, msg) result
 #endif

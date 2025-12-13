@@ -1,12 +1,13 @@
 #pragma once
 #include <vulkan/vulkan.h>
 
-#include "graphics/graphics_data.hpp"
+#include "device.hpp"
 // #define DISABLE_VALIDATION // Disable validation checks for performance. Ensure correctness manually.
 
 namespace graphics
 {
 
+class Image;
 class Buffer
 {
 public:
@@ -43,6 +44,10 @@ public:
     VkResult FlushIndex(int index, uint32_t count = 1);
     VkDescriptorBufferInfo DescriptorInfoForIndex(int index, uint32_t count = 1);
     VkResult InvalidateIndex(int index, uint32_t count = 1);
+
+    void CopyFromBuffer(const Buffer &srcBuffer, VkDeviceSize size);
+    void CopyFromImage(const Image &srcImage, uint32_t width, uint32_t height, uint32_t layerCount);
+    void CopyFromImage(const Image &srcImage, uint32_t width, uint32_t height, uint32_t layerCount, const VkBufferImageCopy &region);
 
     VkBuffer GetBuffer() const { return buffer; }
     void* GetDataStart() const { return bufferAllocationInfo.pMappedData; }
@@ -85,6 +90,8 @@ private:
         vmaGetAllocationMemoryProperties(device.GetAllocator(), bufferAllocation, &flags);
         return (flags & VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT) != 0; 
     }
+
+    friend class Image;
 };
 
 } // namespace graphics::internal

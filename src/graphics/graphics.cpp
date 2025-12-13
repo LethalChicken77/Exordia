@@ -16,7 +16,7 @@ namespace graphics
         graphicsData->window.init(800, 600, engName + " - " + appName);
         graphicsData->backend.init(appName, engName, graphicsData->window);
         graphicsData->renderer.init();
-
+        
         // testImage = std::make_unique<Image>(
         //     graphicsData->GetBackend().GetDevice(),
         //     512,
@@ -29,6 +29,24 @@ namespace graphics
         // tests::RunAllTests();
 
         Console::log("Graphics module initialized", "Graphics");
+
+        // graphicsData->globalDescriptorPool = DescriptorPool::Builder(graphicsData->GetBackend().GetDevice())
+        //     .AddPoolSize(VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, 1)
+        //     .SetPoolFlags(VK_DESCRIPTOR_SET_LAYOUT_CREATE_UPDATE_AFTER_BIND_POOL_BIT)
+        //     .SetMaxSets(2)
+        //     .Build();
+        // graphicsData->cameraDescriptorPool = DescriptorPool::Builder(graphicsData->GetBackend().GetDevice())
+        //     .AddPoolSize(VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, Swapchain::MAX_FRAMES_IN_FLIGHT)
+        //     .SetPoolFlags(VK_DESCRIPTOR_SET_LAYOUT_CREATE_UPDATE_AFTER_BIND_POOL_BIT)
+        //     .SetMaxSets(Swapchain::MAX_FRAMES_IN_FLIGHT)
+        //     .Build();
+        ShaderLayout s{};
+        std::vector<ShaderLayout> layouts = {s};
+        graphicsData->globalDescriptorBuffer = std::make_unique<DescriptorBuffer>(
+            graphicsData->GetBackend().GetDevice(),
+            layouts,
+            20
+        );
     }
 
     Graphics::~Graphics()

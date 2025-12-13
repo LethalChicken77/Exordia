@@ -106,6 +106,8 @@ public:
 
     void SetData(const core::TextureData *data);
     void GetData(const core::TextureData *data);
+    VkImage GetImage() const { return image; }
+    VkImageView GetImageView() const { return imageView; }
 
     /// @brief Get Vulkan descriptor for this image. Does not include a sampler.
     /// @return Vulkan descriptor image info
@@ -140,5 +142,7 @@ private:
     void createImage();
     void createImageView();
     void copyDataToImage();
+
+    friend class Buffer;
 };
 } // namespace graphics::internal
