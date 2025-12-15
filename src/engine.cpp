@@ -8,6 +8,8 @@
 #include "core/input.hpp"
 #include "graphics/resources/graphics_mesh.hpp"
 
+#include "core/assets/shader.hpp"
+
 #define GLM_FORCE_RADIANS
 #define GLM_FORCE_DEPTH_ZERO_TO_ONE
 #include <glm/glm.hpp>
@@ -114,10 +116,20 @@ void Engine::update(double deltaTime)
     scene->update(deltaTime);
 }
 
-
-
 void Engine::run()
 {
+    ShaderAsset *testShader = AssetManager::LoadAsset<ShaderAsset>("internal/shaders/basicShader.slang");
+
+    testShader->LoadData();
+
+    Shader *shader = ObjectManager::Instantiate<Shader>("Test Shader");
+    shader->SetVertexShaderAsset(testShader);
+    shader->SetFragmentShaderAsset(testShader);
+
+    shader->Compile();
+
+    graphicsModule.RegisterShader(shader);
+
     // std::cout << "Configuring IMGUI" << std::endl;
     IMGUI_CHECKVERSION();
     ImGui::CreateContext();

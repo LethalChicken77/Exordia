@@ -40,7 +40,7 @@ namespace graphics
         void createPostProcessingLayout();
         void createIDBufferLayout();
 
-        VkPipeline m_graphicsPipeline;
+        VkPipeline graphicsPipeline;
         VkPipelineLayout pipelineLayout;
         Shader &shader;
 

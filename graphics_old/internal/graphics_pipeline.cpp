@@ -35,7 +35,7 @@ namespace graphics
 
     GraphicsPipeline::~GraphicsPipeline()
     {
-        vkDestroyPipeline(Shared::device->device(), m_graphicsPipeline, nullptr);
+        vkDestroyPipeline(Shared::device->device(), graphicsPipeline, nullptr);
         if(pipelineLayout != nullptr)
             vkDestroyPipelineLayout(Shared::device->device(), pipelineLayout, nullptr);
     }
@@ -169,7 +169,7 @@ namespace graphics
         pipelineInfo.basePipelineIndex = -1;
         pipelineInfo.basePipelineHandle = VK_NULL_HANDLE;
 
-        if(vkCreateGraphicsPipelines(Shared::device->device(), cache, 1, &pipelineInfo, nullptr, &m_graphicsPipeline) != VK_SUCCESS)
+        if(vkCreateGraphicsPipelines(Shared::device->device(), cache, 1, &pipelineInfo, nullptr, &graphicsPipeline) != VK_SUCCESS)
         {
             throw std::runtime_error("Failed to create standard pipeline! (Skill issue)");
         }
@@ -230,7 +230,7 @@ namespace graphics
         pipelineInfo.basePipelineIndex = -1;
         pipelineInfo.basePipelineHandle = VK_NULL_HANDLE;
 
-        if(vkCreateGraphicsPipelines(Shared::device->device(), cache, 1, &pipelineInfo, nullptr, &m_graphicsPipeline) != VK_SUCCESS)
+        if(vkCreateGraphicsPipelines(Shared::device->device(), cache, 1, &pipelineInfo, nullptr, &graphicsPipeline) != VK_SUCCESS)
         {
             throw std::runtime_error("Failed to create post processing pipeline!");
         }
@@ -293,7 +293,7 @@ namespace graphics
         pipelineInfo.basePipelineIndex = -1;
         pipelineInfo.basePipelineHandle = VK_NULL_HANDLE;
 
-        if(vkCreateGraphicsPipelines(Shared::device->device(), cache, 1, &pipelineInfo, nullptr, &m_graphicsPipeline) != VK_SUCCESS)
+        if(vkCreateGraphicsPipelines(Shared::device->device(), cache, 1, &pipelineInfo, nullptr, &graphicsPipeline) != VK_SUCCESS)
         {
             throw std::runtime_error("Failed to create standard pipeline! (Skill issue)");
         }
@@ -302,6 +302,6 @@ namespace graphics
 
     void GraphicsPipeline::bind(VkCommandBuffer commandBuffer)
     {
-        vkCmdBindPipeline(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, m_graphicsPipeline);
+        vkCmdBindPipeline(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, graphicsPipeline);
     }
 }

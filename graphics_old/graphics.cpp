@@ -126,7 +126,7 @@ void Graphics::cleanup()
     Descriptors::cameraPool.reset();
     Descriptors::cameraSetLayout.reset();
     Descriptors::imguiPool.reset();
-    pipelineManager->destroyPipelines();
+    pipelineManager->DestroyPipelines();
     // graphicsPipeline.reset();
     Shared::shaders.clear();
     Shared::materials.clear();
@@ -202,13 +202,13 @@ void Graphics::drawFrame()
         outlineMaterial->createDescriptorSet();
         
         renderer.beginRenderPass(outlineRenderPass->getRenderPass(), outlineRenderPass->getFrameBuffer(), outlineRenderPass->getExtent(), {1.0,0.5,0,0});
-        pipelineManager->getPipeline(2)->bind(commandBuffer); // Outline Pipeline
+        pipelineManager->GetPipeline(2)->bind(commandBuffer); // Outline Pipeline
 
         localDescriptorSets = { outlineMaterial->getDescriptorSet() };
         vkCmdBindDescriptorSets(
             commandBuffer, 
             VK_PIPELINE_BIND_POINT_GRAPHICS, 
-            pipelineManager->getPipeline(2)->getPipelineLayout(), 
+            pipelineManager->GetPipeline(2)->getPipelineLayout(), 
             0,
             1,
             localDescriptorSets.data(), 
@@ -227,12 +227,12 @@ void Graphics::drawFrame()
         
 // Final Render Pass
         renderer.beginRenderPass(finalRenderPass->getRenderPass(), finalRenderPass->getFrameBuffer(), finalRenderPass->getExtent(), defaultClearColor);
-        pipelineManager->getPipeline(0)->bind(commandBuffer); // Post-processing pipeline
+        pipelineManager->GetPipeline(0)->bind(commandBuffer); // Post-processing pipeline
         localDescriptorSets = { ppMaterial->getDescriptorSet() };
         vkCmdBindDescriptorSets(
             commandBuffer, 
             VK_PIPELINE_BIND_POINT_GRAPHICS, 
-            pipelineManager->getPipeline(0)->getPipelineLayout(), 
+            pipelineManager->GetPipeline(0)->getPipelineLayout(), 
             0,
             1,
             localDescriptorSets.data(), 
@@ -242,12 +242,12 @@ void Graphics::drawFrame()
         // Draw 6 vertices (full-screen quad)
         vkCmdDraw(commandBuffer, 6, 1, 0, 0);
 
-        pipelineManager->getPipeline(1)->bind(commandBuffer); // Outline
+        pipelineManager->GetPipeline(1)->bind(commandBuffer); // Outline
         localDescriptorSets = { outlineResultMaterial->getDescriptorSet() };
         vkCmdBindDescriptorSets(
             commandBuffer, 
             VK_PIPELINE_BIND_POINT_GRAPHICS, 
-            pipelineManager->getPipeline(1)->getPipelineLayout(), 
+            pipelineManager->GetPipeline(1)->getPipelineLayout(), 
             0,
             1,
             localDescriptorSets.data(), 
@@ -275,12 +275,12 @@ void Graphics::drawFrame()
         outputMaterial->createDescriptorSet();
 
         renderer.beginRenderPass(renderer.getSCRenderPass(), renderer.getSCFrameBuffer(), renderer.getExtent(), defaultClearColor);
-        pipelineManager->getPipeline(1)->bind(commandBuffer); // ImGui
+        pipelineManager->GetPipeline(1)->bind(commandBuffer); // ImGui
         localDescriptorSets = { imguiMaterial->getDescriptorSet() };
         vkCmdBindDescriptorSets(
             commandBuffer, 
             VK_PIPELINE_BIND_POINT_GRAPHICS, 
-            pipelineManager->getPipeline(1)->getPipelineLayout(), 
+            pipelineManager->GetPipeline(1)->getPipelineLayout(), 
             0,
             1,
             localDescriptorSets.data(), 
@@ -760,7 +760,7 @@ void Graphics::reloadShaders()
         shader->reloadShader();
     }
 
-    pipelineManager->reloadPipelines();
+    pipelineManager->ReloadPipelines();
 }
 
 int Graphics::getClickedObjID(uint32_t x, uint32_t y)

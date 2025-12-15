@@ -144,12 +144,10 @@ std::string Debug::VkResultToString(VkResult result)
 
 void Debug::VkCheckImpl(VkResult result, const std::string& msg, const char* file, int line)
 {
-    #ifdef DEBUG
     if (result)
     {
         Console::error(std::format("Vulkan error {} at {}:{}", (int)result, file, line));
         std::cerr << msg << ": " << Debug::VkResultToString(result) << std::endl;
         assert(false && "Vulkan error - check log");
     }
-    #endif
 }

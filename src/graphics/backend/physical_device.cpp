@@ -39,12 +39,20 @@ void PhysicalDevice::pickPhysicalDevice(VkInstance instance, VkSurfaceKHR* surfa
         }
     }
 
-    if (physicalDevice == VK_NULL_HANDLE) {
+    if (physicalDevice == VK_NULL_HANDLE) 
+    {
         throw std::runtime_error("Failed to find a suitable GPU!");
     }
 
-    vkGetPhysicalDeviceProperties(physicalDevice, &properties);
-    Console::log("Physical device: " + std::string(properties.deviceName), "PhysicalDevice");
+    descriptorBufferProperties = {
+        .sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_DESCRIPTOR_BUFFER_PROPERTIES_EXT
+    };
+    properties = {
+        .sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_PROPERTIES_2,
+        .pNext = &descriptorBufferProperties
+    };
+    vkGetPhysicalDeviceProperties2(physicalDevice, &properties);
+    Console::log("Physical device: " + std::string(properties.properties.deviceName), "PhysicalDevice");
 }
 
 bool PhysicalDevice::findDeviceCapabilities(VkPhysicalDevice device, VkSurfaceKHR* surface) 
@@ -60,11 +68,15 @@ bool PhysicalDevice::findDeviceCapabilities(VkPhysicalDevice device, VkSurfaceKH
         swapChainAdequate = !swapchainSupport.formats.empty() && !swapchainSupport.presentModes.empty();
     }
 
-    VkPhysicalDeviceFeatures supportedFeatures;
-    vkGetPhysicalDeviceFeatures(device, &supportedFeatures);
+    VkPhysicalDeviceFeatures2 supportedFeatures = {
+        .sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_FEATURES_2,
+        .pNext = nullptr
+    };
+    vkGetPhysicalDeviceFeatures2(device, &supportedFeatures);
 
-    return queueFamilyIndices.isComplete() && extensionsSupported && swapChainAdequate &&
-            supportedFeatures.samplerAnisotropy;
+    // TODO: Deal with feature checks dynamically
+    return queueFamilyIndices.isComplete() && extensionsSupported && swapChainAdequate 
+        && supportedFeatures.features.samplerAnisotropy;
 }
 
 bool PhysicalDevice::checkDeviceExtensionSupport(VkPhysicalDevice device) 

@@ -5,6 +5,7 @@
 #include "rendering/renderer.hpp"
 #include "resources/descriptor_set.hpp"
 #include "resources/descriptor_buffer.hpp"
+#include "resources/pipeline_manager.hpp"
 
 
 #define GLM_FORCE_RADIANS
@@ -72,6 +73,7 @@ private:
     Window window;
     internal::VulkanBackend backend;
     Renderer renderer{backend.GetDevice(), window};
+    PipelineManager pipelineManager{backend.GetDevice()};
 
     friend class Graphics;
 };

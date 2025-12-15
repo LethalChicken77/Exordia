@@ -3,8 +3,7 @@
 
 #include "backend/vulkan_backend.hpp"
 #include "graphics_data.hpp"
-
-#include "core/mesh.hpp"
+#include "resources/graphics_mesh.hpp"
 
 namespace graphics
 {
@@ -24,12 +23,31 @@ class Graphics
         void DrawMesh(core::Mesh& meshData, id_t materialID, const glm::mat4& modelMatrix, int instanceID = -1);
         void DrawFrame();
 
+        void RegisterShader(core::Shader *shader, bool reloadPipelines = true)
+        {
+            graphicsData->pipelineManager.RegisterShader(shader);
+            if(reloadPipelines)
+                graphicsData->pipelineManager.ReloadPipelines();
+        }
+        
+        void DeregisterShader(core::Shader *shader, bool reloadPipelines = true)
+        {
+            graphicsData->pipelineManager.DeregisterShader(shader);
+            if(reloadPipelines)
+                graphicsData->pipelineManager.ReloadPipelines();
+        }
+
+        inline void ReloadPipelines()
+        {
+            graphicsData->pipelineManager.ReloadPipelines();
+        }
 
         Window &GetWindow() { return graphicsData->GetWindow(); }
         GLFWwindow* GetGLFWWindow() { return graphicsData->GetWindow().GetWindow(); }
 
         bool IsOpen() const { return graphicsData->GetWindow().IsOpen(); }
     private:
+        std::unique_ptr<GraphicsMesh> testMesh;
 };
 
 } // namespace graphics

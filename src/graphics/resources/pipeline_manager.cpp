@@ -3,22 +3,23 @@
 
 namespace graphics{
 
-PipelineManager::PipelineManager(Renderer& _renderer) : renderer(_renderer)
-{
-    // createPipelineLayout();
-    createPipelineCache();
-    CreatePipelines();
-}
+PipelineManager::PipelineManager(internal::Device& _device) : device(_device) {}
 
 PipelineManager::~PipelineManager()
 {
     if(pipelineCache != nullptr)
-        vkDestroyPipelineCache(Shared::device->device(), pipelineCache, nullptr);
+        vkDestroyPipelineCache(device.GetDevice(), pipelineCache, nullptr);
+}
+
+void PipelineManager::init()
+{
+    createPipelineCache();
+    CreatePipelines();
 }
 
 void PipelineManager::ReloadPipelines()
 {
-    vkDeviceWaitIdle(Shared::device->device());
+    device.WaitIdle();
     DestroyPipelines();
     CreatePipelines();
 }
@@ -30,12 +31,14 @@ void PipelineManager::CreatePipelines()
     currentID = 0;
     // PipelineConfigInfo pipelineConfig{};
     // GraphicsPipeline::defaultPipelineConfigInfo(pipelineConfig);
-    int numShaders = Shared::shaders.size();
-    for(std::unique_ptr<Shader>& shader : Shared::shaders)
+
+    int numShaders = shaders.size();
+    for(core::Shader *shader : shaders)
     {    
         std::unique_ptr<GraphicsPipeline> graphicsPipeline = std::make_unique<GraphicsPipeline>(
-            *shader,
+            device,
             currentID++,
+            *shader,
             pipelineCache
         );
 
@@ -58,7 +61,7 @@ void PipelineManager::createPipelineCache()
     VkPipelineCacheCreateInfo cacheCreateInfo{};
     cacheCreateInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_CACHE_CREATE_INFO;
 
-    if(vkCreatePipelineCache(Shared::device->device(), &cacheCreateInfo, nullptr, &pipelineCache) != VK_SUCCESS)
+    if(vkCreatePipelineCache(device.GetDevice(), &cacheCreateInfo, nullptr, &pipelineCache) != VK_SUCCESS)
     {
         throw std::runtime_error("Failed to create pipeline cache!");
     }

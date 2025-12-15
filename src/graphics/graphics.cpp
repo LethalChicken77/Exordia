@@ -16,6 +16,7 @@ namespace graphics
         graphicsData->window.init(800, 600, engName + " - " + appName);
         graphicsData->backend.init(appName, engName, graphicsData->window);
         graphicsData->renderer.init();
+        graphicsData->pipelineManager.init();
         
         // testImage = std::make_unique<Image>(
         //     graphicsData->GetBackend().GetDevice(),
@@ -71,6 +72,10 @@ namespace graphics
                 extent,
                 VkClearValue{.color = {{0.02f, 0.03f, 0.1f, 1.0f}}}
             );
+
+            
+
+
             renderer.EndRenderDynamic(commandBuffer);
             // RenderContext frameInfo{frameIndex, 0.0, commandBuffer, Descriptors::globalDescriptorSet, Descriptors::cameraDescriptorSets[frameIndex]};
             renderer.EndFrame();
