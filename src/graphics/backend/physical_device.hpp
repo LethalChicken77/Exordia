@@ -43,6 +43,7 @@ public:
     // uint32_t FindMemoryType(uint32_t typeFilter, VkMemoryPropertyFlags properties);
     // VkFormat PhysicalDevice::FindSupportedFormat(const std::vector<VkFormat> &candidates, VkImageTiling tiling, VkFormatFeatureFlags features);
     
+    
 private:
     PhysicalDevice();
 

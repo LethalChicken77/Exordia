@@ -59,10 +59,12 @@ public:
     // std::unique_ptr<DescriptorPool> cameraDescriptorPool;
     // std::unique_ptr<DescriptorPool> materialDescriptorPool;
 
+    std::unique_ptr<DescriptorSetLayout> globalSetLayout;
+    std::unique_ptr<DescriptorSetLayout> cameraSetLayout;
+
     std::unique_ptr<DescriptorBuffer> globalDescriptorBuffer; // Ooh shiny new thing
     std::unique_ptr<DescriptorBuffer> frameBuffer; // For per-frame data like camera UBOs
     std::unique_ptr<DescriptorBuffer> materialBuffer; // Material data
-    std::unique_ptr<DescriptorBuffer> objectBuffer; // Object data like model matrices
     // Global pool
     // Global descriptor sets
     // Push constants

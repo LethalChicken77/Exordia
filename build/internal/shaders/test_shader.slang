@@ -8,8 +8,7 @@ struct CameraUbo
     row_major float4x4 projection;
     column_major float4x4 viewProj;
 };
-[[vk::descriptorBuffer]] ConstantBuffer<CameraUbo> cameraData;
-// [[vk::binding(0, 0)]] ConstantBuffer<CameraUbo> cameraData;
+[[vk::binding(0, 0)]] ConstantBuffer<CameraUbo> cameraData;
 
 struct VertexData
 {
@@ -39,14 +38,12 @@ struct VOut
     float3 Color : COLOR;
     float2 UV : TEXCOORD0;
 };
-
 // Material Descriptor Set
 struct MaterialInfo
 {
     float4 color;
 };
-// [[vk::binding(0, 2)]] ConstantBuffer<MaterialInfo> materialInfo;
-[[vk::descriptorBuffer]] ConstantBuffer<MaterialInfo> materialInfo;
+[[vk::binding(0, 2)]] ConstantBuffer<MaterialInfo> materialInfo;
 
 [shader("vertex")]
 VOut vsMain(VertexData vertex, InstanceData instance)

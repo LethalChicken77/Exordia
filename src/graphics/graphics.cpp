@@ -28,6 +28,20 @@ namespace graphics
         // testImage->TransitionImageLayout(VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
 
         // tests::RunAllTests();
+        graphicsData->cameraSetLayout = DescriptorSetLayout::Builder()
+            .AddBinding(
+                0,
+                VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER,
+                VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT
+            )
+            .Build();
+        graphicsData->globalSetLayout = DescriptorSetLayout::Builder()
+            .AddBinding(
+                0,
+                VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER,
+                VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT
+            )
+            .Build();
 
         Console::log("Graphics module initialized", "Graphics");
 
@@ -41,13 +55,13 @@ namespace graphics
         //     .SetPoolFlags(VK_DESCRIPTOR_SET_LAYOUT_CREATE_UPDATE_AFTER_BIND_POOL_BIT)
         //     .SetMaxSets(Swapchain::MAX_FRAMES_IN_FLIGHT)
         //     .Build();
-        ShaderLayout s{};
-        std::vector<ShaderLayout> layouts = {s};
-        graphicsData->globalDescriptorBuffer = std::make_unique<DescriptorBuffer>(
-            graphicsData->GetBackend().GetDevice(),
-            layouts,
-            20
-        );
+        // ShaderLayout s{};
+        // std::vector<ShaderLayout> layouts = {s};
+        // graphicsData->globalDescriptorBuffer = std::make_unique<DescriptorBuffer>(
+        //     graphicsData->GetBackend().GetDevice(),
+        //     layouts,
+        //     20
+        // );
     }
 
     Graphics::~Graphics()

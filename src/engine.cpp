@@ -118,7 +118,7 @@ void Engine::update(double deltaTime)
 
 void Engine::run()
 {
-    ShaderAsset *testShader = AssetManager::LoadAsset<ShaderAsset>("internal/shaders/basicShader.slang");
+    ShaderAsset *testShader = AssetManager::LoadAsset<ShaderAsset>("internal/shaders/test_shader.slang");
 
     testShader->LoadData();
 

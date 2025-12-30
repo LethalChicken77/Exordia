@@ -7,6 +7,7 @@
 #include "graphics/resources/graphics_mesh.hpp"
 
 #include "graphics/push_constants.hpp"
+#include "graphics/graphics_data.hpp"
 
 using namespace std;
 
@@ -21,6 +22,7 @@ namespace graphics
         : device(_device), ID(id), configInfo(shader.properties)
     {
         createShaderModules(shader);
+        createMaterialSetLayout(shader);
         switch(configInfo.pipelineType)
         {
             case PipelineType::STANDARD:
@@ -42,6 +44,7 @@ namespace graphics
 
     GraphicsPipeline::~GraphicsPipeline()
     {
+        materialSetLayout.reset();
         if(graphicsPipeline != nullptr)
             vkDestroyPipeline(device.GetDevice(), graphicsPipeline, nullptr);
         if(pipelineLayout != nullptr)
@@ -80,6 +83,13 @@ namespace graphics
 
         VK_CHECK(vkCreateShaderModule(device.GetDevice(), &createInfo, nullptr, shaderModule), "Failed to create shader module");
     }
+
+    void GraphicsPipeline::createMaterialSetLayout(const core::Shader &shader)
+    {
+        materialSetLayout = DescriptorSetLayout::Builder(device)
+            .AddBinding(0, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT)
+            .Build();
+    }
     
     void GraphicsPipeline::createStandardLayout()
     {
@@ -90,10 +100,16 @@ namespace graphics
         pushConstantRange.offset = 0;
         pushConstantRange.size = sizeof(PushConstants);
 
+        std::vector<VkDescriptorSetLayout> descriptorSetLayouts{
+            graphicsData->cameraSetLayout->GetDescriptorSetLayout(),
+            graphicsData->globalSetLayout->GetDescriptorSetLayout(),
+            materialSetLayout->GetDescriptorSetLayout()
+        };
+
         VkPipelineLayoutCreateInfo pipelineLayoutInfo{};
         pipelineLayoutInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO;
-        pipelineLayoutInfo.setLayoutCount = 0; // Replaced with descriptor buffers
-        pipelineLayoutInfo.pSetLayouts = nullptr;
+        pipelineLayoutInfo.setLayoutCount = descriptorSetLayouts.size();
+        pipelineLayoutInfo.pSetLayouts = descriptorSetLayouts.data();
         pipelineLayoutInfo.pushConstantRangeCount = 1;
         pipelineLayoutInfo.pPushConstantRanges = &pushConstantRange;
         if(vkCreatePipelineLayout(device.GetDevice(), &pipelineLayoutInfo, nullptr, &pipelineLayout) != VK_SUCCESS)
@@ -187,9 +203,15 @@ namespace graphics
             .pDynamicStates = dynamicStateEnables.data(),
         };
 
+        VkPipelineCreateFlags2CreateInfo flags2{};
+        flags2.sType = VK_STRUCTURE_TYPE_PIPELINE_CREATE_FLAGS_2_CREATE_INFO;
+        flags2.pNext = nullptr;
+        flags2.flags = VK_PIPELINE_CREATE_DESCRIPTOR_BUFFER_BIT_EXT;
+
         VkPipelineRenderingCreateInfo pipelineRenderingCreateInfo{
             .sType = VK_STRUCTURE_TYPE_PIPELINE_RENDERING_CREATE_INFO,
-            .pNext = nullptr,
+            .pNext = &flags2, // Remove for classic descriptor sets
+            // .pNext = nullptr,
             .viewMask = 0,
             .colorAttachmentCount = static_cast<uint32_t>(configInfo.colorAttachmentFormats.size()),
             .pColorAttachmentFormats = configInfo.colorAttachmentFormats.data(),
@@ -200,6 +222,7 @@ namespace graphics
         VkGraphicsPipelineCreateInfo pipelineInfo{
             .sType = VK_STRUCTURE_TYPE_GRAPHICS_PIPELINE_CREATE_INFO,
             .pNext = &pipelineRenderingCreateInfo,
+            .flags = 0,
             .stageCount = 2,
             .pStages = shaderStages,
             .pVertexInputState = &vertexInputInfo,
@@ -348,7 +371,7 @@ namespace graphics
     //     Console::log("Created standard pipeline successfully", "GraphicsPipeline");
     // }
 
-    void GraphicsPipeline::bind(VkCommandBuffer commandBuffer)
+    void GraphicsPipeline::Bind(VkCommandBuffer commandBuffer)
     {
         vkCmdBindPipeline(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, graphicsPipeline);
     }

@@ -7,9 +7,13 @@ std::unique_ptr<GraphicsData> graphicsData;
 GraphicsData::~GraphicsData()
 {
     backend.WaitForDevice();
+
+    pipelineManager.DestroyPipelines();
+    cameraSetLayout.reset();
+    globalSetLayout.reset();
+
     globalDescriptorBuffer.reset();
     frameBuffer.reset();
     materialBuffer.reset();
-    objectBuffer.reset();
 }
 } // namespace graphics

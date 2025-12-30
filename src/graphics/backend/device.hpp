@@ -39,6 +39,12 @@ public:
     const VkCommandPool &GetCommandPool() const { return commandPool; }
     const VkQueue &GetGraphicsQueue() const { return graphicsQueue; }
     const VkQueue &GetPresentQueue() const { return presentQueue; }
+
+    uint32_t GetDescriptorSetLayoutSize(const VkDescriptorSetLayout layout) const {
+        VkDeviceSize layoutSize = 0;
+        vkGetDescriptorSetLayoutSizeEXT(device, layout, &layoutSize);
+        return layoutSize; // NOTE: Layout size should fit in uint32_t, if not you're doing something wrong
+    }
 private:
     VkDevice device;
     VkQueue graphicsQueue;

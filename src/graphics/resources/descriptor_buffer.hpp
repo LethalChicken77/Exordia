@@ -9,9 +9,9 @@ namespace graphics
 class DescriptorBuffer
 {
 public:
-    DescriptorBuffer(internal::Device &_device, const ShaderLayout &layout, uint32_t setCount, VkMemoryPropertyFlags memoryFlags = GetDynamicFlags());
-    DescriptorBuffer(internal::Device &device, const std::vector<ShaderLayout> &layouts, uint32_t setCount, VkMemoryPropertyFlags memoryFlags = GetDynamicFlags());
-    DescriptorBuffer(internal::Device &device, const std::vector<ShaderLayout> &layouts, const std::vector<uint32_t> &setCounts, VkMemoryPropertyFlags memoryFlags = GetDynamicFlags());
+    DescriptorBuffer(internal::Device &_device, const DescriptorSetLayout &layout, uint32_t setCount, VkMemoryPropertyFlags memoryFlags = GetDynamicFlags());
+    DescriptorBuffer(internal::Device &device, const std::vector<DescriptorSetLayout> &layouts, uint32_t setCount, VkMemoryPropertyFlags memoryFlags = GetDynamicFlags());
+    DescriptorBuffer(internal::Device &device, const std::vector<DescriptorSetLayout> &layouts, const std::vector<uint32_t> &setCounts, VkMemoryPropertyFlags memoryFlags = GetDynamicFlags());
     ~DescriptorBuffer();
 
     void SetValues(uint32_t index, ShaderLayout layout, const void* data);
@@ -44,7 +44,7 @@ private:
     uint32_t maxSets = 1024;
     uint32_t maxSize = 1000000000; // 1 GB
 
-    std::vector<ShaderLayout> layouts{};
+    std::vector<DescriptorSetLayout*> layouts{};
     std::vector<uint32_t> setCounts{};
 };
 }

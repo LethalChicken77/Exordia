@@ -27,6 +27,13 @@ private:
     friend class Shader;
 };
 
+class ShaderLayout
+{
+
+
+std::vector<uint32_t> rawSizes;
+};
+
 class Shader : public Object
 {
 public:
