@@ -2,7 +2,7 @@
 #include "core/asset.hpp"
 #include "core/asset_data.hpp"
 
-#include "graphics/shader_config.hpp"
+#include "graphics/api/shader_config.hpp"
 
 #include <slang.h>
 

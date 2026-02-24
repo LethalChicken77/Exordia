@@ -3,15 +3,16 @@
 #include "graphics/backend/device.hpp"
 #include "graphics/backend/buffer.hpp"
 #include "shader_layout.hpp"
+#include "descriptor_set.hpp"
 
 namespace graphics
 {
 class DescriptorBuffer
 {
 public:
-    DescriptorBuffer(internal::Device &_device, const DescriptorSetLayout &layout, uint32_t setCount, VkMemoryPropertyFlags memoryFlags = GetDynamicFlags());
-    DescriptorBuffer(internal::Device &device, const std::vector<DescriptorSetLayout> &layouts, uint32_t setCount, VkMemoryPropertyFlags memoryFlags = GetDynamicFlags());
-    DescriptorBuffer(internal::Device &device, const std::vector<DescriptorSetLayout> &layouts, const std::vector<uint32_t> &setCounts, VkMemoryPropertyFlags memoryFlags = GetDynamicFlags());
+    DescriptorBuffer(internal::Device &_device, const DescriptorSetLayout *layout, uint32_t setCount, VkMemoryPropertyFlags memoryFlags = GetDynamicFlags());
+    DescriptorBuffer(internal::Device &device, const std::vector<DescriptorSetLayout*> &layouts, uint32_t setCount, VkMemoryPropertyFlags memoryFlags = GetDynamicFlags());
+    DescriptorBuffer(internal::Device &device, const std::vector<DescriptorSetLayout*> &layouts, const std::vector<uint32_t> &setCounts, VkMemoryPropertyFlags memoryFlags = GetDynamicFlags());
     ~DescriptorBuffer();
 
     void SetValues(uint32_t index, ShaderLayout layout, const void* data);

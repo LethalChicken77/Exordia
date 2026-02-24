@@ -84,15 +84,22 @@ void Device::createLogicalDevice(bool enableValidationLayers)
     // atomicFloatFeatures.shaderImageFloat32Atomics = VK_TRUE; // Enable float32 atomics on images
     // atomicFloatFeatures.shaderImageFloat32AtomicAdd = VK_TRUE; // Enable float32 atomics on images
 
+    VkPhysicalDeviceDescriptorBufferFeaturesEXT descriptorBufferFeature{};
+    descriptorBufferFeature.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_DESCRIPTOR_BUFFER_FEATURES_EXT;
+    descriptorBufferFeature.pNext = nullptr;
+    descriptorBufferFeature.descriptorBuffer = VK_TRUE;
+
     // Enable dynamic rendering feature
     VkPhysicalDeviceDynamicRenderingFeatures dynamicRenderingFeature{};
     dynamicRenderingFeature.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_DYNAMIC_RENDERING_FEATURES;
     dynamicRenderingFeature.dynamicRendering = VK_TRUE;
-    dynamicRenderingFeature.pNext = nullptr;
+    dynamicRenderingFeature.pNext = &descriptorBufferFeature;
 
-    VkPhysicalDeviceFeatures deviceFeatures{};
-    deviceFeatures.samplerAnisotropy = VK_TRUE;
-    deviceFeatures.fillModeNonSolid = VK_TRUE; // Allow wireframe rendering
+    VkPhysicalDeviceFeatures2 deviceFeatures2{};
+    deviceFeatures2.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_FEATURES_2;
+    deviceFeatures2.pNext = &dynamicRenderingFeature;
+    deviceFeatures2.features.samplerAnisotropy = VK_TRUE;
+    deviceFeatures2.features.fillModeNonSolid = VK_TRUE; // Allow wireframe rendering
 
     VkDeviceCreateInfo createInfo{};
     createInfo.sType = VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO;
@@ -100,10 +107,10 @@ void Device::createLogicalDevice(bool enableValidationLayers)
     createInfo.queueCreateInfoCount = static_cast<uint32_t>(queueCreateInfos.size());
     createInfo.pQueueCreateInfos = queueCreateInfos.data();
 
-    createInfo.pEnabledFeatures = &deviceFeatures;
+    createInfo.pEnabledFeatures = nullptr;
     createInfo.enabledExtensionCount = static_cast<uint32_t>(deviceExtensions.size());
     createInfo.ppEnabledExtensionNames = deviceExtensions.data();
-    createInfo.pNext = &dynamicRenderingFeature;//&atomicFloatFeatures; // Add the atomic float features to the device create info
+    createInfo.pNext = &deviceFeatures2;//&atomicFloatFeatures; // Add the atomic float features to the device create info
 
     // Might not really be necessary anymore because device specific validation layers
     // have been deprecated

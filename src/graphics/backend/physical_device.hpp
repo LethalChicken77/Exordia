@@ -1,7 +1,7 @@
 #pragma once
 // Library headers
 #include <set>
-#include <vulkan/vulkan.h>
+#include "graphics/backend/vulkan_include.h"
 // Project headers
 #include "graphics/window.hpp"
 

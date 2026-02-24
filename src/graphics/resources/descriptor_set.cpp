@@ -59,7 +59,7 @@ DescriptorSetLayout::DescriptorSetLayout(internal::Device &device, std::unordere
     VkDescriptorSetLayoutCreateInfo createInfo{};
     createInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO;
     createInfo.pNext = nullptr;
-    createInfo.flags = 0;
+    createInfo.flags = VK_DESCRIPTOR_SET_LAYOUT_CREATE_DESCRIPTOR_BUFFER_BIT_EXT;
     createInfo.bindingCount = static_cast<uint32_t>(bindings.size());
     createInfo.pBindings = setLayoutBindings.data();
 

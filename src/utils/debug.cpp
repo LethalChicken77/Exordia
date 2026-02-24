@@ -3,7 +3,7 @@
 #include <iostream>
 #include <sstream>
 #include <string.h>
-#include <vulkan/vulkan.h>
+#include "graphics/backend/vulkan_include.h"
 
 std::string Debug::vec2ToString(const glm::vec2& v)
 {

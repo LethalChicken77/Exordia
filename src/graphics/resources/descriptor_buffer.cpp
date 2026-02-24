@@ -7,19 +7,28 @@
 namespace graphics
 {
 
-uint32_t SizeHelper(internal::Device &_device, const std::vector<DescriptorSetLayout> *&layouts, uint32_t setCount)
+uint32_t SizeHelper(internal::Device &_device, const DescriptorSetLayout* layout, uint32_t setCount)
 {
     uint32_t totalSize = 0;
-    for (const DescriptorSetLayout &layout : layouts)
+    uint32_t layoutSize = _device.GetDescriptorSetLayoutSize(layout->GetDescriptorSetLayout());
+    uint32_t alignment = _device.GetPhysicalDevice().GetDescriptorBufferProperties().descriptorBufferOffsetAlignment;
+    totalSize += AlignedSize(layoutSize, alignment) * setCount;
+    return totalSize;
+}
+
+uint32_t SizeHelper(internal::Device &_device, const std::vector<DescriptorSetLayout*> &layouts, uint32_t setCount)
+{
+    uint32_t totalSize = 0;
+    for (const DescriptorSetLayout *layout : layouts)
     {
-        uint32_t layoutSize = _device.GetDescriptorSetLayoutSize(layout.GetDescriptorSetLayout());
+        uint32_t layoutSize = _device.GetDescriptorSetLayoutSize(layout->GetDescriptorSetLayout());
         uint32_t alignment = _device.GetPhysicalDevice().GetDescriptorBufferProperties().descriptorBufferOffsetAlignment;
         totalSize += AlignedSize(layoutSize, alignment) * setCount;
     }
     return totalSize;
 }
 
-uint32_t SizeHelper(internal::Device &_device, const std::vector<DescriptorSetLayout> *&layouts, const std::vector<uint32_t> &setCounts)
+uint32_t SizeHelper(internal::Device &_device, const std::vector<DescriptorSetLayout*> &layouts, const std::vector<uint32_t> &setCounts)
 {
 #ifndef DISABLE_VALIDATION
     if(layouts.size() != setCounts.size())
@@ -31,7 +40,7 @@ uint32_t SizeHelper(internal::Device &_device, const std::vector<DescriptorSetLa
     uint32_t totalSize = 0;
     for (uint32_t i = 0; i < layouts.size(); i++)
     {
-        uint32_t layoutSize = _device.GetDescriptorSetLayoutSize(layouts[i].GetDescriptorSetLayout());
+        uint32_t layoutSize = _device.GetDescriptorSetLayoutSize(layouts[i]->GetDescriptorSetLayout());
         uint32_t alignment = _device.GetPhysicalDevice().GetDescriptorBufferProperties().descriptorBufferOffsetAlignment;
         totalSize += AlignedSize(layoutSize, alignment) * setCounts[i];
     }
@@ -42,10 +51,10 @@ uint32_t SizeHelper(internal::Device &_device, const std::vector<DescriptorSetLa
 /// @param device Device to create buffer on
 /// @param layout Descriptor set layout
 /// @param setCount Number of sets to allocate for each layout
-DescriptorBuffer::DescriptorBuffer(internal::Device &_device, const DescriptorSetLayout &layout, uint32_t setCount, VkMemoryPropertyFlags memoryFlags) 
+DescriptorBuffer::DescriptorBuffer(internal::Device &_device, const DescriptorSetLayout *layout, uint32_t setCount, VkMemoryPropertyFlags memoryFlags) 
     : buffer(
         _device,
-        SizeHelper(_device, layouts, setCount),
+        SizeHelper(_device, layout, setCount),
         1,
         VK_BUFFER_USAGE_RESOURCE_DESCRIPTOR_BUFFER_BIT_EXT | 
             VK_BUFFER_USAGE_SAMPLER_DESCRIPTOR_BUFFER_BIT_EXT | 
@@ -58,7 +67,7 @@ DescriptorBuffer::DescriptorBuffer(internal::Device &_device, const DescriptorSe
 /// @param device Device to create buffer on
 /// @param layouts List of descriptor set layouts to allocator for
 /// @param setCount Number of sets to allocate for each layout
-DescriptorBuffer::DescriptorBuffer(internal::Device &_device, const std::vector<DescriptorSetLayout> &layouts, uint32_t setCount, VkMemoryPropertyFlags memoryFlags) 
+DescriptorBuffer::DescriptorBuffer(internal::Device &_device, const std::vector<DescriptorSetLayout*> &layouts, uint32_t setCount, VkMemoryPropertyFlags memoryFlags) 
     : buffer(
         _device,
         SizeHelper(_device, layouts, setCount),
@@ -71,7 +80,7 @@ DescriptorBuffer::DescriptorBuffer(internal::Device &_device, const std::vector<
 /// @param device Device to create buffer on
 /// @param layouts List of descriptor set layouts to allocator for
 /// @param setCounts List of number of sets to allocate for each layout
-DescriptorBuffer::DescriptorBuffer(internal::Device &_device, const std::vector<DescriptorSetLayout> &layouts, const std::vector<uint32_t> &setCounts, VkMemoryPropertyFlags memoryFlags) 
+DescriptorBuffer::DescriptorBuffer(internal::Device &_device, const std::vector<DescriptorSetLayout*> &layouts, const std::vector<uint32_t> &setCounts, VkMemoryPropertyFlags memoryFlags) 
     : buffer(
         _device,
         SizeHelper(_device, layouts, setCounts),

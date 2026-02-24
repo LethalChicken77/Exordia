@@ -44,6 +44,11 @@ namespace graphics
             .Build();
 
         Console::log("Graphics module initialized", "Graphics");
+        
+        std::vector<DescriptorSetLayout*> layouts = {
+            graphicsData->cameraSetLayout.get(), 
+            graphicsData->globalSetLayout.get()};
+        graphicsData->globalDescriptorBuffer = std::make_unique<DescriptorBuffer>(graphicsData->backend.GetDevice(), layouts, 1);
 
         // graphicsData->globalDescriptorPool = DescriptorPool::Builder(graphicsData->GetBackend().GetDevice())
         //     .AddPoolSize(VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, 1)

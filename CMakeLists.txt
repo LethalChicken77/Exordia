@@ -49,6 +49,7 @@ set(CMAKE_AUTORCC OFF)
 # ─────────────────────────────────────────────────────────────
 # Use the environment variable that the SDK always sets
 set(VULKAN_SDK "$ENV{VULKAN_SDK}")                     # e.g. C:/VulkanSDK/1.4.309.0
+cmake_path(SET VULKAN_SDK NORMALIZE "${VULKAN_SDK}")
 message(STATUS "Vulkan SDK Path: ${VULKAN_SDK}")
 # Set GLFW Include Directory
 set(GLFW_INCLUDE_DIR "C:/glfw-3.4.bin.WIN64/include")
@@ -87,6 +88,10 @@ set(IMGUI_SOURCES
     ${IMGUI_BACKENDS}/imgui_impl_vulkan.cpp
 )
 
+set(VOLK_SOURCE
+    ${VULKAN_SDK}/Include/Volk/volk.c
+)
+
 # Add all source files from ./src
 file(GLOB_RECURSE SOURCES 
     "${CMAKE_SOURCE_DIR}/src/*.cpp"
@@ -99,7 +104,12 @@ file(GLOB_RECURSE LIB_SOURCES
 )
 
 # Add executable
-add_executable(GameEngine ${SOURCES} ${IMGUI_SOURCES} ${LIB_SOURCES} app.rc)
+add_executable(GameEngine 
+    ${SOURCES} 
+    ${VOLK_SOURCE} 
+    ${IMGUI_SOURCES} 
+    ${LIB_SOURCES} 
+    app.rc)
 target_include_directories(GameEngine PRIVATE "${CMAKE_SOURCE_DIR}/src")
 target_include_directories(GameEngine PRIVATE "${CMAKE_SOURCE_DIR}/lib/tinyobjloader")
 target_include_directories(GameEngine PRIVATE "${CMAKE_SOURCE_DIR}/lib/miniz-3.0.2")
@@ -108,17 +118,17 @@ target_include_directories(GameEngine PRIVATE "${CMAKE_SOURCE_DIR}/lib/stbimage"
 target_include_directories(GameEngine PRIVATE "${CMAKE_SOURCE_DIR}/lib/imgui-1.91.8")
 target_include_directories(GameEngine PRIVATE "${CMAKE_SOURCE_DIR}/lib/nativefiledialog-release_116/src/include")
 target_include_directories(GameEngine PRIVATE "${VULKAN_SDK}/Include")
-target_include_directories(GameEngine PRIVATE "${VULKAN_SDK}/Include/volk")
+target_include_directories(GameEngine PRIVATE "${VULKAN_SDK}/Include/Volk")
 target_include_directories(GameEngine PRIVATE SYSTEM "${VULKAN_SDK}/Include/slang")
 # target_include_directories(GameEngine PRIVATE "${Vulkan_INCLUDE_DIRS}/vma")
 
 if(CMAKE_BUILD_TYPE STREQUAL "Debug")
 target_compile_definitions(GameEngine PRIVATE DEBUG)
 endif()
-# target_compile_definitions(GameEngine PRIVATE VK_NO_PROTOTYPES)
+target_compile_definitions(GameEngine PRIVATE VK_NO_PROTOTYPES)
 # target_compile_definitions(GameEngine PRIVATE VULKAN_HPP_DISPATCH_LOADER_DYNAMIC=1)
 # target_compile_definitions(GameEngine PRIVATE VOLK_ENFORCE_SUCCESS=1)
-# target_compile_definitions(GameEngine PRIVATE IMGUI_IMPL_VULKAN_USE_VOLK)
+target_compile_definitions(GameEngine PRIVATE IMGUI_IMPL_VULKAN_USE_VOLK)
 target_compile_definitions(GameEngine PRIVATE GLFW_INCLUDE_NONE)
 target_compile_definitions(GameEngine PRIVATE GRAPHICS_TESTS)
 # target_compile_definitions(GameEngine PRIVATE DISABLE_VALIDATION) # Disable validation checks for performance. Ensure correctness manually.

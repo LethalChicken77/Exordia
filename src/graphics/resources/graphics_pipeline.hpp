@@ -1,14 +1,14 @@
 #pragma once
 #include <string>
 #include <vector>
-#include <vulkan/vulkan.h>
+#include "graphics/backend/vulkan_include.h"
 
 #include "graphics/backend/device.hpp"
 #include "engine_types.hpp"
 // #include "graphics/shader.hpp"
 // #include "graphics/containers.hpp"
 #include "core/assets/shader.hpp"
-#include "graphics/shader_config.hpp"
+#include "graphics/api/shader_config.hpp"
 #include "descriptor_set.hpp"
 
 namespace graphics

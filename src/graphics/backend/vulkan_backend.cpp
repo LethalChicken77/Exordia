@@ -2,7 +2,7 @@
 
 #include <unordered_set>
 #include <format>
-#include <vulkan/vulkan.h>
+#include "graphics/backend/vulkan_include.h"
 
 #include "vulkan_backend.hpp"
 #include "utils/console.hpp"
@@ -45,15 +45,17 @@ void VulkanBackend::init(const std::string& appName, const std::string& engName,
     engineName = &engName;
 
     // VK_CHECK(volkInitialize());
+    VK_CHECK(volkInitialize(), "Failed to initialize Volk");
+    Console::log("Initialized Volk");
     createInstance();
-    // volkLoadInstance(instance);
+    volkLoadInstance(instance);
 #ifdef DEBUG
     setupDebugMessenger();
 #endif
     window.createSurface(instance);
     physicalDevice.pickPhysicalDevice(instance, &window.GetSurface());
     createDevice();
-    // volkLoadDevice(device.GetDevice());
+    volkLoadDevice(device.GetDevice());
 }
 
 VulkanBackend::~VulkanBackend()
@@ -251,6 +253,7 @@ bool VulkanBackend::hasGflwRequiredInstanceExtensions()
 bool VulkanBackend::checkValidationLayerSupport() 
 {
     uint32_t layerCount;
+    std::cout << vkEnumerateInstanceLayerProperties << std::endl;
     vkEnumerateInstanceLayerProperties(&layerCount, nullptr);
 
     std::vector<VkLayerProperties> availableLayers(layerCount);
