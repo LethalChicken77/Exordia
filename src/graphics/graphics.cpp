@@ -17,6 +17,8 @@ namespace graphics
         graphicsData->backend.init(appName, engName, graphicsData->window);
         graphicsData->renderer.init();
         graphicsData->pipelineManager.init();
+
+        graphicsData->pipelineManager.CreatePipelines();
         
         // testImage = std::make_unique<Image>(
         //     graphicsData->GetBackend().GetDevice(),
@@ -45,21 +47,18 @@ namespace graphics
 
         Console::log("Graphics module initialized", "Graphics");
         
-        std::vector<DescriptorSetLayout*> layouts = {
-            graphicsData->cameraSetLayout.get(), 
-            graphicsData->globalSetLayout.get()};
-        graphicsData->globalDescriptorBuffer = std::make_unique<DescriptorBuffer>(graphicsData->backend.GetDevice(), layouts, 1);
 
-        // graphicsData->globalDescriptorPool = DescriptorPool::Builder(graphicsData->GetBackend().GetDevice())
-        //     .AddPoolSize(VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, 1)
-        //     .SetPoolFlags(VK_DESCRIPTOR_SET_LAYOUT_CREATE_UPDATE_AFTER_BIND_POOL_BIT)
-        //     .SetMaxSets(2)
-        //     .Build();
-        // graphicsData->cameraDescriptorPool = DescriptorPool::Builder(graphicsData->GetBackend().GetDevice())
-        //     .AddPoolSize(VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, Swapchain::MAX_FRAMES_IN_FLIGHT)
-        //     .SetPoolFlags(VK_DESCRIPTOR_SET_LAYOUT_CREATE_UPDATE_AFTER_BIND_POOL_BIT)
-        //     .SetMaxSets(Swapchain::MAX_FRAMES_IN_FLIGHT)
-        //     .Build();
+
+        graphicsData->globalDescriptorPool = DescriptorPool::Builder(graphicsData->GetBackend().GetDevice())
+            .AddPoolSize(VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, 1)
+            .SetPoolFlags(VK_DESCRIPTOR_SET_LAYOUT_CREATE_UPDATE_AFTER_BIND_POOL_BIT)
+            .SetMaxSets(2)
+            .Build();
+        graphicsData->cameraDescriptorPool = DescriptorPool::Builder(graphicsData->GetBackend().GetDevice())
+            .AddPoolSize(VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, Swapchain::MAX_FRAMES_IN_FLIGHT)
+            .SetPoolFlags(VK_DESCRIPTOR_SET_LAYOUT_CREATE_UPDATE_AFTER_BIND_POOL_BIT)
+            .SetMaxSets(Swapchain::MAX_FRAMES_IN_FLIGHT)
+            .Build();
         // ShaderLayout s{};
         // std::vector<ShaderLayout> layouts = {s};
         // graphicsData->globalDescriptorBuffer = std::make_unique<DescriptorBuffer>(

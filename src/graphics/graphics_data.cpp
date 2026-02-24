@@ -9,11 +9,10 @@ GraphicsData::~GraphicsData()
     backend.WaitForDevice();
 
     pipelineManager.DestroyPipelines();
+    cameraDescriptorPool.reset();
+    globalDescriptorPool.reset();
     cameraSetLayout.reset();
     globalSetLayout.reset();
 
-    globalDescriptorBuffer.reset();
-    frameBuffer.reset();
-    materialBuffer.reset();
 }
 } // namespace graphics

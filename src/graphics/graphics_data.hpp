@@ -4,7 +4,6 @@
 #include "backend/vulkan_backend.hpp"
 #include "rendering/renderer.hpp"
 #include "resources/descriptor_set.hpp"
-#include "resources/descriptor_buffer.hpp"
 #include "resources/pipeline_manager.hpp"
 
 
@@ -55,16 +54,12 @@ public:
     GlobalUbo globalUbo{};
     CameraUbo cameraUbo{};
 
-    // std::unique_ptr<DescriptorPool> globalDescriptorPool;
-    // std::unique_ptr<DescriptorPool> cameraDescriptorPool;
-    // std::unique_ptr<DescriptorPool> materialDescriptorPool;
+    std::unique_ptr<DescriptorPool> globalDescriptorPool;
+    std::unique_ptr<DescriptorPool> cameraDescriptorPool;
+    std::unique_ptr<DescriptorPool> materialDescriptorPool;
 
     std::unique_ptr<DescriptorSetLayout> globalSetLayout;
     std::unique_ptr<DescriptorSetLayout> cameraSetLayout;
-
-    std::unique_ptr<DescriptorBuffer> globalDescriptorBuffer; // Ooh shiny new thing
-    std::unique_ptr<DescriptorBuffer> frameBuffer; // For per-frame data like camera UBOs
-    std::unique_ptr<DescriptorBuffer> materialBuffer; // Material data
     // Global pool
     // Global descriptor sets
     // Push constants
