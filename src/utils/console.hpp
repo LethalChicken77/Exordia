@@ -1,6 +1,7 @@
 #pragma once
 #include <string>
 #include <queue>
+#include <iostream>
 
 class Console
 {
@@ -18,11 +19,28 @@ class Console
     };
 
     public:
-        static void logRaw(const std::string &message, bool terminalOnly = false);
-        static void log(const std::string &message, const std::string &source = "", bool terminalOnly = false);
-        static void debug(const std::string &message, const std::string &source = "", bool terminalOnly = false);
-        static void warn(const std::string &message, const std::string &source = "", bool terminalOnly = false);
-        static void error(const std::string &message, const std::string &source = "", bool terminalOnly = false);
+        static void logRaw(std::string_view message, bool terminalOnly = false);
+        static void log(const std::string_view message, const std::string_view source = "", bool terminalOnly = false);
+        static void debug(const std::string_view message, const std::string_view source = "", bool terminalOnly = false);
+        static void warn(const std::string_view message, const std::string_view source = "", bool terminalOnly = false);
+        static void error(const std::string_view message, const std::string_view source = "", bool terminalOnly = false);
+
+        template<typename... _Args>
+        static inline void logf(const std::format_string<_Args...> &fmt, _Args&&... args)
+        {
+            log(std::format(fmt, std::forward<_Args>(args)...));
+        }
+        template<typename... _Args>
+        static inline void logf(const std::format_string<_Args...> &fmt, _Args&&... args, const std::string_view source)
+        {
+            log(std::format(fmt, std::forward<_Args>(args)...), source);
+        }
+        template<typename... _Args>
+        static inline void logf(const std::format_string<_Args...> &fmt, _Args&&... args, const std::string_view source, bool terminalOnly)
+        {
+            log(std::format(fmt, std::forward<_Args>(args)...), source, terminalOnly);
+        }
+
         static void clear();
         static void drawImGui();
     private:
@@ -30,7 +48,7 @@ class Console
         static std::queue<ConsoleMessage> messages;
         static bool scrollToBottom;
 
-        static ConsoleMessage constructMessage(const std::string& message, const std::string& source, ConsoleMessage::Type type);
+        static ConsoleMessage constructMessage(const std::string_view message, const std::string_view source, ConsoleMessage::Type type);
         static void pushMessage(ConsoleMessage& message);
 
         static constexpr std::string consoleEndl = "\033[0m\n";

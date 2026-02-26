@@ -20,6 +20,7 @@ public:
     ShaderAsset& operator=(ShaderAsset&&) = delete;
 
     std::vector<uint32_t> CompileSlang(const char* moduleName, const char* entryPointName, SlangStage slangStage);
+    void SpirvReflect(const std::vector<uint32_t> &spirv);
 private:
     ShaderAsset(id_t newID) : AssetData(newID) {}
     friend class ObjectManager;

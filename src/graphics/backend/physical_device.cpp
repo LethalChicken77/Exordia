@@ -68,9 +68,16 @@ bool PhysicalDevice::findDeviceCapabilities(VkPhysicalDevice device, VkSurfaceKH
         swapChainAdequate = !swapchainSupport.formats.empty() && !swapchainSupport.presentModes.empty();
     }
 
+    VkPhysicalDevice8BitStorageFeatures device8BitFeatures{};
+    device8BitFeatures.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_8BIT_STORAGE_FEATURES;
+    
+    VkPhysicalDevice16BitStorageFeatures device16BitFeatures{};
+    device16BitFeatures.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_16BIT_STORAGE_FEATURES;
+    device16BitFeatures.pNext = &device8BitFeatures;
+
     VkPhysicalDeviceFeatures2 supportedFeatures = {
         .sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_FEATURES_2,
-        .pNext = nullptr
+        .pNext = &device16BitFeatures
     };
     vkGetPhysicalDeviceFeatures2(device, &supportedFeatures);
 

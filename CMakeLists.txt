@@ -12,28 +12,35 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 message(STATUS "Compiler path: ${CMAKE_CXX_COMPILER}")
 message(STATUS "Compiler version: ${CMAKE_CXX_COMPILER_VERSION}")
 
-set(CMAKE_BUILD_TYPE Debug) # Options: Debug, Release, RelWithDebInfo, MinSizeRel
+# set(CMAKE_BUILD_TYPE Release) # Options: Debug, Release, RelWithDebInfo, MinSizeRel
 
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
+
 set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -fuse-ld=lld")
+
+add_compile_options(
+    -fdiagnostics-format=msvc
+    -fno-caret-diagnostics
+    -fno-diagnostics-show-option
+    -fno-diagnostics-show-note-include-stack
+    -fcolor-diagnostics
+    -fdiagnostics-absolute-paths
+    # -fmacro-prefix-map=${CMAKE_SOURCE_DIR}/=.
+    # -ffile-prefix-map=${CMAKE_SOURCE_DIR}/=.
+)
 
 if(CMAKE_BUILD_TYPE STREQUAL "Debug")
     add_compile_options(
         -g
-        -fno-caret-diagnostics
-        -fno-diagnostics-show-option
-        -fno-diagnostics-show-note-include-stack
-        -fcolor-diagnostics
     )
 elseif(CMAKE_BUILD_TYPE STREQUAL "Release")
     add_compile_options(
         -O3
         -flto # Link Time Optimization
         -ffast-math
-        -fno-caret-diagnostics
-        -fno-diagnostics-show-option
-        -fno-diagnostics-show-note-include-stack
-        -fcolor-diagnostics
+        # -Wall
+        # -Wextra # More warnings
+        # -Wpedantic
     )
 endif()
 # set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -L${ASAN_LIB_PATH} -lclang_rt.asan_dynamic -lclang_rt.asan_dynamic_runtime_thunk")
@@ -101,6 +108,7 @@ file(GLOB_RECURSE LIB_SOURCES
     "lib/miniz-3.0.2/*.c"
     "lib/nativefiledialog-release_116/src/nfd_common.c"
     "lib/nativefiledialog-release_116/src/nfd_win.cpp"
+    "lib/spirv-reflect/spirv_reflect.cpp"
 )
 
 # Add executable
@@ -117,14 +125,17 @@ target_include_directories(GameEngine PRIVATE "${CMAKE_SOURCE_DIR}/lib/tinyexr-1
 target_include_directories(GameEngine PRIVATE "${CMAKE_SOURCE_DIR}/lib/stbimage")
 target_include_directories(GameEngine PRIVATE "${CMAKE_SOURCE_DIR}/lib/imgui-1.91.8")
 target_include_directories(GameEngine PRIVATE "${CMAKE_SOURCE_DIR}/lib/nativefiledialog-release_116/src/include")
+target_include_directories(GameEngine PRIVATE "${CMAKE_SOURCE_DIR}/lib/spirv-reflect")
 target_include_directories(GameEngine PRIVATE "${VULKAN_SDK}/Include")
 target_include_directories(GameEngine PRIVATE "${VULKAN_SDK}/Include/Volk")
+target_include_directories(GameEngine PRIVATE "${VULKAN_SDK}/Include/vulkan") # Needed for vulkan.hpp
 target_include_directories(GameEngine PRIVATE SYSTEM "${VULKAN_SDK}/Include/slang")
 # target_include_directories(GameEngine PRIVATE "${Vulkan_INCLUDE_DIRS}/vma")
 
 if(CMAKE_BUILD_TYPE STREQUAL "Debug")
 target_compile_definitions(GameEngine PRIVATE DEBUG)
 endif()
+target_compile_definitions(GameEngine PRIVATE SPIRV_REFLECT_USE_SYSTEM_SPIRV_H)
 target_compile_definitions(GameEngine PRIVATE VK_NO_PROTOTYPES)
 # target_compile_definitions(GameEngine PRIVATE VULKAN_HPP_DISPATCH_LOADER_DYNAMIC=1)
 # target_compile_definitions(GameEngine PRIVATE VOLK_ENFORCE_SUCCESS=1)

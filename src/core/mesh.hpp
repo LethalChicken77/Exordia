@@ -20,15 +20,40 @@ namespace core
         static constexpr const char* className = "Mesh Data";
         const char* GetClassName() const { return className; }
         
-        struct Vertex
+        struct alignas(16) Vertex
         {
-            glm::vec3 position{};
-            glm::vec3 normal{};
-            glm::vec4 tangent{};
-            glm::vec3 bitangent{};
-            glm::vec3 color{1.0f, 1.0f, 1.0f};
-            glm::vec2 texCoord{};
+            glm::vec3 position{}; // 12
+            glm::vec3 normal{}; // 12
+            glm::vec4 tangent{}; // 16
+            glm::vec3 bitangent{}; // 12
+            glm::vec3 color{1.0f, 1.0f, 1.0f}; // 12
+            glm::vec2 texCoord{}; // 8
+            // 72
+        };
 
+        struct alignas(16) SmallVertex
+        {
+            glm::vec3 position{}; // 12
+            glm::i8vec2 normal{}; // 2
+            glm::i8vec4 tangent{}; // 4
+            glm::i8vec3 color{1.0f, 1.0f, 1.0f}; // 6
+            glm::vec2 texCoord{}; // 8
+            // 32
+        };
+
+        struct alignas(16) TinyVertex
+        {
+            glm::vec3 position{}; // 12
+            glm::i8vec2 normal{}; // 2
+            glm::mediump_vec2 texCoord{}; // 4
+            // 18
+        };
+
+        struct alignas(16) MinimalVertex
+        {
+            glm::vec3 position{}; // 12
+            glm::i8vec2 normal{}; // 2
+            // 14
         };
 
         struct Triangle

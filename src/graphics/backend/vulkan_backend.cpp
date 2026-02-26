@@ -253,7 +253,6 @@ bool VulkanBackend::hasGflwRequiredInstanceExtensions()
 bool VulkanBackend::checkValidationLayerSupport() 
 {
     uint32_t layerCount;
-    std::cout << vkEnumerateInstanceLayerProperties << std::endl;
     vkEnumerateInstanceLayerProperties(&layerCount, nullptr);
 
     std::vector<VkLayerProperties> availableLayers(layerCount);

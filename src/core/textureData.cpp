@@ -5,7 +5,7 @@
 
 namespace core
 {
-const uint8_t TextureData::GetByte(uint32_t x, uint32_t y, uint32_t z) const
+uint8_t TextureData::GetByte(uint32_t x, uint32_t y, uint32_t z) const
 {
     #ifndef DISABLE_VALIDATION
     if(x >= width || y >= height || z >= depth)

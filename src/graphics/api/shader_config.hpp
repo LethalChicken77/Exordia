@@ -2,6 +2,7 @@
 
 namespace graphics
 {
+// API Agnostic shader info
 enum class ShaderType
 {
     LIT = 0,
@@ -96,4 +97,5 @@ struct ShaderProperties
 
     // Additional settings
 };
+
 } // namespace graphics

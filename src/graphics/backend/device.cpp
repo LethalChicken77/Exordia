@@ -10,6 +10,9 @@
 #include "utils/debug.hpp"
 #include "utils/console.hpp"
 
+#define VULKAN_HPP_NO_INCLUDE
+#include <vulkan/vulkan.hpp>
+
 namespace graphics::internal
 {
 
@@ -78,28 +81,38 @@ void Device::createLogicalDevice(bool enableValidationLayers)
         queueCreateInfos.push_back(queueCreateInfo);
     }
 
+    // TODO: Properly check feature support and dynamically enable them
+    // TODO: Add support for extension features
+    vk::StructureChain<
+        vk::PhysicalDeviceFeatures2,
+        vk::PhysicalDeviceVulkan11Features,
+        vk::PhysicalDeviceVulkan12Features,
+        vk::PhysicalDeviceVulkan13Features,
+        vk::PhysicalDeviceVulkan14Features> chain;
+    
+    vk::PhysicalDeviceFeatures2 &features2 = chain.get<vk::PhysicalDeviceFeatures2>();
+    vk::PhysicalDeviceVulkan11Features &features11 = chain.get<vk::PhysicalDeviceVulkan11Features>();
+    vk::PhysicalDeviceVulkan12Features &features12 = chain.get<vk::PhysicalDeviceVulkan12Features>();
+    vk::PhysicalDeviceVulkan13Features &features13 = chain.get<vk::PhysicalDeviceVulkan13Features>();
+    vk::PhysicalDeviceVulkan14Features &features14 = chain.get<vk::PhysicalDeviceVulkan14Features>();
+
+    features2.features.samplerAnisotropy = VK_TRUE;
+    features2.features.fillModeNonSolid = VK_TRUE;
+    
+    features11.uniformAndStorageBuffer16BitAccess = VK_TRUE;
+    features12.shaderFloat16 = VK_TRUE;
+    features12.uniformAndStorageBuffer8BitAccess = VK_TRUE;
+    features12.shaderInt8 = VK_TRUE;
+    
+    features13.dynamicRendering = VK_TRUE;
+    
+    features12.scalarBlockLayout = VK_TRUE;
+    
     // Enable the feature for image float32 atomics
     // VkPhysicalDeviceShaderAtomicFloatFeaturesEXT atomicFloatFeatures = {};
     // atomicFloatFeatures.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_SHADER_ATOMIC_FLOAT_FEATURES_EXT;
     // atomicFloatFeatures.shaderImageFloat32Atomics = VK_TRUE; // Enable float32 atomics on images
     // atomicFloatFeatures.shaderImageFloat32AtomicAdd = VK_TRUE; // Enable float32 atomics on images
-
-    VkPhysicalDeviceDescriptorBufferFeaturesEXT descriptorBufferFeature{};
-    descriptorBufferFeature.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_DESCRIPTOR_BUFFER_FEATURES_EXT;
-    descriptorBufferFeature.pNext = nullptr;
-    descriptorBufferFeature.descriptorBuffer = VK_TRUE;
-
-    // Enable dynamic rendering feature
-    VkPhysicalDeviceDynamicRenderingFeatures dynamicRenderingFeature{};
-    dynamicRenderingFeature.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_DYNAMIC_RENDERING_FEATURES;
-    dynamicRenderingFeature.dynamicRendering = VK_TRUE;
-    dynamicRenderingFeature.pNext = &descriptorBufferFeature;
-
-    VkPhysicalDeviceFeatures2 deviceFeatures2{};
-    deviceFeatures2.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_FEATURES_2;
-    deviceFeatures2.pNext = &dynamicRenderingFeature;
-    deviceFeatures2.features.samplerAnisotropy = VK_TRUE;
-    deviceFeatures2.features.fillModeNonSolid = VK_TRUE; // Allow wireframe rendering
 
     VkDeviceCreateInfo createInfo{};
     createInfo.sType = VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO;
@@ -110,7 +123,7 @@ void Device::createLogicalDevice(bool enableValidationLayers)
     createInfo.pEnabledFeatures = nullptr;
     createInfo.enabledExtensionCount = static_cast<uint32_t>(deviceExtensions.size());
     createInfo.ppEnabledExtensionNames = deviceExtensions.data();
-    createInfo.pNext = &deviceFeatures2;//&atomicFloatFeatures; // Add the atomic float features to the device create info
+    createInfo.pNext = &chain.get<vk::PhysicalDeviceFeatures2>();//&atomicFloatFeatures; // Add the atomic float features to the device create info
 
     // Might not really be necessary anymore because device specific validation layers
     // have been deprecated

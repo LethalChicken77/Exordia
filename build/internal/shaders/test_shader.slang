@@ -38,10 +38,20 @@ struct VOut
     float3 Color : COLOR;
     float2 UV : TEXCOORD0;
 };
+
+struct amogus
+{
+    float hi; // :D
+};
 // Material Descriptor Set
 struct MaterialInfo
 {
     float4 color;
+    half3 normal;
+    int8_t boolval;
+    half3x3 smallmat;
+    int8_t[12] twelve;
+    amogus sus;
 };
 [[vk::binding(0, 2)]] ConstantBuffer<MaterialInfo> materialInfo;
 

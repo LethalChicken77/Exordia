@@ -8,12 +8,14 @@ using namespace std;
 std::queue<Console::ConsoleMessage> Console::messages{};
 bool Console::scrollToBottom = true;
 
-Console::ConsoleMessage Console::constructMessage(const string& message, const string& source, ConsoleMessage::Type type)
+Console::ConsoleMessage Console::constructMessage(const string_view message, const string_view source, ConsoleMessage::Type type)
 {
     string result = "";
     if(source != "")
     {
-        result += "[" + source + "] - ";
+        result += "[";
+        result += source;
+        result += "] - "; // More verbose than a one-liner but there is no + operater for string views
     }
     result += message;
     ConsoleMessage newMessage{result, type};
@@ -29,15 +31,15 @@ void Console::pushMessage(ConsoleMessage& message)
     }
 }
 
-void Console::logRaw(const string& message, bool terminalOnly)
+void Console::logRaw(const string_view message, bool terminalOnly)
 {
-    ConsoleMessage newMessage{message, ConsoleMessage::NONE};
+    ConsoleMessage newMessage{message.data(), ConsoleMessage::NONE};
     cout << message << endl; // Print to standard output
     if(!terminalOnly)
         pushMessage(newMessage);
 }
 
-void Console::log(const string& message, const string& source, bool terminalOnly)
+void Console::log(const string_view message, const string_view source, bool terminalOnly)
 {
     ConsoleMessage newMessage = constructMessage(message, source, ConsoleMessage::INFO);
     cout << ANSIgray << "[INFO]\t" << ANSIreset << newMessage.message << consoleEndl; // Print to standard output
@@ -45,7 +47,7 @@ void Console::log(const string& message, const string& source, bool terminalOnly
         pushMessage(newMessage);
 }
 
-void Console::debug(const string& message, const string& source, bool terminalOnly)
+void Console::debug(const string_view message, const string_view source, bool terminalOnly)
 {
     ConsoleMessage newMessage = constructMessage(message, source, ConsoleMessage::DEBUG_T);
     cout << ANSIgreen << "[DEBUG]\t" << ANSIreset << newMessage.message << consoleEndl; // Print to standard output
@@ -53,7 +55,7 @@ void Console::debug(const string& message, const string& source, bool terminalOn
         pushMessage(newMessage);
 }
 
-void Console::warn(const string& message, const string& source, bool terminalOnly)
+void Console::warn(const string_view message, const string_view source, bool terminalOnly)
 {
     ConsoleMessage newMessage = constructMessage(message, source, ConsoleMessage::WARNING);
     cout << ANSIyellow << "[WARNING] " << ANSIreset << newMessage.message << consoleEndl; // Print to standard output
@@ -61,7 +63,7 @@ void Console::warn(const string& message, const string& source, bool terminalOnl
         pushMessage(newMessage);
 }
 
-void Console::error(const string& message, const string& source, bool terminalOnly)
+void Console::error(const string_view message, const string_view source, bool terminalOnly)
 {
     ConsoleMessage newMessage = constructMessage(message, source, ConsoleMessage::ERROR);
     cout << ANSIred << "[ERROR]\t" << ANSIreset << newMessage.message << endl; // Print to standard output

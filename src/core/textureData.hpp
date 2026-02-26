@@ -14,22 +14,22 @@ namespace core
 
             const uint8_t* GetDataPtr() const { return data.data(); }
             const std::vector<uint8_t>& GetData() const { return data; }
-            const size_t GetSize() const { return data.size(); }
+            inline size_t GetSize() const { return data.size(); }
 
             // TODO: Getters for other types
-            const uint8_t GetByte(uint32_t x, uint32_t y, uint32_t z = 0) const;
-            const uint16_t GetShort(uint32_t x, uint32_t y, uint32_t z = 0) const;
-            const uint32_t GetInt(uint32_t x, uint32_t y, uint32_t z = 0) const;
-            const float GetFloat16(uint32_t x, uint32_t y, uint32_t z = 0) const;
-            const float GetFloat(uint32_t x, uint32_t y, uint32_t z = 0) const;
-            const Color GetColor(uint32_t x, uint32_t y, uint32_t z = 0) const;
+            uint8_t GetByte(uint32_t x, uint32_t y, uint32_t z = 0) const;
+            uint16_t GetShort(uint32_t x, uint32_t y, uint32_t z = 0) const;
+            uint32_t GetInt(uint32_t x, uint32_t y, uint32_t z = 0) const;
+            float GetFloat16(uint32_t x, uint32_t y, uint32_t z = 0) const;
+            float GetFloat(uint32_t x, uint32_t y, uint32_t z = 0) const;
+            Color GetColor(uint32_t x, uint32_t y, uint32_t z = 0) const;
 
-            const uint32_t GetWidth() const { return width; }
-            const uint32_t GetHeight() const { return height; }
-            const uint32_t GetDepth() const { return depth; }
-            const uint32_t GetTypeSize() const { return typeSize; }
-            const uint32_t GetChannelCount() const { return channelCount; }
-            const uint32_t GetPixelSize() const { return typeSize * channelCount; }
+            inline uint32_t GetWidth() const { return width; }
+            inline uint32_t GetHeight() const { return height; }
+            inline uint32_t GetDepth() const { return depth; }
+            inline uint32_t GetTypeSize() const { return typeSize; }
+            inline uint32_t GetChannelCount() const { return channelCount; }
+            inline uint32_t GetPixelSize() const { return typeSize * channelCount; }
 
         private:
             std::vector<uint8_t> data{}; // Data stored in binary format, can be interpreted as whatever

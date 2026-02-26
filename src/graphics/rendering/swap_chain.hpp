@@ -34,14 +34,14 @@ public:
     const VkImageView &GetImageView(uint32_t index) const { return swapchainImageViews[index]; }
     const VkImageView &GetDepthImageView(uint32_t index) const { return depthImageViews[index]; }
     const VkExtent2D GetSwapChainExtent() const { return swapchainExtent; }
-    const uint32_t GetWidth() const { return swapchainExtent.width; }
-    const uint32_t GetHeight() const { return swapchainExtent.height; }
-    const uint32_t GetImageCount() const { return swapchainImages.size(); }
+    inline uint32_t GetWidth() const { return swapchainExtent.width; }
+    inline uint32_t GetHeight() const { return swapchainExtent.height; }
+    inline uint32_t GetImageCount() const { return swapchainImages.size(); }
     float GetAspectRatio() 
     {
         return static_cast<float>(swapchainExtent.width) / static_cast<float>(swapchainExtent.height);
     }
-    const uint32_t GetCurrentFrame() const { return currentFrame; }
+    inline uint32_t GetCurrentFrame() const { return currentFrame; }
 
     VkResult AcquireNextImage(uint32_t *imageIndex);
     VkResult SubmitCommandBuffers(const VkCommandBuffer *buffers, uint32_t *imageIndex);

@@ -1,5 +1,6 @@
 #include "shader.hpp"
 #include <slang-com-ptr.h>
+#include "spirv_reflect.h"
 
 namespace core
 {
@@ -18,6 +19,11 @@ std::vector<uint32_t> ShaderAsset::CompileSlang(const char* moduleName, const ch
     const char* paths[] = { "./internal/shaders", "./assets/shaders" }; // Set search paths
     sessionDesc.searchPaths = paths;
     sessionDesc.searchPathCount = 2;
+    sessionDesc.compilerOptionEntryCount = 2; // TODO: Only enable if scalar block layout extension is available
+    sessionDesc.compilerOptionEntries = new slang::CompilerOptionEntry[2] {
+        { slang::CompilerOptionName::GLSLForceScalarLayout, slang::CompilerOptionValue{slang::CompilerOptionValueKind::Int, 1} },
+        { slang::CompilerOptionName::VulkanUseGLLayout, slang::CompilerOptionValue{slang::CompilerOptionValueKind::Int, 0} },
+    };
 
     Slang::ComPtr<slang::ISession> session;
     if (SLANG_FAILED(globalSession->createSession(sessionDesc, session.writeRef())))
@@ -69,7 +75,66 @@ std::vector<uint32_t> ShaderAsset::CompileSlang(const char* moduleName, const ch
 
     const uint32_t* words = reinterpret_cast<const uint32_t*>(data);
     size_t wordCount = sizeBytes / sizeof(uint32_t);
-    return std::vector<uint32_t>(words, words + wordCount);
+    std::vector<uint32_t> spirv(words, words + wordCount);
+
+    SpirvReflect(spirv);
+
+    return spirv;
+}
+
+void ShaderAsset::SpirvReflect(const std::vector<uint32_t> &spirv)
+{
+    spv_reflect::ShaderModule module(spirv);
+
+    uint32_t bindingCount = 0;
+    SpvReflectResult result = module.EnumerateDescriptorBindings(&bindingCount, nullptr);
+    if(result != SPV_REFLECT_RESULT_SUCCESS)
+    {
+        Console::error(std::format("Failed to enumerate descriptor bindings: {}", (uint32_t)result), "ShaderAsset");
+        return;
+    }
+    
+    if(bindingCount == 0)
+    {
+        Console::log("No descriptor bindings found.", "ShaderAsset");
+        return;
+    }
+
+    std::vector<SpvReflectDescriptorBinding*> bindings(bindingCount);
+    result = module.EnumerateDescriptorBindings(&bindingCount, bindings.data());
+    if(result != SPV_REFLECT_RESULT_SUCCESS)
+    {
+        Console::error(std::format("Failed to retrieve descriptor bindings: {}", (uint32_t)result), "ShaderAsset");
+        return;
+    }
+
+    bool foundMatInfo = false;
+    for(SpvReflectDescriptorBinding* binding : bindings)
+    {
+        if(binding && strcmp(binding->name, "materialInfo") == 0)
+        {
+            foundMatInfo = true;
+            Console::logf("materialInfo", "ShaderAsset", true);
+            Console::logf("Descriptor Set : {}", binding->set, "", false);
+            Console::logf("Binding        : {}", binding->binding);
+            Console::logf("Descriptor Type: {}", (uint32_t)binding->descriptor_type);
+            Console::logf("Block size     : {}", binding->block.size);
+
+            const SpvReflectBlockVariable& block = binding->block;
+            Console::log(std::format("Fields ({}):", block.member_count));
+
+            for(uint32_t m = 0; m < block.member_count; m++)
+            {
+                const SpvReflectBlockVariable member = block.members[m];
+                std::string memberString = std::format("\t{} \toffset = {} \tsize = {}", member.name, member.offset, member.size);
+                if(member.type_description && member.type_description->type_name)
+                {
+                    memberString += std::format("\t\ttype: {}", member.type_description->type_name);
+                }
+                Console::log(memberString);
+            }
+        }
+    }
 }
 
 void Shader::Compile()
