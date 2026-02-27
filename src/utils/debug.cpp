@@ -142,12 +142,17 @@ std::string Debug::VkResultToString(VkResult result)
     }
 }
 
+/// @brief Checks the result of a vulkan error. Usually wrapped in the macro VK_CHECK
+/// @param result Result returned from Vulkan API call
+/// @param msg Base error message
+/// @param file Set to __FILE__ by VK_CHECK
+/// @param line Set to __LINE__ by VK_CHECK
 void Debug::VkCheckImpl(VkResult result, const std::string& msg, const char* file, int line)
 {
     if (result)
     {
         Console::error(std::format("Vulkan error {} at {}:{}", (int)result, file, line));
         std::cerr << msg << ": " << Debug::VkResultToString(result) << std::endl;
-        assert(false && "Vulkan error - check log");
+        throw std::runtime_error("Vulkan error - check log");
     }
 }

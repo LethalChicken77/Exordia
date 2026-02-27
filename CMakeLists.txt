@@ -36,7 +36,7 @@ if(CMAKE_BUILD_TYPE STREQUAL "Debug")
 elseif(CMAKE_BUILD_TYPE STREQUAL "Release")
     add_compile_options(
         -O3
-        -flto # Link Time Optimization
+        # -flto # Link Time Optimization, disable for faster compile
         -ffast-math
         # -Wall
         # -Wextra # More warnings

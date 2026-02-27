@@ -5,6 +5,23 @@
 
 #include <iostream>
 
+#ifdef DEBUG
+    #if defined(_MSC_VER)
+        #define DEBUG_BREAK() __debugbreak()
+    #elif defined(__clang__) || defined(__GNUC__)
+        #include <signal.h>
+        #ifdef _POSIX
+            #define DEBUG_BREAK() raise(SIGTRAP)
+        #else
+            #define DEBUG_BREAK() raise(SIGBREAK) // fallback, if applicable
+        #endif
+    #else
+        #define DEBUG_BREAK() ((void)0)
+    #endif
+#else
+    #define DEBUG_BREAK() ((void)0)
+#endif
+
 // Helper macros for stringification
 #define STRINGIFY_HELPER(x) #x      // turns x into a string
 #define STRINGIFY(x) STRINGIFY_HELPER(x) // ensures proper expansion
@@ -26,9 +43,10 @@ class Debug
         static std::string VkResultToString(VkResult result);
 
         static void VkCheckImpl(VkResult result, const std::string& msg, const char* file, int line);
+        static void VkCheckImplLight(VkResult result, const std::string& msg, const char* file, int line);
 };
 
-#ifdef DEBUG
+#ifndef DISABLE_VALIDATION
 #define VK_CHECK(result, msg) Debug::VkCheckImpl(result, msg, __FILE__, __LINE__)
 #else
 #define VK_CHECK(result, msg) result

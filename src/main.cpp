@@ -1,9 +1,9 @@
-#define WINDOWS_BUILD
-
 #include <iostream>
 #include <glm/glm.hpp>
 #include <GLFW/glfw3.h>
 #include <memory>
+
+#include "close_handler.hpp"
 
 #include "modules.hpp"
 #include "utils/console.hpp"
@@ -15,7 +15,7 @@
 #define STB_IMAGE_IMPLEMENTATION
 #include "stb_image.h"
 
-#ifdef WINDOWS_BUILD
+#ifdef _WIN32
 #define GLFW_EXPOSE_NATIVE_WIN32
 #include <GLFW/glfw3native.h>
 #include <windows.h>
@@ -66,7 +66,7 @@ void setWindowIcons(GLFWwindow* window)
     stbi_image_free(pixelsLarge);
 }
 
-#ifdef WINDOWS_BUILD
+#ifdef _WIN32
 void SetTitleBarColor(GLFWwindow* window, COLORREF titleBarColor, COLORREF borderColor) {
     HWND hwnd = glfwGetWin32Window(window);
     if (hwnd) {
@@ -82,12 +82,13 @@ void SetTitleBarColor(GLFWwindow* window, COLORREF titleBarColor, COLORREF borde
 
 int main() 
 {
+    HandleSignals();
     // graphicsModule.init(APPLICATION_NAME, ENGINE_NAME);
 
     // Set window icon
     setWindowIcons(graphicsModule.GetGLFWWindow());
     
-#ifdef WINDOWS_BUILD
+#ifdef _WIN32
     // Set title bar color
     SetTitleBarColor(graphicsModule.GetGLFWWindow(), RGB(0x19, 0x15, 0x14), RGB(0x19, 0x15, 0x14));
 #endif

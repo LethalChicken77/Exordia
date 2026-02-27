@@ -1,0 +1,61 @@
+[Graphics] - Initializing graphics module
+[Window] - Initializing window: Exordia - Untitled Game
+[VulkanBackend] - Creating Vulkan Backend
+Initialized Volk
+[VulkanBackend] - Available extensions:
+	VK_KHR_device_group_creation
+	VK_KHR_display
+	VK_KHR_external_fence_capabilities
+	VK_KHR_external_memory_capabilities
+	VK_KHR_external_semaphore_capabilities
+	VK_KHR_get_display_properties2
+	VK_KHR_get_physical_device_properties2
+	VK_KHR_get_surface_capabilities2
+	VK_KHR_surface
+	VK_KHR_surface_maintenance1
+	VK_KHR_surface_protected_capabilities
+	VK_KHR_win32_surface
+	VK_EXT_debug_report
+	VK_EXT_debug_utils
+	VK_EXT_direct_mode_display
+	VK_EXT_surface_maintenance1
+	VK_EXT_swapchain_colorspace
+	VK_NV_external_memory_capabilities
+	VK_KHR_portability_enumeration
+	VK_LUNARG_direct_driver_loading
+[VulkanBackend] - Required extensions:
+	VK_KHR_surface
+	VK_KHR_win32_surface
+[PhysicalDevice] - Device count: 1
+[PhysicalDevice] - Physical device: NVIDIA GeForce RTX 4080 SUPER
+[Device] - Creating logical device
+[Renderer] - Recreating swap chain with extent 800x600
+[Graphics] - Recreating swap chain
+[Swapchain] - 	Present mode: Mailbox
+[Swapchain] - 	New extent 640x480
+[PipelineManager] - Creating pipelines
+[PipelineManager] - Pipelines created successfully
+[PipelineManager] - Creating pipelines
+[PipelineManager] - Pipelines created successfully
+[Graphics] - Graphics module initialized
+[Scene] - Loading scene: Test
+[Scene] - Scene loaded with 3 game objects.
+materialInfo
+Descriptor Set : 2
+Binding        : 0
+Descriptor Type: 6
+Block size     : 80
+Fields (6):
+	color 	offset = 0 	size = 16
+	normal 	offset = 16 	size = 6
+	boolval 	offset = 22 	size = 1
+	smallmat 	offset = 24 	size = 18		type: _MatrixStorage_half3x3natural
+	twelve 	offset = 42 	size = 14		type: _Array_natural_int812
+	sus 	offset = 56 	size = 16		type: amogus_natural
+[PipelineManager] - Creating pipelines
+[ShaderBase] - Creating shader module
+[ShaderBase] - Creating shader module
+[GraphicsPipeline] - Creating standard pipeline layout
+[GraphicsPipeline] - Creating standard pipeline
+[GraphicsPipeline] - Created standard pipeline successfully
+[PipelineManager] - Pipelines created successfully

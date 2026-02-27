@@ -2,6 +2,7 @@
 #include "imgui.h"
 #include <vector>
 #include <iostream>
+#include "file_util.hpp"
 
 using namespace std;
 
@@ -49,6 +50,9 @@ void Console::log(const string_view message, const string_view source, bool term
 
 void Console::debug(const string_view message, const string_view source, bool terminalOnly)
 {
+    #ifndef DEBUG
+    return; // Strip debug messages in release mode
+    #endif
     ConsoleMessage newMessage = constructMessage(message, source, ConsoleMessage::DEBUG_T);
     cout << ANSIgreen << "[DEBUG]\t" << ANSIreset << newMessage.message << consoleEndl; // Print to standard output
     if(!terminalOnly)
@@ -162,4 +166,41 @@ void Console::drawImGui()
     }
 
     ImGui::End();
+}
+
+const std::string logExt = ".log";
+const std::string logName = "player";
+const std::string logPrevName = "player_prev";
+const std::string logErrorName = "player_err";
+
+void Console::saveLog()
+{
+    std::string fullLogName = "./" + logName + ".log";
+    if(FileUtil::fileExists(fullLogName))
+    {
+        FileUtil::Move(fullLogName, "./" + logPrevName + ".log", false, true);
+    }
+
+    std::string fullLog = "";
+    while(messages.size() > 0)
+    {
+        ConsoleMessage msg = messages.front();
+        fullLog += msg.message + "\n";
+        messages.pop();
+    }
+
+    FileUtil::Write(fullLog, fullLogName);
+}
+
+void Console::saveLogError()
+{
+    std::string fullLog = "";
+    while(messages.size() > 0)
+    {
+        ConsoleMessage msg = messages.front();
+        fullLog += msg.message + "\n";
+        messages.pop();
+    }
+
+    FileUtil::Write(fullLog, "./" + logErrorName + ".log");
 }
