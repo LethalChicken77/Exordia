@@ -130,29 +130,7 @@ void Engine::run()
 
     graphicsModule.RegisterShader(shader);
 
-    // std::cout << "Configuring IMGUI" << std::endl;
-    IMGUI_CHECKVERSION();
-    ImGui::CreateContext();
-    ImGuiIO& imguiIO = ImGui::GetIO();
-    (void)imguiIO;
-    // Set style (optional)
-    // ImGui::StyleColorsDark();
-    ImGuiStyle& style = ImGui::GetStyle();
-
-    // Set window rounding
-    // style.WindowRounding = 5.0f;
-    // style.FrameRounding = 3.0f;
-    // style.GrabRounding = 2.0f;
-
-    // Adjust padding and spacing
-    // style.WindowPadding = ImVec2(10, 10);
-    // style.FramePadding = ImVec2(5, 5);
-    // style.ItemSpacing = ImVec2(8, 4);
-
-    // Modify colors
-
-    // ImGui_ImplGlfw_InitForVulkan(graphicsModule.GetGLFWWindow(), true);
-    // graphicsModule.graphicsInitImgui();
+    graphicsModule.GraphicsInitImgui();
     // ImGui::GetIO().ConfigFlags |= ImGuiConfigFlags_DockingEnable;
 
 
@@ -190,9 +168,9 @@ void Engine::run()
         // }
 
 
-        // ImGui_ImplVulkan_NewFrame();
-        // ImGui_ImplGlfw_NewFrame();
-        // ImGui::NewFrame();
+        ImGui_ImplVulkan_NewFrame();
+        ImGui_ImplGlfw_NewFrame();
+        ImGui::NewFrame();
 
         // ImGui::DockSpaceOverViewport(0, ImGui::GetMainViewport(), ImGuiDockNodeFlags_PassthruCentralNode);
 
@@ -210,8 +188,8 @@ void Engine::run()
         // ImGui::End();
         // ImGui::PopStyleVar(2);
 
-        // Console::drawImGui();
-        // ObjectManager::drawImGui();
+        Console::drawImGui();
+        ObjectManager::drawImGui();
 
         // ImGui::Begin("Material Properties");
 
@@ -222,8 +200,8 @@ void Engine::run()
         
         // ImGui::End();
 
-        // bool imguiHovered = ImGui::IsWindowHovered(ImGuiHoveredFlags_AnyWindow);
-        // ImGui::Render();
+        bool imguiHovered = ImGui::IsWindowHovered(ImGuiHoveredFlags_AnyWindow);
+        ImGui::Render();
         // Input
         Input::processInput(graphicsModule.GetGLFWWindow());
         

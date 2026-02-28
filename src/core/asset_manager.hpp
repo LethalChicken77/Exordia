@@ -23,7 +23,7 @@ namespace core
         {
             static_assert(std::is_base_of<AssetData, T>::value, "Instantiated assets must derive from AssetData");
             // Check if file exists
-            if(!FileUtil::fileExists(path))
+            if(!FileUtil::FileExists(path))
             {
                 Console::warn("File not found: " + path, "Asset Manager");
             }

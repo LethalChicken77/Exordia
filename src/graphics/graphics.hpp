@@ -46,8 +46,12 @@ class Graphics
         GLFWwindow* GetGLFWWindow() { return graphicsData->GetWindow().GetWindow(); }
 
         bool IsOpen() const { return graphicsData->GetWindow().IsOpen(); }
+        inline internal::Device &GetDevice() { return graphicsData->GetBackend().GetDevice(); }
+        void GraphicsInitImgui();
     private:
         std::unique_ptr<GraphicsMesh> testMesh;
+        // Temporary
+        void drawImgui(VkCommandBuffer commandBuffer, uint32_t imageIndex);
 };
 
 } // namespace graphics

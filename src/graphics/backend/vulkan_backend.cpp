@@ -55,7 +55,7 @@ void VulkanBackend::init(const std::string& appName, const std::string& engName,
     window.createSurface(instance);
     physicalDevice.pickPhysicalDevice(instance, &window.GetSurface());
     createDevice();
-    volkLoadDevice(device.GetDevice());
+    volkLoadDevice(device.Get());
 }
 
 VulkanBackend::~VulkanBackend()

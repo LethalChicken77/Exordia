@@ -64,7 +64,7 @@ DescriptorSetLayout::DescriptorSetLayout(internal::Device &device, std::unordere
     createInfo.pBindings = setLayoutBindings.data();
 
     VK_CHECK(vkCreateDescriptorSetLayout(
-        device.GetDevice(),
+        device.Get(),
         &createInfo,
         nullptr,
         &descriptorSetLayout), "Failed to create descriptor set layout");
@@ -74,7 +74,7 @@ DescriptorSetLayout::~DescriptorSetLayout()
 {
     if(descriptorSetLayout != VK_NULL_HANDLE)
     {
-        vkDestroyDescriptorSetLayout(device.GetDevice(), descriptorSetLayout, nullptr);
+        vkDestroyDescriptorSetLayout(device.Get(), descriptorSetLayout, nullptr);
     }
 }
 
@@ -121,13 +121,13 @@ DescriptorPool::DescriptorPool(internal::Device &_device, const std::vector<VkDe
     createInfo.maxSets = maxSets;
     createInfo.pNext = nullptr;
 
-    VK_CHECK(vkCreateDescriptorPool(device.GetDevice(), &createInfo, nullptr, &pool), "Failed to create descriptor pool");
+    VK_CHECK(vkCreateDescriptorPool(device.Get(), &createInfo, nullptr, &pool), "Failed to create descriptor pool");
 }
 
 DescriptorPool::~DescriptorPool()
 {
     if(pool != VK_NULL_HANDLE)
-        vkDestroyDescriptorPool(device.GetDevice(), pool, nullptr);
+        vkDestroyDescriptorPool(device.Get(), pool, nullptr);
 }
 
 } // namespace graphics

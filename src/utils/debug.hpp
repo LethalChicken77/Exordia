@@ -23,7 +23,7 @@
 #endif
 
 // Helper macros for stringification
-#define STRINGIFY_HELPER(x) #x      // turns x into a string
+#define STRINGIFY_HELPER(x) #x // turns x into a string
 #define STRINGIFY(x) STRINGIFY_HELPER(x) // ensures proper expansion
 
 // Macro for file:line

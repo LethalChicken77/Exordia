@@ -76,5 +76,6 @@ VOut vsMain(VertexData vertex, InstanceData instance)
 [shader("fragment")]
 float4 fsMain(VOut input)
 {
-    return float4(materialInfo.color.xyz, 1.0);
+    return float4(float3(1,0,0), 1.0);
+    // return float4(materialInfo.color.xyz, 1.0);
 }

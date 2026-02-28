@@ -176,7 +176,7 @@ const std::string logErrorName = "player_err";
 void Console::saveLog()
 {
     std::string fullLogName = "./" + logName + ".log";
-    if(FileUtil::fileExists(fullLogName))
+    if(FileUtil::FileExists(fullLogName))
     {
         FileUtil::Move(fullLogName, "./" + logPrevName + ".log", false, true);
     }

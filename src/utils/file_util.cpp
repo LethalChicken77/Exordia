@@ -9,7 +9,7 @@
 using namespace std;
 namespace fs = std::filesystem;
 
-std::string FileUtil::readFileToString(const std::filesystem::path &path)
+std::string FileUtil::ReadFileToString(const std::filesystem::path &path)
 {
     std::ifstream file(path, std::ios::ate | std::ios::binary);
     if (!file.is_open())
@@ -34,7 +34,7 @@ std::string FileUtil::readFileToString(const std::filesystem::path &path)
     return content;
 }
 
-std::vector<char> FileUtil::readFileToCharVector(const std::filesystem::path &path)
+std::vector<char> FileUtil::ReadFileToCharVector(const std::filesystem::path &path)
 {
     std::ifstream file(path, std::ios::ate | std::ios::binary);
     if (!file.is_open())
@@ -60,6 +60,11 @@ std::vector<char> FileUtil::readFileToCharVector(const std::filesystem::path &pa
     return content;
 }
 
+/// @brief Write data to a file as a string of bytes
+/// @param data String view of data, accepts string, byte array, etc.
+/// @param path Path to write to
+/// @param overwrite Replace existing file with new data
+/// @return True on success, false on failure
 bool FileUtil::Write(const std::string_view data, const fs::path &path, bool overwrite)
 {
     if(fs::exists(path))
@@ -86,22 +91,28 @@ bool FileUtil::Write(const std::string_view data, const fs::path &path, bool ove
     return true;
 }
 
-bool FileUtil::Delete(const filesystem::path &path)
+/// @brief Attempt to delete a file or directory
+/// @param path File or directory to delete
+/// @return True if file deleted (or not found), false on failure
+bool FileUtil::Delete(const fs::path &path)
 {
     error_code err;
-    filesystem::remove(path, err);
+    fs::remove(path, err);
     if(err)
     {
-        Console::errorf("Failed to remove file at \"{}\"", path.string(), "FileUtil");
+        Console::errorf("Failed to delete \"{}\": {}", path.string(), err.message(), "FileUtil");
         return false;
     }
     return true;
 }
 
-std::vector<std::string> FileUtil::getFiles(const std::filesystem::path &directoryPath)
+/// @brief Get a list of files in the specified directory
+/// @param directoryPath Directory to search
+/// @return 
+std::vector<std::string> FileUtil::GetFiles(const fs::path &directoryPath)
 {
     std::vector<std::string> paths;
-    for (const std::filesystem::directory_entry& entry : std::filesystem::directory_iterator(directoryPath))
+    for (const fs::directory_entry& entry : fs::directory_iterator(directoryPath))
     {
         if(entry.is_regular_file())
             paths.push_back(entry.path().string());
@@ -109,7 +120,7 @@ std::vector<std::string> FileUtil::getFiles(const std::filesystem::path &directo
     return paths;
 }
 
-std::vector<std::string> FileUtil::getFilesRecursive(const std::filesystem::path &directoryPath)
+std::vector<std::string> FileUtil::GetFilesRecursive(const std::filesystem::path &directoryPath)
 {
     std::vector<std::string> paths;
     
@@ -119,16 +130,16 @@ std::vector<std::string> FileUtil::getFilesRecursive(const std::filesystem::path
             paths.push_back(entry.path().string());
     }
 
-    std::vector<std::string> subDirs = getSubdirectories(directoryPath);
+    std::vector<std::string> subDirs = GetSubdirectories(directoryPath);
     for(const std::string &subDir : subDirs)
     {
-        std::vector<std::string> subPaths = getFilesRecursive(subDir);
+        std::vector<std::string> subPaths = GetFilesRecursive(subDir);
         paths.insert(paths.end(), subPaths.begin(), subPaths.end());
     }
     return paths;
 }
 
-std::vector<std::string> FileUtil::getSubdirectories(const std::filesystem::path &directoryPath)
+std::vector<std::string> FileUtil::GetSubdirectories(const std::filesystem::path &directoryPath)
 {
     std::vector<std::string> paths;
     for (const std::filesystem::directory_entry& entry : std::filesystem::directory_iterator(directoryPath))
@@ -137,16 +148,6 @@ std::vector<std::string> FileUtil::getSubdirectories(const std::filesystem::path
             paths.push_back(entry.path().string());
     }
     return paths;
-}
-
-bool FileUtil::fileExists(const std::filesystem::path &path)
-{
-    return std::filesystem::is_regular_file(path);
-}
-
-bool FileUtil::directoryExists(const std::filesystem::path &directoryPath)
-{
-    return std::filesystem::is_directory(directoryPath);
 }
 
 /// @brief Move or rename a file
@@ -158,7 +159,7 @@ bool FileUtil::directoryExists(const std::filesystem::path &directoryPath)
 bool FileUtil::Move(const std::filesystem::path &oldPath, const std::filesystem::path &newPath, bool createDir, bool replace)
 {
     error_code err;
-    if(fileExists(newPath) && !replace)
+    if(FileExists(newPath) && !replace)
     {
         if(replace)
         {

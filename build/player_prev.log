@@ -2,6 +2,8 @@
 [Window] - Initializing window: Exordia - Untitled Game
 [VulkanBackend] - Creating Vulkan Backend
 Initialized Volk
+[Validation Layer] - Layer VK_LAYER_OW_OVERLAY uses API version 1.2 which is older than the application specified API version of 1.4. May cause issues.
+[Validation Layer] - Layer VK_LAYER_OW_OBS_HOOK uses API version 1.2 which is older than the application specified API version of 1.4. May cause issues.
 [VulkanBackend] - Available extensions:
 	VK_KHR_device_group_creation
 	VK_KHR_display
@@ -26,36 +28,50 @@ Initialized Volk
 [VulkanBackend] - Required extensions:
 	VK_KHR_surface
 	VK_KHR_win32_surface
+	VK_EXT_debug_utils
 [PhysicalDevice] - Device count: 1
 [PhysicalDevice] - Physical device: NVIDIA GeForce RTX 4080 SUPER
 [Device] - Creating logical device
 [Renderer] - Recreating swap chain with extent 800x600
 [Graphics] - Recreating swap chain
+[Swapchain] - Creating swapchain...
 [Swapchain] - 	Present mode: Mailbox
+[Swapchain] - Creating swapchain image views...
+[Swapchain] - Creating depth images...
+[Swapchain] - Creating synchronization objects...
 [Swapchain] - 	New extent 640x480
+[Renderer] - Creating command buffers...
 [PipelineManager] - Creating pipelines
 [PipelineManager] - Pipelines created successfully
 [PipelineManager] - Creating pipelines
 [PipelineManager] - Pipelines created successfully
 [Graphics] - Graphics module initialized
 [Scene] - Loading scene: Test
+[Mesh] - Loaded 10112 vertices and 15744 triangles from OBJ file internal/models/monkey_high_res.obj
 [Scene] - Scene loaded with 3 game objects.
-materialInfo
-Descriptor Set : 2
-Binding        : 0
-Descriptor Type: 6
-Block size     : 80
-Fields (6):
-	color 	offset = 0 	size = 16
-	normal 	offset = 16 	size = 6
-	boolval 	offset = 22 	size = 1
-	smallmat 	offset = 24 	size = 18		type: _MatrixStorage_half3x3natural
-	twelve 	offset = 42 	size = 14		type: _Array_natural_int812
-	sus 	offset = 56 	size = 16		type: amogus_natural
+[ShaderAsset] - No descriptor bindings found.
 [PipelineManager] - Creating pipelines
 [ShaderBase] - Creating shader module
 [ShaderBase] - Creating shader module
 [GraphicsPipeline] - Creating standard pipeline layout
 [GraphicsPipeline] - Creating standard pipeline
+[Validation Layer] - vkCreateGraphicsPipelines(): pCreateInfos[0].pVertexInputState Vertex attribute at location 2 not consumed by vertex shader.
+[Validation Layer] - vkCreateGraphicsPipelines(): pCreateInfos[0].pVertexInputState Vertex attribute at location 3 not consumed by vertex shader.
 [GraphicsPipeline] - Created standard pipeline successfully
 [PipelineManager] - Pipelines created successfully
+[Renderer] - Recreating swap chain with extent 936x632
+[Renderer] - Resizing swap chain
+[Swapchain] - Creating swapchain...
+[Swapchain] - 	Present mode: Mailbox
+[Swapchain] - Creating swapchain image views...
+[Swapchain] - Creating depth images...
+[Swapchain] - Creating synchronization objects...
+[Swapchain] - 	New extent 936x632
+[Renderer] - Recreating swap chain with extent 1920x1009
+[Renderer] - Resizing swap chain
+[Swapchain] - Creating swapchain...
+[Swapchain] - 	Present mode: Mailbox
+[Swapchain] - Creating swapchain image views...
+[Swapchain] - Creating depth images...
+[Swapchain] - Creating synchronization objects...
+[Swapchain] - 	New extent 1920x1009

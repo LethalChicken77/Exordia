@@ -6,11 +6,11 @@ namespace core
 {
 void AssetData::LoadData()
 {
-    if(!FileUtil::fileExists(path))
+    if(!FileUtil::FileExists(path))
     {
         Console::error("File not found: " + path, "AssetData");
         return;
     }
-    data = FileUtil::readFileToCharVector(path);
+    data = FileUtil::ReadFileToCharVector(path);
 }
 } // namespace core

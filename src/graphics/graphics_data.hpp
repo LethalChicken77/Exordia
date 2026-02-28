@@ -57,6 +57,7 @@ public:
     std::unique_ptr<DescriptorPool> globalDescriptorPool;
     std::unique_ptr<DescriptorPool> cameraDescriptorPool;
     std::unique_ptr<DescriptorPool> materialDescriptorPool;
+    std::unique_ptr<DescriptorPool> imguiDescriptorPool;
 
     std::unique_ptr<DescriptorSetLayout> globalSetLayout;
     std::unique_ptr<DescriptorSetLayout> cameraSetLayout;

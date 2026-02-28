@@ -137,7 +137,7 @@ void Device::createLogicalDevice(bool enableValidationLayers)
         createInfo.enabledLayerCount = 0;
     }
 
-    if (vkCreateDevice(pDevice.GetPhysicalDevice(), &createInfo, nullptr, &device) != VK_SUCCESS) {
+    if (vkCreateDevice(pDevice.Get(), &createInfo, nullptr, &device) != VK_SUCCESS) {
         throw std::runtime_error("Failed to create logical device");
     }
 
@@ -169,7 +169,7 @@ void Device::createAllocator(VkInstance &instance)
     VmaAllocatorCreateInfo allocatorInfo = {};
     allocatorInfo.vulkanApiVersion = VK_API_VERSION_1_4;
     allocatorInfo.instance = instance;
-    allocatorInfo.physicalDevice = pDevice.GetPhysicalDevice();
+    allocatorInfo.physicalDevice = pDevice.Get();
     allocatorInfo.device = device;
     allocatorInfo.pVulkanFunctions = &vulkanFunctions;
 

@@ -37,6 +37,8 @@ public:
     inline uint32_t GetWidth() const { return swapchainExtent.width; }
     inline uint32_t GetHeight() const { return swapchainExtent.height; }
     inline uint32_t GetImageCount() const { return swapchainImages.size(); }
+    inline const VkFormat &GetImageFormat() const { return swapchainImageFormat; }
+    inline const VkFormat &GetDepthFormat() const { return swapchainDepthFormat; }
     float GetAspectRatio() 
     {
         return static_cast<float>(swapchainExtent.width) / static_cast<float>(swapchainExtent.height);

@@ -30,27 +30,27 @@ Swapchain::~Swapchain()
 {
     for (VkImageView imageView : swapchainImageViews)
     {
-        vkDestroyImageView(device.GetDevice(), imageView, nullptr);
+        vkDestroyImageView(device.Get(), imageView, nullptr);
     }
     swapchainImageViews.clear();
 
     if (swapchain != nullptr)
     {
-        vkDestroySwapchainKHR(device.GetDevice(), swapchain, nullptr);
+        vkDestroySwapchainKHR(device.Get(), swapchain, nullptr);
         swapchain = nullptr;
     }
 
     for (int i = 0; i < depthImages.size(); i++)
     {
-        vkDestroyImageView(device.GetDevice(), depthImageViews[i], nullptr);
+        vkDestroyImageView(device.Get(), depthImageViews[i], nullptr);
         vmaDestroyImage(device.GetAllocator(), depthImages[i], depthImageAllocations[i]);
     }
 
     for (size_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++)
     {
-        vkDestroySemaphore(device.GetDevice(), renderFinishedSemaphores[i], nullptr);
-        vkDestroySemaphore(device.GetDevice(), imageAvailableSemaphores[i], nullptr);
-        vkDestroyFence(device.GetDevice(), inFlightFences[i], nullptr);
+        vkDestroySemaphore(device.Get(), renderFinishedSemaphores[i], nullptr);
+        vkDestroySemaphore(device.Get(), imageAvailableSemaphores[i], nullptr);
+        vkDestroyFence(device.Get(), inFlightFences[i], nullptr);
     }
 }
 
@@ -60,7 +60,7 @@ Swapchain::~Swapchain()
 VkResult Swapchain::AcquireNextImage(uint32_t *imageIndex) 
 {
     vkWaitForFences(
-        device.GetDevice(),
+        device.Get(),
         1,
         &inFlightFences[currentFrame],
         VK_TRUE,
@@ -68,7 +68,7 @@ VkResult Swapchain::AcquireNextImage(uint32_t *imageIndex)
     );
 
     VkResult result = vkAcquireNextImageKHR(
-        device.GetDevice(),
+        device.Get(),
         swapchain,
         std::numeric_limits<uint64_t>::max(),
         imageAvailableSemaphores[currentFrame],  // must be a not signaled semaphore
@@ -87,7 +87,7 @@ VkResult Swapchain::SubmitCommandBuffers(const VkCommandBuffer *buffers, uint32_
 {
     if (imagesInFlight[*imageIndex] != VK_NULL_HANDLE) 
     {
-        vkWaitForFences(device.GetDevice(), 1, &imagesInFlight[*imageIndex], VK_TRUE, UINT64_MAX);
+        vkWaitForFences(device.Get(), 1, &imagesInFlight[*imageIndex], VK_TRUE, UINT64_MAX);
     }
     imagesInFlight[*imageIndex] = inFlightFences[currentFrame];
 
@@ -109,7 +109,7 @@ VkResult Swapchain::SubmitCommandBuffers(const VkCommandBuffer *buffers, uint32_
     submitInfo.signalSemaphoreCount = 1;
     submitInfo.pSignalSemaphores = signalSemaphores;
 
-    vkResetFences(device.GetDevice(), 1, &inFlightFences[currentFrame]);
+    vkResetFences(device.Get(), 1, &inFlightFences[currentFrame]);
     VkResult result = vkQueueSubmit(device.GetGraphicsQueue(), 1, &submitInfo, inFlightFences[currentFrame]);
     if (result != VK_SUCCESS) 
     {
@@ -192,16 +192,16 @@ void Swapchain::createSwapchain(VkSwapchainKHR oldSwapchain)
 
     createInfo.oldSwapchain = oldSwapchain;
 
-    VkResult result = vkCreateSwapchainKHR(device.GetDevice(), &createInfo, nullptr, &swapchain);
+    VkResult result = vkCreateSwapchainKHR(device.Get(), &createInfo, nullptr, &swapchain);
     if (result != VK_SUCCESS) 
     {
         throw std::runtime_error("Failed to create swap chain: " + Debug::VkResultToString(result));
     }
 
     // Query number of images in the swapchain
-    vkGetSwapchainImagesKHR(device.GetDevice(), swapchain, &imageCount, nullptr);
+    vkGetSwapchainImagesKHR(device.Get(), swapchain, &imageCount, nullptr);
     swapchainImages.resize(imageCount);
-    vkGetSwapchainImagesKHR(device.GetDevice(), swapchain, &imageCount, swapchainImages.data());
+    vkGetSwapchainImagesKHR(device.Get(), swapchain, &imageCount, swapchainImages.data());
 
     swapchainImageFormat = surfaceFormat.format;
     swapchainExtent = extent;
@@ -226,7 +226,7 @@ void Swapchain::createImageViews()
         viewInfo.subresourceRange.baseArrayLayer = 0;
         viewInfo.subresourceRange.layerCount = 1;
 
-        VkResult result = vkCreateImageView(device.GetDevice(), &viewInfo, nullptr, &swapchainImageViews[i]);
+        VkResult result = vkCreateImageView(device.Get(), &viewInfo, nullptr, &swapchainImageViews[i]);
         if(result != VK_SUCCESS) 
         {
             throw std::runtime_error("Failed to create swapchain image view: " + Debug::VkResultToString(result));
@@ -281,7 +281,7 @@ void Swapchain::createDepthImages()
         viewInfo.subresourceRange.baseArrayLayer = 0;
         viewInfo.subresourceRange.layerCount = 1;
 
-        VkResult result = vkCreateImageView(device.GetDevice(), &viewInfo, nullptr, &depthImageViews[i]);
+        VkResult result = vkCreateImageView(device.Get(), &viewInfo, nullptr, &depthImageViews[i]);
         if (result != VK_SUCCESS) 
         {
             throw std::runtime_error("Failed to create depth image view: " + Debug::VkResultToString(result));
@@ -308,17 +308,17 @@ void Swapchain::createSyncObjects()
 
     for (size_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++) 
     {
-        VkResult result = vkCreateSemaphore(device.GetDevice(), &semaphoreInfo, nullptr, &imageAvailableSemaphores[i]);
+        VkResult result = vkCreateSemaphore(device.Get(), &semaphoreInfo, nullptr, &imageAvailableSemaphores[i]);
         if (result != VK_SUCCESS)
         {
             throw std::runtime_error("Failed to create image available semaphore" + Debug::VkResultToString(result));
         }
-        result = vkCreateSemaphore(device.GetDevice(), &semaphoreInfo, nullptr, &renderFinishedSemaphores[i]);
+        result = vkCreateSemaphore(device.Get(), &semaphoreInfo, nullptr, &renderFinishedSemaphores[i]);
         if (result != VK_SUCCESS) 
         {
             throw std::runtime_error("Failed to create render finished semaphore: " + Debug::VkResultToString(result));
         }
-        result = vkCreateFence(device.GetDevice(), &fenceInfo, nullptr, &inFlightFences[i]);
+        result = vkCreateFence(device.Get(), &fenceInfo, nullptr, &inFlightFences[i]);
         if (result != VK_SUCCESS) 
         {
             throw std::runtime_error("Failed to create in-flight fence: " + Debug::VkResultToString(result));

@@ -106,7 +106,7 @@ Image::~Image()
     #ifndef DISABLE_VALIDATION
     if(imageView != VK_NULL_HANDLE)
     {
-        vkDestroyImageView(device.GetDevice(), imageView, nullptr);
+        vkDestroyImageView(device.Get(), imageView, nullptr);
     }
     if(imageAllocation != VK_NULL_HANDLE)
     {
@@ -165,7 +165,7 @@ void Image::createImageView()
     viewInfo.subresourceRange.baseArrayLayer = 0;
     viewInfo.subresourceRange.layerCount = 1;
 
-    if(vkCreateImageView(device.GetDevice(), &viewInfo, nullptr, &imageView) != VK_SUCCESS)
+    if(vkCreateImageView(device.Get(), &viewInfo, nullptr, &imageView) != VK_SUCCESS)
     {
         throw std::runtime_error("Failed to create texture image view");
     }

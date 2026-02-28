@@ -33,7 +33,7 @@ public:
     /// @param commandBuffer Temporary command buffer to end
     void EndSingleTimeCommands(VkCommandBuffer commandBuffer);
 
-    const VkDevice &GetDevice() const { return device; }
+    const VkDevice &Get() const { return device; }
     PhysicalDevice &GetPhysicalDevice() { return pDevice; }
     const VmaAllocator &GetAllocator() const { return allocator; }
     const VkCommandPool &GetCommandPool() const { return commandPool; }

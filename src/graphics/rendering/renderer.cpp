@@ -16,7 +16,7 @@ Renderer::Renderer(internal::Device &_device, Window &_window) : device(_device)
 Renderer::~Renderer()
 {
     vkFreeCommandBuffers(
-        device.GetDevice(), 
+        device.Get(), 
         device.GetCommandPool(), 
         static_cast<uint32_t>(commandBuffers.size()), 
         commandBuffers.data()
@@ -214,7 +214,7 @@ void Renderer::createCommandBuffers()
     allocInfo.commandPool = device.GetCommandPool();
     allocInfo.commandBufferCount = static_cast<uint32_t>(commandBuffers.size());
 
-    VkResult result = vkAllocateCommandBuffers(device.GetDevice(), &allocInfo, commandBuffers.data());
+    VkResult result = vkAllocateCommandBuffers(device.Get(), &allocInfo, commandBuffers.data());
     if(result != VK_SUCCESS)
     {
         throw std::runtime_error("Failed to allocate command buffers: " + Debug::VkResultToString(result));

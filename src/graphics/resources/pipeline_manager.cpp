@@ -8,7 +8,7 @@ PipelineManager::PipelineManager(internal::Device& _device) : device(_device) {}
 PipelineManager::~PipelineManager()
 {
     if(pipelineCache != nullptr)
-        vkDestroyPipelineCache(device.GetDevice(), pipelineCache, nullptr);
+        vkDestroyPipelineCache(device.Get(), pipelineCache, nullptr);
 }
 
 void PipelineManager::init()
@@ -61,7 +61,7 @@ void PipelineManager::createPipelineCache()
     VkPipelineCacheCreateInfo cacheCreateInfo{};
     cacheCreateInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_CACHE_CREATE_INFO;
 
-    if(vkCreatePipelineCache(device.GetDevice(), &cacheCreateInfo, nullptr, &pipelineCache) != VK_SUCCESS)
+    if(vkCreatePipelineCache(device.Get(), &cacheCreateInfo, nullptr, &pipelineCache) != VK_SUCCESS)
     {
         throw std::runtime_error("Failed to create pipeline cache!");
     }

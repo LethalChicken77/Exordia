@@ -1,9 +1,13 @@
+#include "utils/debug.hpp"
 #include "graphics.hpp"
 #include "graphics_data.hpp"
 #include "utils/console.hpp"
 #include "backend/buffer.hpp"
 #include "backend/image.hpp"
 #include "rendering/swap_chain.hpp"
+#include "imgui.h"
+#include "backends/imgui_impl_vulkan.h"
+#include "backends/imgui_impl_glfw.h"
 
 #include "tests/graphics_tests.hpp"
 
@@ -91,15 +95,121 @@ namespace graphics
                 VkClearValue{.color = {{0.02f, 0.03f, 0.1f, 1.0f}}}
             );
 
-            
-
-
             renderer.EndRenderDynamic(commandBuffer);
+            drawImgui(commandBuffer, imageIndex);
             // RenderContext frameInfo{frameIndex, 0.0, commandBuffer, Descriptors::globalDescriptorSet, Descriptors::cameraDescriptorSets[frameIndex]};
             renderer.EndFrame();
         }
         graphicsData->GetBackend().WaitForDevice();
         // sceneRenderQueue.clear();
         // outlineRenderQueue.clear();
+    }
+
+    void Graphics::GraphicsInitImgui()
+    {
+        // std::cout << "Configuring IMGUI" << std::endl;
+        IMGUI_CHECKVERSION();
+        ImGui::CreateContext();
+        ImGuiIO& imguiIO = ImGui::GetIO();
+        (void)imguiIO;
+        // Set style (optional)
+        // ImGui::StyleColorsDark();
+        ImGuiStyle& style = ImGui::GetStyle();
+
+        // Set window rounding
+        // style.WindowRounding = 5.0f;
+        // style.FrameRounding = 3.0f;
+        // style.GrabRounding = 2.0f;
+
+        // Adjust padding and spacing
+        // style.WindowPadding = ImVec2(10, 10);
+        // style.FramePadding = ImVec2(5, 5);
+        // style.ItemSpacing = ImVec2(8, 4);
+
+        // Modify colors
+
+        ImGui_ImplGlfw_InitForVulkan(GetGLFWWindow(), true);
+
+        internal::Device &device = GetDevice();
+        const Swapchain &swapchain = graphicsData->renderer.GetSwapchain();
+        // containers.imguiDescriptorSets = std::vector<VkDescriptorSet>(SwapChain::MAX_FRAMES_IN_FLIGHT);
+        graphicsData->imguiDescriptorPool = DescriptorPool::Builder(device)
+            .SetMaxSets(Swapchain::MAX_FRAMES_IN_FLIGHT)
+            .AddPoolSize(VK_DESCRIPTOR_TYPE_SAMPLER, Swapchain::MAX_FRAMES_IN_FLIGHT)
+            .AddPoolSize(VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, Swapchain::MAX_FRAMES_IN_FLIGHT)
+            .AddPoolSize(VK_DESCRIPTOR_TYPE_SAMPLED_IMAGE, Swapchain::MAX_FRAMES_IN_FLIGHT)
+            .AddPoolSize(VK_DESCRIPTOR_TYPE_STORAGE_IMAGE, Swapchain::MAX_FRAMES_IN_FLIGHT)
+            .AddPoolSize(VK_DESCRIPTOR_TYPE_UNIFORM_TEXEL_BUFFER, Swapchain::MAX_FRAMES_IN_FLIGHT)
+            .AddPoolSize(VK_DESCRIPTOR_TYPE_STORAGE_TEXEL_BUFFER, Swapchain::MAX_FRAMES_IN_FLIGHT)
+            .AddPoolSize(VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, Swapchain::MAX_FRAMES_IN_FLIGHT)
+            .AddPoolSize(VK_DESCRIPTOR_TYPE_STORAGE_BUFFER, Swapchain::MAX_FRAMES_IN_FLIGHT)
+            .AddPoolSize(VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER_DYNAMIC, Swapchain::MAX_FRAMES_IN_FLIGHT)
+            .AddPoolSize(VK_DESCRIPTOR_TYPE_STORAGE_BUFFER_DYNAMIC, Swapchain::MAX_FRAMES_IN_FLIGHT)
+            .AddPoolSize(VK_DESCRIPTOR_TYPE_INPUT_ATTACHMENT, Swapchain::MAX_FRAMES_IN_FLIGHT)
+            .SetPoolFlags(VK_DESCRIPTOR_POOL_CREATE_FREE_DESCRIPTOR_SET_BIT)
+            .Build();
+
+        ImGui_ImplVulkan_InitInfo initInfo{};
+        initInfo.Instance = graphicsData->backend.GetInstance();
+        initInfo.PhysicalDevice = device.GetPhysicalDevice().Get();
+        initInfo.Device = device.Get();
+        initInfo.QueueFamily = device.GetPhysicalDevice().GetQueueFamilyIndices().graphicsFamily;
+        initInfo.Queue = device.GetGraphicsQueue();
+        initInfo.PipelineCache = VK_NULL_HANDLE;
+        initInfo.DescriptorPool = graphicsData->imguiDescriptorPool->GetPool();
+        initInfo.Allocator = nullptr;
+        initInfo.MinImageCount = 2;
+        initInfo.ImageCount = Swapchain::MAX_FRAMES_IN_FLIGHT;
+
+        initInfo.UseDynamicRendering = true;
+
+        initInfo.PipelineInfoMain = {};
+        initInfo.PipelineInfoMain.PipelineRenderingCreateInfo = {};
+        initInfo.PipelineInfoMain.PipelineRenderingCreateInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_RENDERING_CREATE_INFO;
+        initInfo.PipelineInfoMain.PipelineRenderingCreateInfo.colorAttachmentCount = 1;
+        initInfo.PipelineInfoMain.PipelineRenderingCreateInfo.pColorAttachmentFormats = &swapchain.GetImageFormat();
+        initInfo.PipelineInfoMain.PipelineRenderingCreateInfo.depthAttachmentFormat = swapchain.GetDepthFormat();
+        initInfo.PipelineInfoMain.PipelineRenderingCreateInfo.stencilAttachmentFormat = VK_FORMAT_UNDEFINED;
+
+        // For multisampling, probably won't use
+        //initInfo.PipelineRenderingCreateInfo.rasterizationSamples = VK_SAMPLE_COUNT_1_BIT;
+        
+        initInfo.PipelineInfoForViewports = initInfo.PipelineInfoMain;
+
+        initInfo.CheckVkResultFn = [](VkResult err) {
+            if (err != VK_SUCCESS) {
+                fprintf(stderr, "[vulkan] Error: VkResult = %d\n", err);
+                Console::errorf("Vulkan Error: {}", Debug::VkResultToString(err), "[ImGui]");
+            }
+        };
+        ImGui_ImplVulkan_Init(&initInfo);
+
+        // std::cout << viewportTexture->getSampler() << std::endl;
+        // viewportDescriptorSet = ImGui_ImplVulkan_AddTexture(
+        //     viewportTexture->getSampler(),
+        //     viewportTexture->getImageView(),
+        //     VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL
+        // );
+    }
+
+    void Graphics::drawImgui(VkCommandBuffer commandBuffer, uint32_t imageIndex)
+    {
+        VkRenderingAttachmentInfo colorAttachment = {};
+        colorAttachment.sType = VK_STRUCTURE_TYPE_RENDERING_ATTACHMENT_INFO;
+        colorAttachment.imageView = graphicsData->renderer.GetSwapchain().GetImageView(imageIndex);
+        colorAttachment.imageLayout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
+        colorAttachment.loadOp = VK_ATTACHMENT_LOAD_OP_LOAD;
+        colorAttachment.storeOp = VK_ATTACHMENT_STORE_OP_STORE;
+
+        VkRenderingInfo renderingInfo = {};
+        renderingInfo.sType = VK_STRUCTURE_TYPE_RENDERING_INFO;
+        renderingInfo.renderArea = {{0,0}, graphicsData->renderer.GetExtent()};
+        renderingInfo.layerCount = 1;
+        renderingInfo.colorAttachmentCount = 1;
+        renderingInfo.pColorAttachments = &colorAttachment;
+
+        vkCmdBeginRendering(commandBuffer, &renderingInfo);
+        ImGui_ImplVulkan_RenderDrawData(ImGui::GetDrawData(), commandBuffer);
+        vkCmdEndRendering(commandBuffer);
     }
 } // namespace graphics

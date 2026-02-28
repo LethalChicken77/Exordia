@@ -46,13 +46,13 @@ namespace graphics
     {
         materialSetLayout.reset();
         if(graphicsPipeline != nullptr)
-            vkDestroyPipeline(device.GetDevice(), graphicsPipeline, nullptr);
+            vkDestroyPipeline(device.Get(), graphicsPipeline, nullptr);
         if(pipelineLayout != nullptr)
-            vkDestroyPipelineLayout(device.GetDevice(), pipelineLayout, nullptr);
+            vkDestroyPipelineLayout(device.Get(), pipelineLayout, nullptr);
         if(vertexShaderModule != nullptr)
-            vkDestroyShaderModule(device.GetDevice(), vertexShaderModule, nullptr);
+            vkDestroyShaderModule(device.Get(), vertexShaderModule, nullptr);
         if(fragmentShaderModule != nullptr)
-            vkDestroyShaderModule(device.GetDevice(), fragmentShaderModule, nullptr);
+            vkDestroyShaderModule(device.Get(), fragmentShaderModule, nullptr);
     }
 
     void GraphicsPipeline::createShaderModules(const core::Shader &shader)
@@ -81,7 +81,7 @@ namespace graphics
         createInfo.codeSize = spvCode.size() * sizeof(uint32_t);
         createInfo.pCode = spvCode.data();
 
-        VK_CHECK(vkCreateShaderModule(device.GetDevice(), &createInfo, nullptr, shaderModule), "Failed to create shader module");
+        VK_CHECK(vkCreateShaderModule(device.Get(), &createInfo, nullptr, shaderModule), "Failed to create shader module");
     }
 
     void GraphicsPipeline::createMaterialSetLayout(const core::Shader &shader)
@@ -112,7 +112,7 @@ namespace graphics
         pipelineLayoutInfo.pSetLayouts = descriptorSetLayouts.data();
         pipelineLayoutInfo.pushConstantRangeCount = 1;
         pipelineLayoutInfo.pPushConstantRanges = &pushConstantRange;
-        if(vkCreatePipelineLayout(device.GetDevice(), &pipelineLayoutInfo, nullptr, &pipelineLayout) != VK_SUCCESS)
+        if(vkCreatePipelineLayout(device.Get(), &pipelineLayoutInfo, nullptr, &pipelineLayout) != VK_SUCCESS)
         {
             throw std::runtime_error("Failed to create standard pipeline layout");
         }
@@ -242,7 +242,7 @@ namespace graphics
             .basePipelineIndex = -1
         };
 
-        if(vkCreateGraphicsPipelines(device.GetDevice(), cache, 1, &pipelineInfo, nullptr, &graphicsPipeline) != VK_SUCCESS)
+        if(vkCreateGraphicsPipelines(device.Get(), cache, 1, &pipelineInfo, nullptr, &graphicsPipeline) != VK_SUCCESS)
         {
             throw std::runtime_error("Failed to create standard pipeline! (Skill issue)");
         }

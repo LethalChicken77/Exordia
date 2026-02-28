@@ -1,9 +1,7 @@
 cmake_minimum_required(VERSION 3.20)
 project(GameEngine LANGUAGES CXX C)
 
-# ─────────────────────────────────────────────────────────────
 # Compiler & basic settings
-# ─────────────────────────────────────────────────────────────
 set(CMAKE_C_COMPILER "C:/msys64/ucrt64/bin/Clang.exe")
 set(CMAKE_CXX_COMPILER "C:/msys64/ucrt64/bin/Clang++.exe")
 set(CMAKE_CXX_STANDARD 23)
@@ -51,9 +49,7 @@ set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR})
 
 set(CMAKE_AUTORCC OFF)
 
-# ─────────────────────────────────────────────────────────────
 # Vulkan + Volk
-# ─────────────────────────────────────────────────────────────
 # Use the environment variable that the SDK always sets
 set(VULKAN_SDK "$ENV{VULKAN_SDK}")                     # e.g. C:/VulkanSDK/1.4.309.0
 cmake_path(SET VULKAN_SDK NORMALIZE "${VULKAN_SDK}")

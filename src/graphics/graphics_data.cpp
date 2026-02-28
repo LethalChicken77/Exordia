@@ -1,4 +1,6 @@
 #include "graphics_data.hpp"
+#include "backends/imgui_impl_glfw.h"
+#include "backends/imgui_impl_vulkan.h"
 namespace graphics
 {
 // GraphicsData graphicsData{};
@@ -8,9 +10,14 @@ GraphicsData::~GraphicsData()
 {
     backend.WaitForDevice();
 
+    ImGui_ImplVulkan_Shutdown();
+    ImGui_ImplGlfw_Shutdown();
+    ImGui::DestroyContext();
+
     pipelineManager.DestroyPipelines();
     cameraDescriptorPool.reset();
     globalDescriptorPool.reset();
+    imguiDescriptorPool.reset();
     cameraSetLayout.reset();
     globalSetLayout.reset();
 

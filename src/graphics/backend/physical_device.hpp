@@ -28,7 +28,7 @@ public:
         bool isComplete() { return graphicsFamilyHasValue && presentFamilyHasValue; }
     };
 
-    const VkPhysicalDevice &GetPhysicalDevice() const { return physicalDevice; }
+    const VkPhysicalDevice &Get() const { return physicalDevice; }
     const VkPhysicalDeviceProperties2 &GetProperties() const { return properties; }
     const VkPhysicalDeviceDescriptorBufferPropertiesEXT &GetDescriptorBufferProperties() const { return descriptorBufferProperties; }
     const QueueFamilyIndices &GetQueueFamilyIndices() const { return queueFamilyIndices; }

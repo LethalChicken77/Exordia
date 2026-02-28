@@ -20,8 +20,9 @@ class VulkanBackend
         // VkBuffer AllocateBuffer();
         // VkImage AllocateImage();
 
-        Device &GetDevice() { return device; }
-        const PhysicalDevice &GetPhysicalDevice() { return physicalDevice; }
+        inline VkInstance &GetInstance() { return instance; }
+        inline Device &GetDevice() { return device; }
+        inline const PhysicalDevice &GetPhysicalDevice() { return physicalDevice; }
 
         inline void WaitForDevice() { device.WaitIdle(); }
     private:
