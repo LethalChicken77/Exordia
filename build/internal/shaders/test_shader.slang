@@ -1,4 +1,5 @@
 import utils;
+// #include "attributes.slang"
 
 // Camera Descriptor Set
 struct CameraUbo
@@ -43,12 +44,16 @@ struct amogus
 {
     float hi; // :D
 };
+
 // Material Descriptor Set
 struct MaterialInfo
 {
+// [[Color]] float4 color; // Interpret me as a color!
     float4 color;
     half3 normal;
     int8_t boolval;
+// RANGE(-1.5, 3.14159266)
+    float rangeFloat;
     half3x3 smallmat;
     int8_t[12] twelve;
     amogus sus;
@@ -76,6 +81,6 @@ VOut vsMain(VertexData vertex, InstanceData instance)
 [shader("fragment")]
 float4 fsMain(VOut input)
 {
-    return float4(float3(1,0,0), 1.0);
-    // return float4(materialInfo.color.xyz, 1.0);
+    // return float4(float3(1,0,0), 1.0);
+    return float4(materialInfo.color.xyz, 1.0);
 }

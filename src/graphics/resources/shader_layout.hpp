@@ -1,7 +1,11 @@
 #pragma once
 #include <cstdint>
 #include <vector>
+#include <string_view>
+#include <string>
 
+namespace graphics
+{
 // Shader layout info
 enum DataType
 {
@@ -15,29 +19,36 @@ enum DataType
     Int32 = 5,
     UInt64 = 6,
     Int64 = 7,
-    
-    Float16 = 8,
-    Float32 = 9,
-    Float64 = 10,
-    Vec2_16 = 11,
-    Vec2_32 = 12,
-    Vec2_64 = 13,
-    Vec3_16 = 14,
-    Vec3_32 = 15,
-    Vec3_64 = 16,
-    Vec4_16 = 17,
-    Vec4_32 = 18,
-    Vec4_64 = 19,
 
-    Mat2x2_16 = 20,
-    Mat2x2_32 = 21,
-    Mat2x2_64 = 22,
-    Mat3x3_16 = 23,
-    Mat3x3_32 = 24,
-    Mat3x3_64 = 25,
-    Mat4x4_16 = 26,
-    Mat4x4_32 = 27,
-    Mat4x4_64 = 28,
+    UNorm_16 = 8,
+    SNorm_16 = 9,
+    UNorm_32 = 10,
+    SNorm_32 = 11,
+    UNorm_64 = 12,
+    SNorm_64 = 13,
+    
+    Float16 = 14,
+    Float32 = 15,
+    Float64 = 16,
+    Vec2_16 = 17,
+    Vec2_32 = 18,
+    Vec2_64 = 19,
+    Vec3_16 = 20,
+    Vec3_32 = 21,
+    Vec3_64 = 22,
+    Vec4_16 = 23,
+    Vec4_32 = 24,
+    Vec4_64 = 25,
+
+    Mat2x2_16 = 26,
+    Mat2x2_32 = 27,
+    Mat2x2_64 = 28,
+    Mat3x3_16 = 29,
+    Mat3x3_32 = 30,
+    Mat3x3_64 = 31,
+    Mat4x4_16 = 32,
+    Mat4x4_32 = 33,
+    Mat4x4_64 = 34,
 
     Char = Int8,
     UChar = UInt8,
@@ -108,20 +119,22 @@ constexpr size_t GetTypeSize(DataType type)
 
 struct ShaderParameter
 {
+    uint32_t offset;
+    std::string name;
     DataType type;
+    uint32_t typeSize;
     uint32_t count;
 };
 
 class ShaderLayout
 {
 public:
-    class Builder
-    {
+    ShaderLayout() = default;
+    ShaderLayout(std::vector<uint32_t> spirv, const std::string_view bufferName);
 
-    };
+    
     
 private:
-    ShaderLayout();
     std::vector<ShaderParameter> parameters;
 
     enum class AlignmentType
@@ -163,4 +176,5 @@ private:
         Mat4x4_32 = 26,
         Mat4x4_64 = 27
     };
+};
 };

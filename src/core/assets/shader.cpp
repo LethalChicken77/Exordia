@@ -1,6 +1,7 @@
 #include "shader.hpp"
 #include <slang-com-ptr.h>
 #include "spirv_reflect.h"
+#include <slang.h>
 
 namespace core
 {
@@ -14,16 +15,19 @@ std::vector<uint32_t> ShaderAsset::CompileSlang(const char* moduleName, const ch
     if (SLANG_FAILED(createGlobalSession(&globalDesc, globalSession.writeRef())))
         throw std::runtime_error("Slang: failed to create global session");
 
+    std::vector<slang::CompilerOptionEntry> options{};
+    // TODO: Only enable if scalar block layout extension is available
+    options.push_back({ slang::CompilerOptionName::GLSLForceScalarLayout, slang::CompilerOptionValue{slang::CompilerOptionValueKind::Int, 1} });
+    options.push_back({ slang::CompilerOptionName::VulkanUseGLLayout, slang::CompilerOptionValue{slang::CompilerOptionValueKind::Int, 0} });
+    // options.push_back({ slang::CompilerOptionName::VulkanEmitReflection, slang::CompilerOptionValue{slang::CompilerOptionValueKind::Int, 1} });
+
     slang::SessionDesc sessionDesc = {};
     // const char* paths[] = { "C:/VulkanSDK/1.4.309.0/Include/slang" }; // adjust as needed
     const char* paths[] = { "./internal/shaders", "./assets/shaders" }; // Set search paths
     sessionDesc.searchPaths = paths;
     sessionDesc.searchPathCount = 2;
-    sessionDesc.compilerOptionEntryCount = 2; // TODO: Only enable if scalar block layout extension is available
-    sessionDesc.compilerOptionEntries = new slang::CompilerOptionEntry[2] {
-        { slang::CompilerOptionName::GLSLForceScalarLayout, slang::CompilerOptionValue{slang::CompilerOptionValueKind::Int, 1} },
-        { slang::CompilerOptionName::VulkanUseGLLayout, slang::CompilerOptionValue{slang::CompilerOptionValueKind::Int, 0} },
-    };
+    sessionDesc.compilerOptionEntryCount = options.size(); 
+    sessionDesc.compilerOptionEntries = options.data();
 
     Slang::ComPtr<slang::ISession> session;
     if (SLANG_FAILED(globalSession->createSession(sessionDesc, session.writeRef())))
@@ -77,12 +81,12 @@ std::vector<uint32_t> ShaderAsset::CompileSlang(const char* moduleName, const ch
     size_t wordCount = sizeBytes / sizeof(uint32_t);
     std::vector<uint32_t> spirv(words, words + wordCount);
 
-    SpirvReflect(spirv);
+    SpirvReflectTest(spirv);
 
     return spirv;
 }
 
-void ShaderAsset::SpirvReflect(const std::vector<uint32_t> &spirv)
+void ShaderAsset::SpirvReflectTest(const std::vector<uint32_t> &spirv)
 {
     spv_reflect::ShaderModule module(spirv);
 
@@ -126,6 +130,7 @@ void ShaderAsset::SpirvReflect(const std::vector<uint32_t> &spirv)
             for(uint32_t m = 0; m < block.member_count; m++)
             {
                 const SpvReflectBlockVariable member = block.members[m];
+                
                 std::string memberString = std::format("\t{} \toffset = {} \tsize = {}", member.name, member.offset, member.size);
                 if(member.type_description && member.type_description->type_name)
                 {
@@ -141,6 +146,8 @@ void Shader::Compile()
 {
     vertSpirv = vertexShaderAsset->CompileSlang("vertexShader", "vsMain", SLANG_STAGE_VERTEX);
     fragSpirv = fragmentShaderAsset->CompileSlang("fragmentShader", "fsMain",  SLANG_STAGE_FRAGMENT);
+
+    // layout = graphics::ShaderLayout(vertSpirv, "materialInfo");
 }
 
 }; // namespace core

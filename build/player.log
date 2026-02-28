@@ -1,8 +1,3 @@
-[Graphics] - Initializing graphics module
-[Window] - Initializing window: Exordia - Untitled Game
-[VulkanBackend] - Creating Vulkan Backend
-Initialized Volk
-[Validation Layer] - Layer VK_LAYER_OW_OVERLAY uses API version 1.2 which is older than the application specified API version of 1.4. May cause issues.
 [Validation Layer] - Layer VK_LAYER_OW_OBS_HOOK uses API version 1.2 which is older than the application specified API version of 1.4. May cause issues.
 [VulkanBackend] - Available extensions:
 	VK_KHR_device_group_creation
@@ -49,7 +44,19 @@ Initialized Volk
 [Scene] - Loading scene: Test
 [Mesh] - Loaded 10112 vertices and 15744 triangles from OBJ file internal/models/monkey_high_res.obj
 [Scene] - Scene loaded with 3 game objects.
-[ShaderAsset] - No descriptor bindings found.
+materialInfo
+Descriptor Set : 2
+Binding        : 0
+Descriptor Type: 6
+Block size     : 80
+Fields (7):
+	color 	offset = 0 	size = 16
+	normal 	offset = 16 	size = 6
+	boolval 	offset = 22 	size = 1
+	rangeFloat 	offset = 24 	size = 4
+	smallmat 	offset = 28 	size = 18		type: _MatrixStorage_half3x3natural
+	twelve 	offset = 46 	size = 14		type: _Array_natural_int812
+	sus 	offset = 60 	size = 16		type: amogus_natural
 [PipelineManager] - Creating pipelines
 [ShaderBase] - Creating shader module
 [ShaderBase] - Creating shader module
@@ -59,11 +66,35 @@ Initialized Volk
 [Validation Layer] - vkCreateGraphicsPipelines(): pCreateInfos[0].pVertexInputState Vertex attribute at location 3 not consumed by vertex shader.
 [GraphicsPipeline] - Created standard pipeline successfully
 [PipelineManager] - Pipelines created successfully
-[Renderer] - Recreating swap chain with extent 1250x835
+[Renderer] - Recreating swap chain with extent 813x568
 [Renderer] - Resizing swap chain
 [Swapchain] - Creating swapchain...
 [Swapchain] - 	Present mode: Mailbox
 [Swapchain] - Creating swapchain image views...
 [Swapchain] - Creating depth images...
 [Swapchain] - Creating synchronization objects...
-[Swapchain] - 	New extent 1250x835
+[Swapchain] - 	New extent 813x568
+[Renderer] - Recreating swap chain with extent 819x627
+[Renderer] - Resizing swap chain
+[Swapchain] - Creating swapchain...
+[Swapchain] - 	Present mode: Mailbox
+[Swapchain] - Creating swapchain image views...
+[Swapchain] - Creating depth images...
+[Swapchain] - Creating synchronization objects...
+[Swapchain] - 	New extent 819x627
+[Renderer] - Recreating swap chain with extent 841x650
+[Renderer] - Resizing swap chain
+[Swapchain] - Creating swapchain...
+[Swapchain] - 	Present mode: Mailbox
+[Swapchain] - Creating swapchain image views...
+[Swapchain] - Creating depth images...
+[Swapchain] - Creating synchronization objects...
+[Swapchain] - 	New extent 841x650
+[Renderer] - Recreating swap chain with extent 820x625
+[Renderer] - Resizing swap chain
+[Swapchain] - Creating swapchain...
+[Swapchain] - 	Present mode: Mailbox
+[Swapchain] - Creating swapchain image views...
+[Swapchain] - Creating depth images...
+[Swapchain] - Creating synchronization objects...
+[Swapchain] - 	New extent 820x625

@@ -3,6 +3,7 @@
 #include "core/asset_data.hpp"
 
 #include "graphics/api/shader_config.hpp"
+#include "graphics/resources/shader_layout.hpp"
 
 #include <slang.h>
 
@@ -20,19 +21,12 @@ public:
     ShaderAsset& operator=(ShaderAsset&&) = delete;
 
     std::vector<uint32_t> CompileSlang(const char* moduleName, const char* entryPointName, SlangStage slangStage);
-    void SpirvReflect(const std::vector<uint32_t> &spirv);
+    void SpirvReflectTest(const std::vector<uint32_t> &spirv);
 private:
     ShaderAsset(id_t newID) : AssetData(newID) {}
     friend class ObjectManager;
     friend class AssetManager;
     friend class Shader;
-};
-
-class ShaderLayout
-{
-
-
-std::vector<uint32_t> rawSizes;
 };
 
 class Shader : public Object
@@ -61,6 +55,7 @@ private:
     ShaderAsset* fragmentShaderAsset = nullptr;
     std::vector<uint32_t> vertSpirv{};
     std::vector<uint32_t> fragSpirv{};
+    graphics::ShaderLayout layout;
 
     void compileFrag();
     void compileVert();

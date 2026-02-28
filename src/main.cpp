@@ -87,6 +87,8 @@ int main()
 
     // Set window icon
     setWindowIcons(graphicsModule.GetGLFWWindow());
+
+    // glfwMaximizeWindow(graphicsModule.GetGLFWWindow()); // TODO: Properly start maximized
     
 #ifdef _WIN32
     // Set title bar color
