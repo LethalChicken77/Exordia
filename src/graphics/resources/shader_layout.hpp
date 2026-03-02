@@ -73,5 +73,7 @@ public:
     
 private:
     std::vector<ShaderParameter> parameters;
+    uint32_t set;
+    uint32_t binding;
 };
 } // namespace graphics

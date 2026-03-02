@@ -83,31 +83,6 @@ void Device::createLogicalDevice(bool enableValidationLayers)
 
     // TODO: Properly check feature support and dynamically enable them
     // TODO: Add support for extension features
-    vk::StructureChain<
-        vk::PhysicalDeviceFeatures2,
-        vk::PhysicalDeviceVulkan11Features,
-        vk::PhysicalDeviceVulkan12Features,
-        vk::PhysicalDeviceVulkan13Features,
-        vk::PhysicalDeviceVulkan14Features> chain;
-    
-    vk::PhysicalDeviceFeatures2 &features2 = chain.get<vk::PhysicalDeviceFeatures2>();
-    vk::PhysicalDeviceVulkan11Features &features11 = chain.get<vk::PhysicalDeviceVulkan11Features>();
-    vk::PhysicalDeviceVulkan12Features &features12 = chain.get<vk::PhysicalDeviceVulkan12Features>();
-    vk::PhysicalDeviceVulkan13Features &features13 = chain.get<vk::PhysicalDeviceVulkan13Features>();
-    vk::PhysicalDeviceVulkan14Features &features14 = chain.get<vk::PhysicalDeviceVulkan14Features>();
-
-    features2.features.samplerAnisotropy = VK_TRUE;
-    features2.features.fillModeNonSolid = VK_TRUE;
-    features2.features.shaderFloat64 = VK_TRUE;
-    
-    features11.uniformAndStorageBuffer16BitAccess = VK_TRUE;
-    features12.shaderFloat16 = VK_TRUE;
-    features12.uniformAndStorageBuffer8BitAccess = VK_TRUE;
-    features12.shaderInt8 = VK_TRUE;
-    
-    features13.dynamicRendering = VK_TRUE;
-    
-    features12.scalarBlockLayout = VK_TRUE;
     
     // Enable the feature for image float32 atomics
     // VkPhysicalDeviceShaderAtomicFloatFeaturesEXT atomicFloatFeatures = {};
@@ -124,7 +99,7 @@ void Device::createLogicalDevice(bool enableValidationLayers)
     createInfo.pEnabledFeatures = nullptr;
     createInfo.enabledExtensionCount = static_cast<uint32_t>(deviceExtensions.size());
     createInfo.ppEnabledExtensionNames = deviceExtensions.data();
-    createInfo.pNext = &chain.get<vk::PhysicalDeviceFeatures2>();//&atomicFloatFeatures; // Add the atomic float features to the device create info
+    createInfo.pNext = &features.featureChain.get<vk::PhysicalDeviceFeatures2>();//&atomicFloatFeatures; // Add the atomic float features to the device create info
 
     // Might not really be necessary anymore because device specific validation layers
     // have been deprecated

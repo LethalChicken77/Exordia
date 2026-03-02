@@ -23,7 +23,8 @@ void PhysicalDevice::pickPhysicalDevice(VkInstance instance, VkSurfaceKHR* surfa
 {
     uint32_t deviceCount = 0;
     vkEnumeratePhysicalDevices(instance, &deviceCount, nullptr);
-    if (deviceCount == 0) {
+    if (deviceCount == 0) 
+    {
         throw std::runtime_error("Failed to find any GPUs with Vulkan support!");
     }
     Console::log(std::format("Device count: {}", deviceCount), "PhysicalDevice");
@@ -68,22 +69,13 @@ bool PhysicalDevice::findDeviceCapabilities(VkPhysicalDevice device, VkSurfaceKH
         swapChainAdequate = !swapchainSupport.formats.empty() && !swapchainSupport.presentModes.empty();
     }
 
-    VkPhysicalDevice8BitStorageFeatures device8BitFeatures{};
-    device8BitFeatures.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_8BIT_STORAGE_FEATURES;
-    
-    VkPhysicalDevice16BitStorageFeatures device16BitFeatures{};
-    device16BitFeatures.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_16BIT_STORAGE_FEATURES;
-    device16BitFeatures.pNext = &device8BitFeatures;
-
-    VkPhysicalDeviceFeatures2 supportedFeatures = {
-        .sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_FEATURES_2,
-        .pNext = &device16BitFeatures
-    };
-    vkGetPhysicalDeviceFeatures2(device, &supportedFeatures);
+    Features testFeatures = features;
+    VkPhysicalDeviceFeatures2 &nativeFeatures = features.featureChain.get<vk::PhysicalDeviceFeatures2>();
+    vkGetPhysicalDeviceFeatures2(device, &nativeFeatures);
 
     // TODO: Deal with feature checks dynamically
-    return queueFamilyIndices.isComplete() && extensionsSupported && swapChainAdequate 
-        && supportedFeatures.features.samplerAnisotropy;
+    return queueFamilyIndices.isComplete() && extensionsSupported && swapChainAdequate;
+        // && testFeatures == features; // TODO: Throw if invalid features instead of disabling them
 }
 
 bool PhysicalDevice::checkDeviceExtensionSupport(VkPhysicalDevice device) 

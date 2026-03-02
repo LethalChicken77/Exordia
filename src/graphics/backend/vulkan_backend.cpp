@@ -53,6 +53,9 @@ void VulkanBackend::init(const std::string& appName, const std::string& engName,
     setupDebugMessenger();
 #endif
     window.createSurface(instance);
+
+    features = Features();
+
     physicalDevice.pickPhysicalDevice(instance, &window.GetSurface());
     createDevice();
     volkLoadDevice(device.Get());

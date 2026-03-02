@@ -15,4 +15,22 @@ namespace graphics::internal
         // VK_EXT_FILTER_CUBIC_EXTENSION_NAME, 
         // VK_EXT_SHADER_ATOMIC_FLOAT_EXTENSION_NAME 
     };
+
+    struct Features
+    {
+        vk::StructureChain<
+            vk::PhysicalDeviceFeatures2, // Make sure this stays first
+            vk::PhysicalDeviceVulkan11Features,
+            vk::PhysicalDeviceVulkan12Features,
+            vk::PhysicalDeviceVulkan13Features,
+            vk::PhysicalDeviceVulkan14Features> featureChain;
+        
+        Features();
+        Features(const Features&) = default;
+        // Features(const Features&&) = delete;
+
+        bool operator==(const Features &other) const;
+    };
+    extern Features features;
+        
 } // namespace graphics::internal
