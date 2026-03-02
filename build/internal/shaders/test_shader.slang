@@ -43,6 +43,7 @@ struct VOut
 struct amogus
 {
     float hi; // :D
+    int8_t hello;
 };
 
 // Material Descriptor Set
@@ -52,11 +53,15 @@ struct MaterialInfo
     float4 color;
     half3 normal;
     int8_t boolval;
+    uint2 whywhywhy;
+    bool doBoolWork;
 // RANGE(-1.5, 3.14159266)
     float rangeFloat;
+    int[12] twelve;
+    double dboule;
     half3x3 smallmat;
-    int8_t[12] twelve;
-    amogus sus;
+    amogus sussy;
+    float4x4 transform;
 };
 [[vk::binding(0, 2)]] ConstantBuffer<MaterialInfo> materialInfo;
 

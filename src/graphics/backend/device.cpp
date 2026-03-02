@@ -98,6 +98,7 @@ void Device::createLogicalDevice(bool enableValidationLayers)
 
     features2.features.samplerAnisotropy = VK_TRUE;
     features2.features.fillModeNonSolid = VK_TRUE;
+    features2.features.shaderFloat64 = VK_TRUE;
     
     features11.uniformAndStorageBuffer16BitAccess = VK_TRUE;
     features12.shaderFloat16 = VK_TRUE;

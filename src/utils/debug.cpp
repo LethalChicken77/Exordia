@@ -4,6 +4,7 @@
 #include <sstream>
 #include <string.h>
 #include "graphics/backend/vulkan_include.h"
+#include <slang.h>
 
 std::string Debug::vec2ToString(const glm::vec2& v)
 {
@@ -78,6 +79,48 @@ std::string Debug::mat4ToString(const glm::mat4& m)
     }
     oss << ")\n";
     return oss.str();
+}
+
+std::string Debug::SlangStageToString(uint32_t _stage)
+{
+    SlangStage stage = (SlangStage)_stage;
+    switch(stage)
+    {
+        case SLANG_STAGE_NONE:
+            return "None";
+        case SLANG_STAGE_VERTEX:
+            return "Vertex";
+        case SLANG_STAGE_HULL:
+            return "Hull";
+        case SLANG_STAGE_DOMAIN:
+            return "Domain";
+        case SLANG_STAGE_GEOMETRY:
+            return "Geometry";
+        case SLANG_STAGE_FRAGMENT:
+            return "Fragment";
+        case SLANG_STAGE_COMPUTE:
+            return "Compute";
+        case SLANG_STAGE_RAY_GENERATION:
+            return "Ray Generation";
+        case SLANG_STAGE_INTERSECTION:
+            return "Intersection";
+        case SLANG_STAGE_ANY_HIT:
+            return "Any Hit";
+        case SLANG_STAGE_CLOSEST_HIT:
+            return "Closest Hit";
+        case SLANG_STAGE_MISS:
+            return "Miss";
+        case SLANG_STAGE_CALLABLE:
+            return "Callable";
+        case SLANG_STAGE_MESH:
+            return "Mesh";
+        case SLANG_STAGE_AMPLIFICATION:
+            return "Amplification";
+        case SLANG_STAGE_COUNT:
+            return "Count";
+        default:
+            return "";
+    }
 }
 
 // Details obtained from https://docs.vulkan.org/refpages/latest/refpages/source/VkResult.html

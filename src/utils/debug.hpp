@@ -28,7 +28,6 @@
 
 // Macro for file:line
 #define LOCATION_STR __FILE__ ":" STRINGIFY(__LINE__)
-
 class Debug
 {
     public:
@@ -39,6 +38,8 @@ class Debug
         static std::string mat2ToString(const glm::mat2& m);
         static std::string mat3ToString(const glm::mat3& m);
         static std::string mat4ToString(const glm::mat4& m);
+
+        static std::string SlangStageToString(const uint32_t stage);
 
         static std::string VkResultToString(VkResult result);
 

@@ -2,14 +2,17 @@
 #include <slang-com-ptr.h>
 #include "spirv_reflect.h"
 #include <slang.h>
+#include "utils/debug.hpp"
 
 namespace core
 {
 
 std::vector<uint32_t> ShaderAsset::CompileSlang(const char* moduleName, const char* entryPointName, SlangStage slangStage)
 {
+    Console::logf("Compiling shader {} as {} shader", path, Debug::SlangStageToString((uint32_t)slangStage), "ShaderAsset");
     std::string source(data.begin(), data.end());
 
+    // TODO: Maybe keep global session alive
     Slang::ComPtr<slang::IGlobalSession> globalSession;
     SlangGlobalSessionDesc globalDesc = {};
     if (SLANG_FAILED(createGlobalSession(&globalDesc, globalSession.writeRef())))
@@ -81,7 +84,7 @@ std::vector<uint32_t> ShaderAsset::CompileSlang(const char* moduleName, const ch
     size_t wordCount = sizeBytes / sizeof(uint32_t);
     std::vector<uint32_t> spirv(words, words + wordCount);
 
-    SpirvReflectTest(spirv);
+    // SpirvReflectTest(spirv);
 
     return spirv;
 }
@@ -147,7 +150,7 @@ void Shader::Compile()
     vertSpirv = vertexShaderAsset->CompileSlang("vertexShader", "vsMain", SLANG_STAGE_VERTEX);
     fragSpirv = fragmentShaderAsset->CompileSlang("fragmentShader", "fsMain",  SLANG_STAGE_FRAGMENT);
 
-    // layout = graphics::ShaderLayout(vertSpirv, "materialInfo");
+    layout = graphics::ShaderLayout(fragSpirv, "materialInfo");
 }
 
 }; // namespace core
