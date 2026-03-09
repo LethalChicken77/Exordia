@@ -52,22 +52,11 @@ Initialized Volk
 Compiling shader internal/shaders/test_shader.slang as Vertex shader
 Compiling shader internal/shaders/test_shader.slang as Fragment shader
 Generating bindings for materialInfo
-Descriptor Set  : 2
-Binding         : 0
-Descriptor Type : 6
-Block size      : 192
-Fields (11):
-	color   	offset = 0 	size = 16	Type ID: 7
-	normal   	offset = 16 	size = 6	Type ID: 9
-	boolval   	offset = 22 	size = 1	Type ID: 10
-	whywhywhy   	offset = 24 	size = 8	Type ID: 12
-	doBoolWork   	offset = 32 	size = 4	Type ID: 13
-	rangeFloat   	offset = 36 	size = 4	Type ID: 6
-	twelve   	offset = 40 	size = 48	Type ID: 14	Member Count: 1 	Arr Size: 12 	Arr Type: 14 	Is Vector: 0
-	dboule   	offset = 88 	size = 8	Type ID: 17
-	smallmat   	offset = 96 	size = 20	Type ID: 18	Member Count: 1 	Arr Size: 3 	Arr Type: 18 	Is Vector: 256
-	sussy   	offset = 116 	size = 8	Type ID: 21	Member Count: 2
-	transform   	offset = 124 	size = 64	Type ID: 22	Member Count: 1 	Arr Size: 4 	Arr Type: 22 	Is Vector: 256
+[ShaderLayout] -           color | Offset:     0 | Type:   Vec4 | Base Size:  4 | Stride:   16 | Count:      1
+[ShaderLayout] -          normal | Offset:    16 | Type:   Vec3 | Base Size:  2 | Stride:    6 | Count:      1
+[ShaderLayout] -            test | Offset:    24 | Type:    Int | Base Size:  4 | Stride:    4 | Count:      1
+Set parameter test at offset 24
+Set parameter color at offset 0
 [PipelineManager] - Creating pipelines
 [ShaderBase] - Creating shader module
 [ShaderBase] - Creating shader module
@@ -77,3 +66,4 @@ Fields (11):
 [Validation Layer] - vkCreateGraphicsPipelines(): pCreateInfos[0].pVertexInputState Vertex attribute at location 3 not consumed by vertex shader.
 [GraphicsPipeline] - Created standard pipeline successfully
 [PipelineManager] - Pipelines created successfully
+[Buffer] - Creating buffer: instance size: 32, aligned size: 32, instance count: 1, total size: 64

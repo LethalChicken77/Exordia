@@ -36,6 +36,16 @@ class Graphics
             if(reloadPipelines)
                 graphicsData->pipelineManager.ReloadPipelines();
         }
+        
+        inline void RegisterMaterial(core::Material *mat, bool reloadPipelines = true)
+        {
+            graphicsData->testMaterial = std::make_unique<ShaderBuffer>(mat);
+        }
+        
+        inline void DeregisterMaterial(core::Material *mat, bool reloadPipelines = true)
+        {
+            graphicsData->testMaterial.reset();
+        }
 
         inline void ReloadPipelines()
         {

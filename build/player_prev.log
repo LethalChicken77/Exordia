@@ -30,12 +30,8 @@ Initialized Volk
 	VK_KHR_win32_surface
 	VK_EXT_debug_utils
 [PhysicalDevice] - Device count: 1
-[Validation Layer] - vkGetPhysicalDeviceFeatures2(): pFeatures->sType must be VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_FEATURES_2.
-The Vulkan spec states: sType must be VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_FEATURES_2 (https://vulkan.lunarg.com/doc/view/1.4.309.0/windows/antora/spec/latest/chapters/features.html#VUID-VkPhysicalDeviceFeatures2-sType-sType)
 [PhysicalDevice] - Physical device: NVIDIA GeForce RTX 4080 SUPER
 [Device] - Creating logical device
-[Validation Layer] - vkCreateDevice(): pCreateInfo->pNext chain includes a structure with unexpected VkStructureType VK_STRUCTURE_TYPE_APPLICATION_INFO. This error is based on the Valid Usage documentation for version 309 of the Vulkan header.  It is possible that you are using a struct from a private extension or an extension that was added to a later version of the Vulkan header, in which case the use of pCreateInfo->pNext is undefined and may not work correctly with validation enabled.
-The Vulkan spec states: Each pNext member of any structure (including this one) in the pNext chain must be either NULL or a pointer to a valid struct for extending VkDeviceCreateInfo (https://vulkan.lunarg.com/doc/view/1.4.309.0/windows/antora/spec/latest/chapters/devsandqueues.html#VUID-VkDeviceCreateInfo-pNext-pNext)
 [Renderer] - Recreating swap chain with extent 800x600
 [Graphics] - Recreating swap chain
 [Swapchain] - Creating swapchain...
@@ -56,44 +52,18 @@ The Vulkan spec states: Each pNext member of any structure (including this one) 
 Compiling shader internal/shaders/test_shader.slang as Vertex shader
 Compiling shader internal/shaders/test_shader.slang as Fragment shader
 Generating bindings for materialInfo
-Descriptor Set  : 2
-Binding         : 0
-Descriptor Type : 6
-Block size      : 192
-Fields (11):
-	color   	offset = 0 	size = 16	Type ID: 7
-	normal   	offset = 16 	size = 6	Type ID: 9
-	boolval   	offset = 22 	size = 1	Type ID: 10
-	whywhywhy   	offset = 24 	size = 8	Type ID: 12
-	doBoolWork   	offset = 32 	size = 4	Type ID: 13
-	rangeFloat   	offset = 36 	size = 4	Type ID: 6
-	twelve   	offset = 40 	size = 48	Type ID: 14	Member Count: 1 	Arr Size: 12 	Arr Type: 14 	Is Vector: 0
-	dboule   	offset = 88 	size = 8	Type ID: 17
-	smallmat   	offset = 96 	size = 20	Type ID: 18	Member Count: 1 	Arr Size: 3 	Arr Type: 18 	Is Vector: 256
-	sussy   	offset = 116 	size = 8	Type ID: 21	Member Count: 2
-	transform   	offset = 124 	size = 64	Type ID: 22	Member Count: 1 	Arr Size: 4 	Arr Type: 22 	Is Vector: 256
+[ShaderLayout] -           color | Offset:     0 | Type:   Vec4 | Base Size:  4 | Stride:   16 | Count:      1
+[ShaderLayout] -          normal | Offset:    16 | Type:   Vec3 | Base Size:  2 | Stride:    6 | Count:      1
+[ShaderLayout] -            test | Offset:    24 | Type:    Int | Base Size:  4 | Stride:    4 | Count:      1
+Set parameter test at offset 24
+Set parameter color at offset 0
 [PipelineManager] - Creating pipelines
 [ShaderBase] - Creating shader module
 [ShaderBase] - Creating shader module
-[Validation Layer] - vkCreateShaderModule(): pCreateInfo->pCode (spirv-val produced an error):
-Structure id 5 decorated as Block for variable in Uniform storage class must follow relaxed uniform buffer layout rules: member 6 at offset 40 is not aligned to 16
-  %MaterialInfo_natural = OpTypeStruct %v4float %v3half %char %v2uint %int %float %_Array_natural_int12 %double %_MatrixStorage_half3x3natural %amogus_natural %_MatrixStorage_float4x4natural
-The Vulkan spec states: If pCode is a pointer to SPIR-V code, pCode must adhere to the validation rules described by the Validation Rules within a Module section of the SPIR-V Environment appendix (https://vulkan.lunarg.com/doc/view/1.4.309.0/windows/antora/spec/latest/chapters/shaders.html#VUID-VkShaderModuleCreateInfo-pCode-08737)
-[Validation Layer] - vkCreateShaderModule(): SPIR-V contains an 8-bit OpVariable with Uniform Storage Class, but uniformAndStorageBuffer8BitAccess was not enabled.
-%26 = OpVariable %25 2
-The Vulkan spec states: If uniformAndStorageBuffer8BitAccess is VK_FALSE, then objects in the Uniform Storage Class with the Block decoration must not have an 8-bit integer member (https://vulkan.lunarg.com/doc/view/1.4.309.0/windows/antora/spec/latest/appendices/spirvenv.html#VUID-RuntimeSpirv-uniformAndStorageBuffer8BitAccess-06329)
-[Validation Layer] - vkCreateShaderModule(): SPIR-V contains an 16-bit OpVariable with Uniform Storage Class, but uniformAndStorageBuffer16BitAccess was not enabled.
-%26 = OpVariable %25 2
-The Vulkan spec states: If uniformAndStorageBuffer16BitAccess is VK_FALSE, then objects in the Uniform Storage Class with the Block decoration must not have 16-bit integer or 16-bit floating-point members (https://vulkan.lunarg.com/doc/view/1.4.309.0/windows/antora/spec/latest/appendices/spirvenv.html#VUID-RuntimeSpirv-uniformAndStorageBuffer16BitAccess-06332)
-[Validation Layer] - vkCreateShaderModule(): SPIR-V Capability Float16 was declared, but one of the following requirements is required (VkPhysicalDeviceVulkan12Features::shaderFloat16 OR VK_AMD_gpu_shader_half_float).
-The Vulkan spec states: If pCode is a pointer to SPIR-V code, and pCode declares any of the capabilities listed in the SPIR-V Environment appendix, one of the corresponding requirements must be satisfied (https://vulkan.lunarg.com/doc/view/1.4.309.0/windows/antora/spec/latest/chapters/shaders.html#VUID-VkShaderModuleCreateInfo-pCode-08740)
-[Validation Layer] - vkCreateShaderModule(): SPIR-V Capability Int8 was declared, but one of the following requirements is required (VkPhysicalDeviceVulkan12Features::shaderInt8).
-The Vulkan spec states: If pCode is a pointer to SPIR-V code, and pCode declares any of the capabilities listed in the SPIR-V Environment appendix, one of the corresponding requirements must be satisfied (https://vulkan.lunarg.com/doc/view/1.4.309.0/windows/antora/spec/latest/chapters/shaders.html#VUID-VkShaderModuleCreateInfo-pCode-08740)
-[Validation Layer] - vkCreateShaderModule(): SPIR-V Capability Float64 was declared, but one of the following requirements is required (VkPhysicalDeviceFeatures::shaderFloat64).
-The Vulkan spec states: If pCode is a pointer to SPIR-V code, and pCode declares any of the capabilities listed in the SPIR-V Environment appendix, one of the corresponding requirements must be satisfied (https://vulkan.lunarg.com/doc/view/1.4.309.0/windows/antora/spec/latest/chapters/shaders.html#VUID-VkShaderModuleCreateInfo-pCode-08740)
 [GraphicsPipeline] - Creating standard pipeline layout
 [GraphicsPipeline] - Creating standard pipeline
-[Validation Layer] - vkCreateGraphicsPipelines(): pCreateInfos[0].renderPass is NULL, but the dynamicRendering feature was not enabled.
-The Vulkan spec states: If the dynamicRendering feature is not enabled and the pipeline requires pre-rasterization shader state, fragment shader state, or fragment output interface state, renderPass must not be VK_NULL_HANDLE (https://vulkan.lunarg.com/doc/view/1.4.309.0/windows/antora/spec/latest/chapters/pipelines.html#VUID-VkGraphicsPipelineCreateInfo-dynamicRendering-06576)
 [Validation Layer] - vkCreateGraphicsPipelines(): pCreateInfos[0].pVertexInputState Vertex attribute at location 2 not consumed by vertex shader.
 [Validation Layer] - vkCreateGraphicsPipelines(): pCreateInfos[0].pVertexInputState Vertex attribute at location 3 not consumed by vertex shader.
+[GraphicsPipeline] - Created standard pipeline successfully
+[PipelineManager] - Pipelines created successfully
+[Buffer] - Creating buffer: instance size: 32, aligned size: 32, instance count: 1, total size: 64

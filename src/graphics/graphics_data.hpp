@@ -5,6 +5,7 @@
 #include "rendering/renderer.hpp"
 #include "resources/descriptor_set.hpp"
 #include "resources/pipeline_manager.hpp"
+#include "resources/shader_buffer.hpp"
 
 
 #define GLM_FORCE_RADIANS
@@ -65,6 +66,7 @@ public:
     // Global descriptor sets
     // Push constants
     // Default textures, shaders, materials
+    std::unique_ptr<ShaderBuffer> testMaterial;
 private:
 // Declaration order matters here
 

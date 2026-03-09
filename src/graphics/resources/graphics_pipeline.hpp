@@ -164,7 +164,7 @@ private:
 
     void createShaderModules(const core::Shader &shader);
     void createShaderModule(const std::vector<uint32_t>& spvCode, VkShaderModule* shaderModule);
-    void createMaterialSetLayout(const core::Shader &shader);
+    void createDescriptors(const core::Shader &shader);
 
 
     void createStandardPipeline(VkPipelineCache cache);

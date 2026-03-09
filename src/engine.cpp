@@ -128,7 +128,13 @@ void Engine::run()
 
     shader->Compile();
 
+    Material mat = Material(shader);
+    int64_t testVal = 69;
+    mat.SetInt("test", testVal);
+    mat.SetVector("color", glm::vec4(1,1,0,1));
+
     graphicsModule.RegisterShader(shader);
+    graphicsModule.RegisterMaterial(&mat);
 
     graphicsModule.GraphicsInitImgui();
     // ImGui::GetIO().ConfigFlags |= ImGuiConfigFlags_DockingEnable;

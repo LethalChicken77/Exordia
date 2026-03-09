@@ -3,12 +3,6 @@
 
 namespace core
 {
-// Specifies data passed to a shader
-struct ShaderParams
-{
-    public:
-        
-};
 
 // Material asset containing material data and shader references
 class MaterialAsset : AssetData
@@ -30,15 +24,9 @@ class MaterialAsset : AssetData
     private:
         MaterialAsset(id_t newID) : AssetData(newID) {}
 
-        ShaderParams vertexShaderParams;
-        ShaderParams fragmentShaderParams;
+        uint64_t shaderGUID;
 
         // std::vector<GameObject> gameObjects;
 };
 
-// Material instance referencing a material asset
-class Material : SmartRef<MaterialAsset>
-{
-
-};
 } // namespace core

@@ -40,28 +40,13 @@ struct VOut
     float2 UV : TEXCOORD0;
 };
 
-struct amogus
-{
-    float hi; // :D
-    int8_t hello;
-};
-
 // Material Descriptor Set
 struct MaterialInfo
 {
 // [[Color]] float4 color; // Interpret me as a color!
     float4 color;
     half3 normal;
-    int8_t boolval;
-    uint2 whywhywhy;
-    bool doBoolWork;
-// RANGE(-1.5, 3.14159266)
-    float rangeFloat;
-    int[12] twelve;
-    double dboule;
-    half3x3 smallmat;
-    amogus sussy;
-    float4x4 transform;
+    int test;
 };
 [[vk::binding(0, 2)]] ConstantBuffer<MaterialInfo> materialInfo;
 

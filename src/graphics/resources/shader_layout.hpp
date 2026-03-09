@@ -3,6 +3,7 @@
 #include <vector>
 #include <string_view>
 #include <string>
+#include <unordered_map>
 
 
 namespace graphics
@@ -12,9 +13,9 @@ enum class DataType
 {
     Invalid = -1,
     
+    Float,
     Int,
     UInt,
-    Float,
     Bool, // Maybe alias for int?
 
     Vec2,
@@ -56,7 +57,8 @@ struct ShaderParameter
     std::string name;
     uint32_t offset;
     DataType type;
-    uint32_t typeSize; // Size of single element (ie. vec3.x)
+    uint8_t baseSize; // Size of single component (ie. vec3.x) in bytes
+    uint8_t size; // Total size of an element in bytes (Stride for arrays, may use padding in that case)
     uint32_t count;
     bool rowMajor; // Only used for matrices
 };
@@ -69,11 +71,21 @@ public:
     ShaderLayout() = default;
     ShaderLayout(std::vector<uint32_t> spirv, const std::string_view bufferName);
 
-    
+    const uint32_t GetSize() const { return totalSize; }
+    const std::vector<ShaderParameter> &GetParameters() const { return parameters; }
+    const ShaderParameter *GetParameter(const std::string &name) const 
+    { 
+        if(parameterIndex.contains(name))
+            return parameterIndex.at(name); 
+        else
+            return nullptr;
+    }
     
 private:
-    std::vector<ShaderParameter> parameters;
+    std::vector<ShaderParameter> parameters{};
+    std::unordered_map<std::string, const ShaderParameter*> parameterIndex{};
     uint32_t set;
     uint32_t binding;
+    uint32_t totalSize;
 };
 } // namespace graphics

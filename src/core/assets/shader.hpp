@@ -6,6 +6,11 @@
 #include "graphics/resources/shader_layout.hpp"
 
 #include <slang.h>
+#include "glm/glm.hpp"
+#include "primitives/color.hpp"
+#include <cstdint>
+// #define __STDCPP_FLOAT16_T__
+// #include <stdfloat>
 
 namespace core
 {
@@ -21,13 +26,30 @@ public:
     ShaderAsset& operator=(ShaderAsset&&) = delete;
 
     std::vector<uint32_t> CompileSlang(const char* moduleName, const char* entryPointName, SlangStage slangStage);
-    void SpirvReflectTest(const std::vector<uint32_t> &spirv);
 private:
     ShaderAsset(id_t newID) : AssetData(newID) {}
     friend class ObjectManager;
     friend class AssetManager;
     friend class Shader;
 };
+
+typedef std::variant<
+    uint8_t,
+    uint16_t,
+    uint32_t,
+    uint64_t,
+    // std::float16_t,
+    float,
+    double,
+    bool,
+    glm::vec2,
+    glm::vec3,
+    glm::vec4,
+    Color,
+    glm::mat2,
+    glm::mat3,
+    glm::mat4
+> ShaderValue;
 
 class Shader : public Object
 {
@@ -41,6 +63,7 @@ public:
 
     const std::vector<uint32_t>& GetVertSpirv() const { return vertSpirv; }
     const std::vector<uint32_t>& GetFragSpirv() const { return fragSpirv; }
+    const graphics::ShaderLayout &GetLayout() const { return layout; }
 
     void SetVertexShaderAsset(ShaderAsset* asset) { vertexShaderAsset = asset; }
     void SetFragmentShaderAsset(ShaderAsset* asset) { fragmentShaderAsset = asset; }
@@ -72,6 +95,7 @@ public:
     void Compile();
 
     const std::vector<char>& GetSpirv() const { return spirv; }
+    const graphics::ShaderLayout &GetLayout() const { return layout; }
 
 private:
     ComputeShader(ShaderAsset& asset, id_t id) 
@@ -80,6 +104,7 @@ private:
 
     ShaderAsset& shaderAsset;
     std::vector<char> spirv;
+    graphics::ShaderLayout layout;
 };
 
 } // namespace core

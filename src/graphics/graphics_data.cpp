@@ -20,6 +20,7 @@ GraphicsData::~GraphicsData()
     imguiDescriptorPool.reset();
     cameraSetLayout.reset();
     globalSetLayout.reset();
+    testMaterial.reset();
 
 }
 } // namespace graphics

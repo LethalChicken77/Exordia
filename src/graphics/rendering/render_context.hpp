@@ -1,8 +1,6 @@
 #pragma once
 
-#include "camera.hpp"
-
-#include <vulkan/vulkan.h>
+#include "graphics/backend/vulkan_include.h"
 
 namespace graphics
 {

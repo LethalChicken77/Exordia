@@ -22,7 +22,7 @@ namespace graphics
         : device(_device), ID(id), configInfo(shader.properties)
     {
         createShaderModules(shader);
-        createMaterialSetLayout(shader);
+        createDescriptors(shader);
         switch(configInfo.pipelineType)
         {
             case PipelineType::STANDARD:
@@ -84,7 +84,7 @@ namespace graphics
         VK_CHECK(vkCreateShaderModule(device.Get(), &createInfo, nullptr, shaderModule), "Failed to create shader module");
     }
 
-    void GraphicsPipeline::createMaterialSetLayout(const core::Shader &shader)
+    void GraphicsPipeline::createDescriptors(const core::Shader &shader)
     {
         materialSetLayout = DescriptorSetLayout::Builder(device)
             .AddBinding(0, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT)

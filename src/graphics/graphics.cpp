@@ -95,6 +95,12 @@ namespace graphics
                 VkClearValue{.color = {{0.02f, 0.03f, 0.1f, 1.0f}}}
             );
 
+            // VkBindDescriptorSetsInfo info{};
+            // info.sType = VK_STRUCTURE_TYPE_BIND_DESCRIPTOR_SETS_INFO;
+            // info.pNext = 0;
+
+            // vkCmdBindDescriptorSets2(commandBuffer, )
+
             renderer.EndRenderDynamic(commandBuffer);
             drawImgui(commandBuffer, imageIndex);
             // RenderContext frameInfo{frameIndex, 0.0, commandBuffer, Descriptors::globalDescriptorSet, Descriptors::cameraDescriptorSets[frameIndex]};
