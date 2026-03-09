@@ -93,7 +93,7 @@ void Scene_t::drawScene()
         // }
         // }
         // }
-        // graphicsModule.drawMesh(obj->mesh, obj->materialID, obj->transform.getTransform(), obj->getInstanceID());
+        graphicsModule.DrawMesh(obj->mesh, obj->materialID, obj->transform.getTransform(), obj->getInstanceID());
         // // graphicsModule.drawMeshInstanced(obj->mesh, obj->materialID, transforms);
         // if(obj->getInstanceID() == selectedObject)
         //     graphicsModule.drawMeshOutline(obj->mesh, obj->transform.getTransform());

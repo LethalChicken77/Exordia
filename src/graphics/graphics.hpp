@@ -20,7 +20,7 @@ class Graphics
         Graphics& operator=(const Graphics&) = delete;
 
 
-        void DrawMesh(core::Mesh& meshData, id_t materialID, const glm::mat4& modelMatrix, int instanceID = -1);
+        void DrawMesh(const core::Mesh& meshData, id_t materialID, const glm::mat4& modelMatrix, int instanceID = -1);
         void DrawFrame();
 
         void RegisterShader(core::Shader *shader, bool reloadPipelines = true)
@@ -58,8 +58,9 @@ class Graphics
         bool IsOpen() const { return graphicsData->GetWindow().IsOpen(); }
         inline internal::Device &GetDevice() { return graphicsData->GetBackend().GetDevice(); }
         void GraphicsInitImgui();
-    private:
         std::unique_ptr<GraphicsMesh> testMesh;
+    private:
+        std::vector<MeshRenderData> drawQueue;
         // Temporary
         void drawImgui(VkCommandBuffer commandBuffer, uint32_t imageIndex);
 };

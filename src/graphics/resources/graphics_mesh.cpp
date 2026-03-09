@@ -288,7 +288,7 @@ std::unique_ptr<Buffer> MeshRenderData::CreateInstanceBuffer(internal::Device &d
     };
 
     stagingBuffer.Map();
-    stagingBuffer.WriteData((void *)transforms.data());
+    stagingBuffer.WriteData((void *)transforms.data(), bufferSize);
 
     std::unique_ptr<Buffer> instanceBuffer = std::make_unique<Buffer>(
         device,

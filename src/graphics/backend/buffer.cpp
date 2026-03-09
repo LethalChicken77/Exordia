@@ -49,7 +49,7 @@ Buffer::Buffer(
     bufferSize = alignmentSize * _instanceCount;
     usageFlags = _usageFlags;
     #ifdef DEBUG
-    Console::debug(std::format("Creating buffer: instance size: {}, aligned size: {}, instance count: {}, total size: {}", _instanceSize, instanceSize, instanceCount, bufferSize), "Buffer");
+    Console::debugf("Creating buffer: instance size: {}, aligned size: {}, instance count: {}, total size: {}", _instanceSize, instanceSize, instanceCount, bufferSize, "Buffer");
     #endif
     
     VkBufferCreateInfo bufferInfo{};
@@ -59,11 +59,15 @@ Buffer::Buffer(
     bufferInfo.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
     
     VmaAllocationCreateInfo allocCreateInfo = {};
-    allocCreateInfo.flags = VMA_ALLOCATION_CREATE_HOST_ACCESS_RANDOM_BIT;
     allocCreateInfo.usage = VMA_MEMORY_USAGE_AUTO;
     allocCreateInfo.requiredFlags = requiredMemoryProperties;
+    if (requiredMemoryProperties & VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT) // Without this it crashes on a device local buffer
+    {
+        allocCreateInfo.flags = VMA_ALLOCATION_CREATE_HOST_ACCESS_RANDOM_BIT;
+    }
 
-    VkResult result = vmaCreateBuffer(device.GetAllocator(), &bufferInfo, &allocCreateInfo, &buffer, &bufferAllocation, &bufferAllocationInfo);
+    VK_CHECK(vmaCreateBuffer(device.GetAllocator(), &bufferInfo, &allocCreateInfo, &buffer, &bufferAllocation, &bufferAllocationInfo), "Failed to create buffer");
+    Console::debugf("Created VkBuffer {}", (void*)buffer);
 }
 
 Buffer::~Buffer() 

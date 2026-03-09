@@ -36,6 +36,7 @@ namespace core
                 objectList.push_back(std::unique_ptr<Object>(std::move(t)));
                 T* objPtr = static_cast<T*>(objectList.back().get()); // New object is always at the end of the vector
                 objPtr->name = name;
+                // objectIDDictionary.insert_or_assign(objPtr->getInstanceID(), objPtr);
                 objectIDDictionary[objPtr->getInstanceID()] = objPtr;
                 return objPtr;
             }

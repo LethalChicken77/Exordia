@@ -66,4 +66,20 @@ Set parameter color at offset 0
 [Validation Layer] - vkCreateGraphicsPipelines(): pCreateInfos[0].pVertexInputState Vertex attribute at location 3 not consumed by vertex shader.
 [GraphicsPipeline] - Created standard pipeline successfully
 [PipelineManager] - Pipelines created successfully
-[Buffer] - Creating buffer: instance size: 32, aligned size: 32, instance count: 1, total size: 64
+Creating buffer: instance size: 32, aligned size: 32, instance count: 1, total size: 64
+Created VkBuffer 0x301e6c0000000022
+Creating buffer: instance size: 64, aligned size: 64, instance count: 1, total size: 64
+Created VkBuffer 0xb12fb2000000002c
+Creating buffer: instance size: 64, aligned size: 64, instance count: 1, total size: 64
+Created VkBuffer 0xa43473000000002d
+[Buffer] - Destroying buffer
+Creating buffer: instance size: 64, aligned size: 64, instance count: 1, total size: 64
+Created VkBuffer 0x980b0000000002e
+Creating buffer: instance size: 64, aligned size: 64, instance count: 1, total size: 64
+Created VkBuffer 0x4b7df1000000002f
+[Buffer] - Destroying buffer
+Creating buffer: instance size: 64, aligned size: 64, instance count: 1, total size: 64
+Created VkBuffer 0xa21a4e0000000030
+Creating buffer: instance size: 64, aligned size: 64, instance count: 1, total size: 64
+Created VkBuffer 0xea7170000000031
+[Buffer] - Destroying buffer

@@ -66,4 +66,9 @@ Set parameter color at offset 0
 [Validation Layer] - vkCreateGraphicsPipelines(): pCreateInfos[0].pVertexInputState Vertex attribute at location 3 not consumed by vertex shader.
 [GraphicsPipeline] - Created standard pipeline successfully
 [PipelineManager] - Pipelines created successfully
-[Buffer] - Creating buffer: instance size: 32, aligned size: 32, instance count: 1, total size: 64
+Creating buffer: instance size: 32, aligned size: 32, instance count: 1, total size: 64
+Created VkBuffer 0x301e6c0000000022
+Creating buffer: instance size: 64, aligned size: 64, instance count: 1, total size: 64
+Created VkBuffer 0xb12fb2000000002c
+Creating buffer: instance size: 64, aligned size: 64, instance count: 1, total size: 64
+Vulkan error -2 at C:\Users\dante\Desktop\Development\GameEngine\src\graphics\backend\buffer.cpp:66

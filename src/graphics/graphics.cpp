@@ -77,6 +77,11 @@ namespace graphics
         Console::log("Shutting down graphics module", "Graphics");
     }
 
+    void Graphics::DrawMesh(const core::Mesh& meshData, id_t materialID, const glm::mat4& modelMatrix, int instanceID)
+    {
+        drawQueue.push_back(MeshRenderData(meshData->getInstanceID(), modelMatrix, materialID, instanceID));
+    }
+
     void Graphics::DrawFrame()
     {
         Renderer &renderer = graphicsData->renderer;
@@ -94,12 +99,26 @@ namespace graphics
                 extent,
                 VkClearValue{.color = {{0.02f, 0.03f, 0.1f, 1.0f}}}
             );
-
-            // VkBindDescriptorSetsInfo info{};
-            // info.sType = VK_STRUCTURE_TYPE_BIND_DESCRIPTOR_SETS_INFO;
-            // info.pNext = 0;
-
-            // vkCmdBindDescriptorSets2(commandBuffer, )
+            if(drawQueue.size() > 0)
+            {
+                GraphicsPipeline &currentPipeline = *graphicsData->pipelineManager.GetPipeline(0);
+                currentPipeline.Bind(commandBuffer);
+                // localDescriptorSets.push_back(graphicsData->testMaterial->GetDescriptorSet())
+    
+                vkCmdBindDescriptorSets(
+                    commandBuffer, 
+                    VK_PIPELINE_BIND_POINT_GRAPHICS, 
+                    currentPipeline.GetPipelineLayout(), 
+                    2,
+                    1,
+                    localDescriptorSets.data(), 
+                    0,
+                    nullptr
+                );
+    
+                testMesh->bind(commandBuffer, drawQueue[0].instanceBuffer);
+                testMesh->draw(commandBuffer, 1);
+            }
 
             renderer.EndRenderDynamic(commandBuffer);
             drawImgui(commandBuffer, imageIndex);
@@ -109,6 +128,7 @@ namespace graphics
         graphicsData->GetBackend().WaitForDevice();
         // sceneRenderQueue.clear();
         // outlineRenderQueue.clear();
+        drawQueue.clear();
     }
 
     void Graphics::GraphicsInitImgui()

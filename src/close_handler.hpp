@@ -20,7 +20,7 @@ void OnSignal(int sig)
             std::cout << "Segmentation fault (core dumped)" << std::endl; // Because windows doesn't like to tell me things
             break;
         case SIGFPE:
-            std::cout << "Segmentation fault (core dumped)" << std::endl; // Because windows doesn't like to tell me things
+            std::cout << "Floating point error (core dumped)" << std::endl; // Because windows doesn't like to tell me things
             break;
         case SIGABRT:
             std::cout << "Aborted" << std::endl;
