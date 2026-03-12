@@ -47,6 +47,8 @@ class Graphics
             graphicsData->testMaterial.reset();
         }
 
+        inline MeshHandle RegisterMesh(const core::MeshData &mesh) { graphicsData->meshManager.RegisterMesh(mesh); }
+
         inline void ReloadPipelines()
         {
             graphicsData->pipelineManager.ReloadPipelines();

@@ -105,17 +105,18 @@ namespace graphics
                 currentPipeline.Bind(commandBuffer);
                 // localDescriptorSets.push_back(graphicsData->testMaterial->GetDescriptorSet())
     
-                vkCmdBindDescriptorSets(
-                    commandBuffer, 
-                    VK_PIPELINE_BIND_POINT_GRAPHICS, 
-                    currentPipeline.GetPipelineLayout(), 
-                    2,
-                    1,
-                    localDescriptorSets.data(), 
-                    0,
-                    nullptr
-                );
+                // vkCmdBindDescriptorSets(
+                //     commandBuffer, 
+                //     VK_PIPELINE_BIND_POINT_GRAPHICS, 
+                //     currentPipeline.GetPipelineLayout(), 
+                //     2,
+                //     1,
+                //     localDescriptorSets.data(), 
+                //     0,
+                //     nullptr
+                // );
     
+                
                 testMesh->bind(commandBuffer, drawQueue[0].instanceBuffer);
                 testMesh->draw(commandBuffer, 1);
             }

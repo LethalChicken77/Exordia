@@ -16,3 +16,5 @@ build/Makefile
 
 # Executable
 build/GameEngine.exe
+build/player.log
+build/player_prev.log

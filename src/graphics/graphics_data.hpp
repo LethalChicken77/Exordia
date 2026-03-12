@@ -6,6 +6,7 @@
 #include "resources/descriptor_set.hpp"
 #include "resources/pipeline_manager.hpp"
 #include "resources/shader_buffer.hpp"
+#include "resources/mesh_manager.hpp"
 
 
 #define GLM_FORCE_RADIANS
@@ -54,6 +55,8 @@ public:
 
     GlobalUbo globalUbo{};
     CameraUbo cameraUbo{};
+
+    MeshManager meshManager{};
 
     std::unique_ptr<DescriptorPool> globalDescriptorPool;
     std::unique_ptr<DescriptorPool> cameraDescriptorPool;
