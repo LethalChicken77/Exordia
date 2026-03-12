@@ -16,23 +16,23 @@ namespace graphics
 //     createIndexBuffer(builder.triangles);
 // }
 
-GraphicsMesh::GraphicsMesh(core::MeshData* mesh) : device(graphicsData->GetBackend().GetDevice()), meshPtr(mesh)
+GraphicsMesh::GraphicsMesh(const core::MeshData* mesh) : device(graphicsData->GetBackend().GetDevice())
 {
     vertexCount = mesh->vertices.size();
     indexCount = mesh->triangles.size() * 3;
-    createBuffers();
+    createBuffers(mesh);
 }
 
-GraphicsMesh::GraphicsMesh(internal::Device &_device, core::MeshData* mesh) : device(_device), meshPtr(mesh)
+GraphicsMesh::GraphicsMesh(internal::Device &_device, const core::MeshData* mesh) : device(_device)
 {
     vertexCount = mesh->vertices.size();
     indexCount = mesh->triangles.size() * 3;
-    createBuffers();
+    createBuffers(mesh);
 }
 
 GraphicsMesh::~GraphicsMesh(){}
 
-void GraphicsMesh::bind(VkCommandBuffer commandBuffer, const std::unique_ptr<Buffer> &instanceBuffer)
+void GraphicsMesh::bind(VkCommandBuffer commandBuffer, const std::unique_ptr<Buffer> &instanceBuffer) const
 {
     VkBuffer buffers[] = {vertexBuffer->GetBuffer(), instanceBuffer->GetBuffer()};
     VkDeviceSize offsets[] = {0, 0};
@@ -41,7 +41,7 @@ void GraphicsMesh::bind(VkCommandBuffer commandBuffer, const std::unique_ptr<Buf
         vkCmdBindIndexBuffer(commandBuffer, indexBuffer->GetBuffer(), 0, VK_INDEX_TYPE_UINT32);
 }
 
-void GraphicsMesh::draw(VkCommandBuffer commandBuffer, uint32_t instanceCount)
+void GraphicsMesh::draw(VkCommandBuffer commandBuffer, uint32_t instanceCount) const
 {
     if(useIndexBuffer)
         vkCmdDrawIndexed(commandBuffer, indexCount, instanceCount, 0, 0, 0);
@@ -49,7 +49,7 @@ void GraphicsMesh::draw(VkCommandBuffer commandBuffer, uint32_t instanceCount)
         vkCmdDraw(commandBuffer, vertexCount, instanceCount, 0, 0);
 }
 
-void GraphicsMesh::createVertexBuffer()
+void GraphicsMesh::createVertexBuffer(const core::MeshData* meshPtr)
 {
     if(meshPtr == nullptr)
     {
@@ -57,7 +57,7 @@ void GraphicsMesh::createVertexBuffer()
         return;
     }
     
-    std::vector<Vertex> &vertices = meshPtr->vertices; // Reference to triangles array for easy access
+    const std::vector<Vertex> &vertices = meshPtr->vertices; // Reference to triangles array for easy access
 
     assert(vertexCount >= 3 && "Vertex count must be at least 3");
     VkDeviceSize bufferSize = sizeof(vertices[0]) * vertexCount;
@@ -72,7 +72,7 @@ void GraphicsMesh::createVertexBuffer()
     };
 
     stagingBuffer.Map();
-    stagingBuffer.WriteData((void *)vertices.data());
+    stagingBuffer.WriteData((void *)vertices.data(), vertices.size());
 
     vertexBuffer = std::make_unique<Buffer>(
         device,
@@ -85,7 +85,7 @@ void GraphicsMesh::createVertexBuffer()
     vertexBuffer->CopyFromBuffer(stagingBuffer, bufferSize);
 }
 
-void GraphicsMesh::createIndexBuffer()
+void GraphicsMesh::createIndexBuffer(const core::MeshData* meshPtr)
 {
     if(meshPtr == nullptr)
     {
@@ -93,7 +93,7 @@ void GraphicsMesh::createIndexBuffer()
         return;
     }
     
-    std::vector<Triangle> &triangles = meshPtr->triangles; // Reference to triangles array for easy access
+    const std::vector<Triangle> &triangles = meshPtr->triangles; // Reference to triangles array for easy access
 
     indexCount = static_cast<uint32_t>(triangles.size()) * 3;
     useIndexBuffer = indexCount > 0;
@@ -127,10 +127,10 @@ void GraphicsMesh::createIndexBuffer()
     indexBuffer->CopyFromBuffer(stagingBuffer, bufferSize);
 }
 
-void GraphicsMesh::createBuffers()
+void GraphicsMesh::createBuffers(const core::MeshData* meshPtr)
 {
-    createVertexBuffer();
-    createIndexBuffer();
+    createVertexBuffer(meshPtr);
+    createIndexBuffer(meshPtr);
 }
 
 std::vector<VkVertexInputBindingDescription> GraphicsMesh::getVertexBindingDescriptions()
@@ -268,10 +268,10 @@ std::vector<Vertex> generateSierpinski(float edgeLength, int depth)
     }
 }
 
-MeshRenderData::MeshRenderData(id_t id, const glm::mat4& _transform, uint32_t materialID, id_t objID)
-    : meshID(id), objectID(objID), transforms{_transform}, materialIndex{materialID}, instanceBuffer{CreateInstanceBuffer(graphicsData->GetBackend().GetDevice(), transforms)} {}
-MeshRenderData::MeshRenderData(id_t id, const std::vector<glm::mat4>& _transform, uint32_t materialID, id_t objID)
-    : meshID(id), objectID(objID), transforms{_transform}, materialIndex{materialID}, instanceBuffer{CreateInstanceBuffer(graphicsData->GetBackend().GetDevice(), transforms)} {}
+MeshRenderData::MeshRenderData(MeshHandle _handle, const glm::mat4& _transform, uint32_t materialID, id_t objID)
+    : handle(_handle), objectID(objID), transforms{_transform}, materialIndex{materialID}, instanceBuffer{CreateInstanceBuffer(graphicsData->GetBackend().GetDevice(), transforms)} {}
+MeshRenderData::MeshRenderData(MeshHandle _handle, const std::vector<glm::mat4>& _transform, uint32_t materialID, id_t objID)
+    : handle(_handle), objectID(objID), transforms{_transform}, materialIndex{materialID}, instanceBuffer{CreateInstanceBuffer(graphicsData->GetBackend().GetDevice(), transforms)} {}
 
 std::unique_ptr<Buffer> MeshRenderData::CreateInstanceBuffer(internal::Device &device, const std::vector<glm::mat4>& transforms)
 {

@@ -11,10 +11,11 @@
 #include "object_manager.hpp"
 #include "utils/console.hpp"
 #include "utils/smart_reference.hpp"
+#include "graphics/api/handles.hpp"
 
 namespace core
 {
-    class MeshData : public Object
+    class MeshData : public Object // TODO: Redesign to avoid inheritance
     {
     public:
         static constexpr const char* className = "Mesh Data";
@@ -45,7 +46,7 @@ namespace core
         {
             glm::vec3 position{}; // 12
             glm::i8vec2 normal{}; // 2
-            glm::mediump_vec2 texCoord{}; // 4
+            glm::i16vec2 texCoord{}; // 4 (float 16 data, not int)
             // 18
         };
 
@@ -63,6 +64,8 @@ namespace core
             uint32_t v2;
         };
 
+        // TODO: RAII, why not destroy and recreate the object if the vectors are reallocated anyway?
+
         void SetMesh(const std::vector<Vertex>& _vertices, const std::vector<uint32_t>& _indices);
         void SetMesh(const std::vector<Vertex>& _vertices, const std::vector<Triangle>& _indices);
         ~MeshData();
@@ -70,12 +73,14 @@ namespace core
         std::vector<Vertex> vertices{};
         std::vector<Triangle> triangles{};
 
+        graphics::MeshHandle graphicsHandle{};
+
     private:
         using Object::Object;
         void loadModelFromObj(const std::string& filename); // TODO: Asset importer
     };
 
-    class Mesh : public SmartRef<MeshData>
+    class Mesh : public SmartRef<MeshData> // TODO: Delete smartref because it is not smart and it is not useful
     {
         public:
             using SmartRef<MeshData>::SmartRef; // Inherit base constructor

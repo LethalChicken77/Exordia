@@ -48,9 +48,9 @@ Buffer::Buffer(
     alignmentSize = getAlignment(_instanceSize, _minOffsetAlignment);
     bufferSize = alignmentSize * _instanceCount;
     usageFlags = _usageFlags;
-    #ifdef DEBUG
-    Console::debugf("Creating buffer: instance size: {}, aligned size: {}, instance count: {}, total size: {}", _instanceSize, instanceSize, instanceCount, bufferSize, "Buffer");
-    #endif
+    // #ifdef DEBUG
+    // Console::debugf("Creating buffer: instance size: {}, aligned size: {}, instance count: {}, total size: {}", _instanceSize, instanceSize, instanceCount, bufferSize, "Buffer");
+    // #endif
     
     VkBufferCreateInfo bufferInfo{};
     bufferInfo.sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO;
@@ -67,12 +67,12 @@ Buffer::Buffer(
     }
 
     VK_CHECK(vmaCreateBuffer(device.GetAllocator(), &bufferInfo, &allocCreateInfo, &buffer, &bufferAllocation, &bufferAllocationInfo), "Failed to create buffer");
-    Console::debugf("Created VkBuffer {}", (void*)buffer);
+    // Console::debugf("Created VkBuffer {}", (void*)buffer);
 }
 
 Buffer::~Buffer() 
 {
-    Console::log("Destroying buffer", "Buffer");
+    // Console::log("Destroying buffer", "Buffer");
     #ifndef DISABLE_VALIDATION
     Unmap();
     if(bufferAllocation != VK_NULL_HANDLE)
@@ -110,7 +110,8 @@ void Buffer::Unmap()
     }
 }
 
-/// @brief Write data to the buffer
+/// @brief Write data to the buffer. 
+/// @note Assumes data contains as many bytes as the buffer if the default size parameter is used. Incorrect usage can cause garbage to be written to the buffer, or even a crash.
 /// @param data Pointer to the data to write from
 /// @param size Size of the data in bytes
 /// @param offset Offset in the buffer to start writing to in bytes
@@ -127,14 +128,14 @@ void Buffer::WriteData(void* data, VkDeviceSize size, VkDeviceSize offset)
         Console::error("Buffer must be mapped before writing", "Buffer");
         return;
     }
-    if(size + offset > bufferSize)
+    if(size + offset > bufferSize && size != VK_WHOLE_SIZE) // Need to allow for full-size allocation
     {
         Console::error(std::format("Write size exceeds buffer bounds (size: {}, offset: {}, size + offset: {} buffer size: {})", size, offset, size + offset, instanceCount * instanceSize), "Buffer");
         return;
     }
     #endif
 
-    if (size == VK_WHOLE_SIZE) 
+    if (size == VK_WHOLE_SIZE) // NOTE: This assumes data is as large as the buffer
     {
         memcpy(bufferAllocationInfo.pMappedData, data, bufferSize);
     } 

@@ -10,11 +10,18 @@ namespace graphics
 class MeshManager
 {
 public:
-    MeshHandle RegisterMesh(const core::MeshData &meshData);
-    bool UpdateMesh(const core::MeshData &meshData);
-    bool UnregisterMesh(MeshHandle handle);
+    MeshHandle RegisterMesh(core::MeshData &meshData);
+    bool UpdateMesh(core::MeshData &meshData);
+    /// @brief Deregister a graphics mesh
+    /// @param meshData 
+    /// @return True if successful, false otherwise
+    inline bool DeregisterMesh(core::MeshData &meshData)
+    {
+        return DeregisterMesh(meshData.graphicsHandle);
+    }
+    bool DeregisterMesh(MeshHandle handle);
 
-    GraphicsMesh* GetMesh(MeshHandle handle);
+    const GraphicsMesh* GetMesh(MeshHandle handle);
     bool IsValid(MeshHandle handle) const;
 
 private:

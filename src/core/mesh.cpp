@@ -21,6 +21,10 @@ void MeshData::SetMesh(const std::vector<Vertex>& _vertices, const std::vector<u
     {
         triangles.push_back({_indices[i], _indices[i + 1], _indices[i + 2]});
     }
+    if(graphicsHandle.IsValid())
+        graphicsModule.UpdateMesh(*this);
+    else
+        graphicsModule.RegisterMesh(*this);
 }
 
 void MeshData::SetMesh(const std::vector<Vertex>& _vertices, const std::vector<Triangle>& _triangles)
@@ -30,9 +34,16 @@ void MeshData::SetMesh(const std::vector<Vertex>& _vertices, const std::vector<T
     // createVertexBuffer();
     // if(useIndexBuffer)
     //     createIndexBuffer();
+    if(graphicsHandle.IsValid())
+        graphicsModule.UpdateMesh(*this);
+    else
+        graphicsModule.RegisterMesh(*this);
 }
 
-MeshData::~MeshData(){}
+MeshData::~MeshData()
+{
+    graphicsModule.DeregisterMesh(*this);
+}
 
 float angleBetween(glm::vec3 v1, glm::vec3 v2)
 {

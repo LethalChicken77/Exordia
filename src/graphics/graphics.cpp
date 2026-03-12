@@ -79,7 +79,7 @@ namespace graphics
 
     void Graphics::DrawMesh(const core::Mesh& meshData, id_t materialID, const glm::mat4& modelMatrix, int instanceID)
     {
-        drawQueue.push_back(MeshRenderData(meshData->getInstanceID(), modelMatrix, materialID, instanceID));
+        drawQueue.push_back(MeshRenderData(meshData->graphicsHandle, modelMatrix, materialID, instanceID));
     }
 
     void Graphics::DrawFrame()
@@ -115,10 +115,15 @@ namespace graphics
                 //     0,
                 //     nullptr
                 // );
+
+                const GraphicsMesh* mesh = graphicsData->meshManager.GetMesh(drawQueue[0].handle);
+                if(mesh != nullptr)
+                {
+                    mesh->bind(commandBuffer, drawQueue[0].instanceBuffer);
+                    mesh->draw(commandBuffer, 1);
+                }
     
                 
-                testMesh->bind(commandBuffer, drawQueue[0].instanceBuffer);
-                testMesh->draw(commandBuffer, 1);
             }
 
             renderer.EndRenderDynamic(commandBuffer);

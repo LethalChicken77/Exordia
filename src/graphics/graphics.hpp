@@ -47,7 +47,9 @@ class Graphics
             graphicsData->testMaterial.reset();
         }
 
-        inline MeshHandle RegisterMesh(const core::MeshData &mesh) { graphicsData->meshManager.RegisterMesh(mesh); }
+        inline MeshHandle RegisterMesh(core::MeshData &mesh) { return graphicsData->meshManager.RegisterMesh(mesh); }
+        inline bool UpdateMesh(core::MeshData &mesh) { return graphicsData->meshManager.UpdateMesh(mesh); }
+        inline bool DeregisterMesh(core::MeshData &mesh) { return graphicsData->meshManager.DeregisterMesh(mesh); }
 
         inline void ReloadPipelines()
         {
@@ -60,7 +62,6 @@ class Graphics
         bool IsOpen() const { return graphicsData->GetWindow().IsOpen(); }
         inline internal::Device &GetDevice() { return graphicsData->GetBackend().GetDevice(); }
         void GraphicsInitImgui();
-        std::unique_ptr<GraphicsMesh> testMesh;
     private:
         std::vector<MeshRenderData> drawQueue;
         // Temporary
