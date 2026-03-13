@@ -103,18 +103,18 @@ namespace graphics
             {
                 GraphicsPipeline &currentPipeline = *graphicsData->pipelineManager.GetPipeline(0);
                 currentPipeline.Bind(commandBuffer);
-                // localDescriptorSets.push_back(graphicsData->testMaterial->GetDescriptorSet())
+                localDescriptorSets.push_back(graphicsData->testMaterial->GetDescriptorSet());
     
-                // vkCmdBindDescriptorSets(
-                //     commandBuffer, 
-                //     VK_PIPELINE_BIND_POINT_GRAPHICS, 
-                //     currentPipeline.GetPipelineLayout(), 
-                //     2,
-                //     1,
-                //     localDescriptorSets.data(), 
-                //     0,
-                //     nullptr
-                // );
+                vkCmdBindDescriptorSets(
+                    commandBuffer, 
+                    VK_PIPELINE_BIND_POINT_GRAPHICS, 
+                    currentPipeline.GetPipelineLayout(), 
+                    2,
+                    1,
+                    localDescriptorSets.data(), 
+                    0,
+                    nullptr
+                );
 
                 const GraphicsMesh* mesh = graphicsData->meshManager.GetMesh(drawQueue[0].handle);
                 if(mesh != nullptr)

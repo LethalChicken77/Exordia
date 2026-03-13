@@ -24,6 +24,7 @@ public:
             VkShaderStageFlags stageFlags,
             uint32_t count = 1);
         
+        DescriptorSetLayout BuildInPlace() const;
         std::unique_ptr<DescriptorSetLayout> Build() const;
 
     private:
@@ -32,56 +33,21 @@ public:
     };
 
     ~DescriptorSetLayout();
-    DescriptorSetLayout(const DescriptorSetLayout &) = delete;
+    DescriptorSetLayout(const DescriptorSetLayout&) = delete;
+    DescriptorSetLayout& operator=(const DescriptorSetLayout&) = delete;
+    // Allow move
+    DescriptorSetLayout(DescriptorSetLayout&&);
+    DescriptorSetLayout& operator=(DescriptorSetLayout&&) = delete;
 
     VkDescriptorSetLayout GetDescriptorSetLayout() const { return descriptorSetLayout; }
+    std::unordered_map<uint32_t, VkDescriptorSetLayoutBinding> &GetBindings() { return bindings; }
 private:
     DescriptorSetLayout(internal::Device &device, std::unordered_map<uint32_t, VkDescriptorSetLayoutBinding> bindings);
 
     internal::Device &device;
     VkDescriptorSetLayout descriptorSetLayout = VK_NULL_HANDLE;
-    std::unordered_map<uint32_t, VkDescriptorSetLayoutBinding> bindings;
-
-    friend class DescriptorBuffer;
-};
-
-
-// Internal layout of a descriptor
-class DescriptorLayout
-{
-public:
-    DescriptorLayout() = default;
-
-    void AddBindingSize(uint32_t size) { elementSizes.push_back(size); }
-    void AlignSizes(uint32_t alignment)
-    {
-        for(uint32_t &size : elementSizes)
-        {
-            size = (size + alignment - 1) & ~(alignment - 1);
-        }
-    }
-
-    const std::vector<uint32_t> &GetElementSizes() const { return elementSizes; }
-    const uint32_t GetSize() const 
-    { 
-        uint32_t totalSize = 0;
-        for(const uint32_t &size : elementSizes)
-        {
-            totalSize += size;
-        }
-        return totalSize; 
-    }
-private:
-    std::vector<uint32_t> elementSizes{};
-};
-
-/// @brief A set of descriptors and their associated data
-/// @details A replacement for DescriptorPool and DescriptorSet from the old system, built for descriptor buffers
-struct DescriptorData
-{
-    
-    std::vector<std::unique_ptr<Buffer>> buffers{};
-    std::vector<std::unique_ptr<Image>> images{};
+    std::unordered_map<uint32_t, VkDescriptorSetLayoutBinding> bindings{};
+    friend class DescriptorWriter;
 };
 
 class DescriptorPool
@@ -121,35 +87,24 @@ private:
     VkDescriptorPool pool;
 
     friend class Builder;
+    friend class DescriptorWriter;
 };
 
-class DescriptorSet 
+class DescriptorWriter 
 {
     public:
-        class Builder 
-        {
-            public:
-                Builder(internal::Device &device, VkDescriptorSetLayout layout) : device(device), layout(layout) {}
+        DescriptorWriter(DescriptorSetLayout &setLayout, DescriptorPool &pool);
 
-                DescriptorSet Build() 
-                {
-                    return DescriptorSet(device, layout);
-                }
+        DescriptorWriter &WriteBuffer(uint32_t binding, VkDescriptorBufferInfo *bufferInfo);
+        DescriptorWriter &WriteImage(uint32_t binding, VkDescriptorImageInfo *imageInfo);
 
-            private:
-                internal::Device &device;
-                VkDescriptorSetLayout layout;
-        };
+        bool Build(VkDescriptorSet &set);
+        void Overwrite(VkDescriptorSet &set);
+
     private:
-        DescriptorSet(internal::Device &device, VkDescriptorSetLayout layout) : device(device) 
-        {
-        }
-
-        internal::Device &device;
-        
-        VkDescriptorSetLayout layout;
-        VkDescriptorPool pool;
-
-        friend class Builder;
+        DescriptorSetLayout &setLayout;
+        DescriptorPool &pool;
+        std::vector<VkWriteDescriptorSet> writes;
 };
+// TODO: Bring back descriptor writer
 } // namespace graphics

@@ -38,6 +38,13 @@ DescriptorSetLayout::Builder &DescriptorSetLayout::Builder::AddBinding(
     return *this;
 }
 
+/// @brief Build the descriptor set layout in place
+/// @return Layout object
+DescriptorSetLayout DescriptorSetLayout::Builder::BuildInPlace() const 
+{
+    return std::move(DescriptorSetLayout(device, bindings));
+}
+
 /// @brief Build the descriptor set layout
 /// @return Unique pointer to the created descriptor set layout
 std::unique_ptr<DescriptorSetLayout> DescriptorSetLayout::Builder::Build() const 
@@ -68,6 +75,11 @@ DescriptorSetLayout::DescriptorSetLayout(internal::Device &device, std::unordere
         &createInfo,
         nullptr,
         &descriptorSetLayout), "Failed to create descriptor set layout");
+}
+
+DescriptorSetLayout::DescriptorSetLayout(DescriptorSetLayout&& other) : device(other.device), descriptorSetLayout(other.descriptorSetLayout) 
+{
+    other.descriptorSetLayout = VK_NULL_HANDLE;
 }
 
 DescriptorSetLayout::~DescriptorSetLayout()
@@ -128,6 +140,119 @@ DescriptorPool::~DescriptorPool()
 {
     if(pool != VK_NULL_HANDLE)
         vkDestroyDescriptorPool(device.Get(), pool, nullptr);
+}
+
+
+bool DescriptorPool::AllocateDescriptor(const VkDescriptorSetLayout descriptorSetLayout, VkDescriptorSet &descriptor) const 
+{
+    VkDescriptorSetAllocateInfo allocInfo{};
+    allocInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO;
+    allocInfo.descriptorPool = pool;
+    allocInfo.pSetLayouts = &descriptorSetLayout;
+    allocInfo.descriptorSetCount = 1;
+    // TODO: Handle pool overallocation better, ie. creating a new pool
+    VkResult result = VK_SUCCESS;
+    if ((result = vkAllocateDescriptorSets(device.Get(), &allocInfo, &descriptor)) != VK_SUCCESS) 
+    {
+        Console::errorf("Failed to allocate descriptor sets (Error {}): {}", (uint32_t)result, Debug::VkResultToString(result), "DescriptorPool");
+        return false;
+    }
+    return true;
+}
+
+void DescriptorPool::FreeDescriptors(std::vector<VkDescriptorSet> &descriptors) const 
+{
+    vkFreeDescriptorSets(
+        device.Get(),
+        pool,
+        static_cast<uint32_t>(descriptors.size()),
+        descriptors.data()
+    );
+}
+
+void DescriptorPool::ResetPool() 
+{
+    vkResetDescriptorPool(device.Get(), pool, 0);
+}
+
+DescriptorWriter::DescriptorWriter(DescriptorSetLayout &setLayout, DescriptorPool &pool)
+    : setLayout{setLayout}, pool{pool} {}
+
+DescriptorWriter &DescriptorWriter::WriteBuffer(uint32_t binding, VkDescriptorBufferInfo *bufferInfo) 
+{
+    std::unordered_map<uint32_t, VkDescriptorSetLayoutBinding> &bindings = setLayout.GetBindings();
+    if(bindings.count(binding) != 1)
+    {
+        Console::errorf("Layout does not contain binding {}", binding, "DescriptorWriter");
+        return *this; // Should maybe throw
+    }
+
+    VkDescriptorSetLayoutBinding &bindingDescription = bindings[binding];
+    
+    if(bindingDescription.descriptorCount != 1)
+    {
+        Console::errorf("Binding {} expects multiple descriptors", binding, "DescriptorWriter");
+        return *this;
+    }
+
+    VkWriteDescriptorSet write{};
+    write.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
+    write.descriptorType = bindingDescription.descriptorType;
+    write.dstBinding = binding;
+    write.pBufferInfo = bufferInfo;
+    write.descriptorCount = 1;
+
+    writes.push_back(write);
+    return *this;
+}
+
+DescriptorWriter &DescriptorWriter::WriteImage(uint32_t binding, VkDescriptorImageInfo *imageInfo) 
+{
+    std::unordered_map<uint32_t, VkDescriptorSetLayoutBinding> &bindings = setLayout.GetBindings();
+    if(bindings.count(binding) != 1)
+    {
+        Console::errorf("Layout does not contain binding {}", binding, "DescriptorWriter");
+        return *this; // Should maybe throw
+    }
+
+    VkDescriptorSetLayoutBinding &bindingDescription = bindings[binding];
+
+    if(bindingDescription.descriptorCount != 1)
+    {
+        Console::errorf("Binding {} expects multiple descriptors", binding, "DescriptorWriter");
+        return *this;
+    }
+
+    VkWriteDescriptorSet write{};
+    write.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
+    write.descriptorType = bindingDescription.descriptorType;
+    write.dstBinding = binding;
+    write.pImageInfo = imageInfo;
+    write.descriptorCount = 1;
+
+    writes.push_back(write);
+    return *this;
+}
+
+bool DescriptorWriter::Build(VkDescriptorSet &set) 
+{
+    bool success = pool.AllocateDescriptor(setLayout.GetDescriptorSetLayout(), set);
+    if(!success) 
+    {
+        return false;
+    }
+    Overwrite(set);
+    return true;
+}
+
+void DescriptorWriter::Overwrite(VkDescriptorSet &set) 
+{
+    for(VkWriteDescriptorSet &write : writes) 
+    {
+        write.dstSet = set;
+    }
+    
+    vkUpdateDescriptorSets(pool.device.Get(), writes.size(), writes.data(), 0, nullptr);
 }
 
 } // namespace graphics
