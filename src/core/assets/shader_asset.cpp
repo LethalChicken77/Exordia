@@ -1,4 +1,4 @@
-#include "shader.hpp"
+#include "shader_asset.hpp"
 #include <slang-com-ptr.h>
 #include "spirv_reflect.h"
 #include <slang.h>
@@ -7,7 +7,7 @@
 namespace core
 {
 
-std::vector<uint32_t> ShaderAsset::CompileSlang(const char* moduleName, const char* entryPointName, SlangStage slangStage)
+std::vector<uint32_t> ShaderAsset::CompileSlang(const char* moduleName, const char* entryPointName, SlangStage slangStage) const
 {
     Console::logf("Compiling shader {} as {} shader", path, Debug::SlangStageToString((uint32_t)slangStage), "ShaderAsset");
     std::string source(data.begin(), data.end());
@@ -87,14 +87,6 @@ std::vector<uint32_t> ShaderAsset::CompileSlang(const char* moduleName, const ch
     // SpirvReflectTest(spirv);
 
     return spirv;
-}
-
-void Shader::Compile()
-{
-    vertSpirv = vertexShaderAsset->CompileSlang("vertexShader", "vsMain", SLANG_STAGE_VERTEX);
-    fragSpirv = fragmentShaderAsset->CompileSlang("fragmentShader", "fsMain",  SLANG_STAGE_FRAGMENT);
-
-    layout = graphics::ShaderLayout(fragSpirv, "materialInfo");
 }
 
 }; // namespace core

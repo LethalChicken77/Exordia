@@ -8,7 +8,7 @@
 #include "core/input.hpp"
 #include "graphics/resources/graphics_mesh.hpp"
 
-#include "core/assets/shader.hpp"
+#include "graphics/api/resources/shader.hpp"
 
 #define GLM_FORCE_RADIANS
 #define GLM_FORCE_DEPTH_ZERO_TO_ONE
@@ -19,6 +19,8 @@
 #include "backends/imgui_impl_glfw.h"
 #include "backends/imgui_impl_vulkan.h"
 #include "utils/imgui_styles.hpp"
+#include "arena_allocator.hpp"
+#include "pool_allocator.hpp"
 
 using namespace graphics;
 
@@ -122,7 +124,11 @@ void Engine::run()
 
     testShader->LoadData();
 
-    Shader *shader = ObjectManager::Instantiate<Shader>("Test Shader");
+    MemoryArena arena{4096};
+    MemoryPool<Shader> shaderPool{64};
+
+    // Shader shader = Shader(testShader, testShader);
+    Shader* shader = shaderPool.New(testShader, testShader);
     shader->SetVertexShaderAsset(testShader);
     shader->SetFragmentShaderAsset(testShader);
 

@@ -9,6 +9,7 @@
 void OnExit()
 {
     Console::saveLog();
+    std::cout << "Exited successfully" << std::endl;
 }
 
 void OnSignal(int sig)

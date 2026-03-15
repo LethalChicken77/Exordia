@@ -63,8 +63,8 @@ namespace graphics
             .SetPoolFlags(VK_DESCRIPTOR_SET_LAYOUT_CREATE_UPDATE_AFTER_BIND_POOL_BIT)
             .SetMaxSets(Swapchain::MAX_FRAMES_IN_FLIGHT)
             .Build();
-        // ShaderLayout s{};
-        // std::vector<ShaderLayout> layouts = {s};
+        // BufferLayout s{};
+        // std::vector<BufferLayout> layouts = {s};
         // graphicsData->globalDescriptorBuffer = std::make_unique<DescriptorBuffer>(
         //     graphicsData->GetBackend().GetDevice(),
         //     layouts,

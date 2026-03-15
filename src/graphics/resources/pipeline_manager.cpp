@@ -33,7 +33,7 @@ void PipelineManager::CreatePipelines()
     // GraphicsPipeline::defaultPipelineConfigInfo(pipelineConfig);
 
     int numShaders = shaders.size();
-    for(core::Shader *shader : shaders)
+    for(Shader *shader : shaders)
     {    
         std::unique_ptr<GraphicsPipeline> graphicsPipeline = std::make_unique<GraphicsPipeline>(
             device,

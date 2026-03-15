@@ -23,26 +23,26 @@ class Graphics
         void DrawMesh(const core::Mesh& meshData, id_t materialID, const glm::mat4& modelMatrix, int instanceID = -1);
         void DrawFrame();
 
-        void RegisterShader(core::Shader *shader, bool reloadPipelines = true)
+        void RegisterShader(Shader *shader, bool reloadPipelines = true)
         {
             graphicsData->pipelineManager.RegisterShader(shader);
             if(reloadPipelines)
                 graphicsData->pipelineManager.ReloadPipelines();
         }
         
-        void DeregisterShader(core::Shader *shader, bool reloadPipelines = true)
+        void DeregisterShader(Shader *shader, bool reloadPipelines = true)
         {
             graphicsData->pipelineManager.DeregisterShader(shader);
             if(reloadPipelines)
                 graphicsData->pipelineManager.ReloadPipelines();
         }
         
-        inline void RegisterMaterial(core::Material *mat, bool reloadPipelines = true)
+        inline void RegisterMaterial(Material *mat, bool reloadPipelines = true)
         {
             graphicsData->testMaterial = std::make_unique<ShaderBuffer>(mat);
         }
         
-        inline void DeregisterMaterial(core::Material *mat, bool reloadPipelines = true)
+        inline void DeregisterMaterial(Material *mat, bool reloadPipelines = true)
         {
             graphicsData->testMaterial.reset();
         }

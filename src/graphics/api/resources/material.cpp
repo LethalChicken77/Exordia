@@ -1,9 +1,9 @@
 #include "material.hpp"
 
 using graphics::ShaderParameter;
-using graphics::ShaderLayout;
+using graphics::BufferLayout;
 
-namespace core
+namespace graphics
 {
 
 Material::Material(const Shader *_shader) : shader(_shader)

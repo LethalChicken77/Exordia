@@ -5,7 +5,7 @@
 namespace graphics
 {
 
-ShaderBuffer::ShaderBuffer(ShaderLayout layout)
+ShaderBuffer::ShaderBuffer(BufferLayout layout, const uint8_t *data)
     : buffer(
         layout.GetSize(),
         1,
@@ -14,13 +14,12 @@ ShaderBuffer::ShaderBuffer(ShaderLayout layout)
         graphicsData->GetBackend().GetPhysicalDevice().GetProperties().properties.limits.minUniformBufferOffsetAlignment
     )
 {
-    // const std::vector<uint8_t> &data = material->GetData();
-    // buffer.Map();
-    // buffer.WriteData((void*)data.data(), data.size(), 0);
-    // buffer.Unmap();
+    buffer.Map();
+    buffer.WriteData((void*)data, layout.GetSize(), 0);
+    buffer.Unmap();
 }
 
-ShaderBuffer::ShaderBuffer(const core::Material *material) 
+ShaderBuffer::ShaderBuffer(const Material *material) 
     : buffer(
         material->GetBufferSize(),
         1,

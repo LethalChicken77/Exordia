@@ -234,11 +234,11 @@ void ParseMember(const SpvReflectBlockVariable &member, std::vector<ShaderParame
         }
         else if(td->type_flags & SPV_REFLECT_TYPE_FLAG_STRUCT)
         {
-            Console::log("Arrays of structs not yet supported", "ShaderLayout"); // TODO: Support arrays of structs
+            Console::log("Arrays of structs not yet supported", "BufferLayout"); // TODO: Support arrays of structs
         }
         else
         {
-            Console::logf("Unhandled array type: {:b}", (uint32_t)td->type_flags, "ShaderLayout");
+            Console::logf("Unhandled array type: {:b}", (uint32_t)td->type_flags, "BufferLayout");
         }
     }
     else if(op == SpvOpTypeInt)
@@ -262,7 +262,7 @@ void ParseMember(const SpvReflectBlockVariable &member, std::vector<ShaderParame
     }
     else
     {
-        Console::logf("Unhandled op type: {}", (uint32_t)op, "ShaderLayout");
+        Console::logf("Unhandled op type: {}", (uint32_t)op, "BufferLayout");
     }
 }
 
@@ -275,7 +275,7 @@ void ParseBlock(const SpvReflectBlockVariable *block, std::vector<ShaderParamete
     }
 }
 
-ShaderLayout::ShaderLayout(std::vector<uint32_t> spirv, const std::string_view bufferName)
+BufferLayout::BufferLayout(std::vector<uint32_t> spirv, const std::string_view bufferName)
 {
     Console::logf("Generating bindings for {}", bufferName, "ShaderAsset");
     spv_reflect::ShaderModule module(spirv);
@@ -318,7 +318,7 @@ ShaderLayout::ShaderLayout(std::vector<uint32_t> spirv, const std::string_view b
     {
         const ShaderParameter &param = parameters[i];
         parameterIndex.insert_or_assign(param.name, &param);
-        Console::log(GetParameterString(param), "ShaderLayout");
+        Console::log(GetParameterString(param), "BufferLayout");
     }
 }
 

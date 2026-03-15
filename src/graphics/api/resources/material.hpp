@@ -1,8 +1,8 @@
 #pragma once
-#include "core/assets/shader.hpp"
+#include "shader.hpp"
 #include "utils/packing.hpp"
 
-namespace core
+namespace graphics
 {
 
 class Material

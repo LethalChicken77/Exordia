@@ -115,6 +115,9 @@ add_executable(GameEngine
     ${LIB_SOURCES} 
     app.rc)
 target_include_directories(GameEngine PRIVATE "${CMAKE_SOURCE_DIR}/src")
+target_include_directories(GameEngine PRIVATE "${CMAKE_SOURCE_DIR}/src/core") # Directly including common directories for shorter includes
+target_include_directories(GameEngine PRIVATE "${CMAKE_SOURCE_DIR}/src/memory")
+target_include_directories(GameEngine PRIVATE "${CMAKE_SOURCE_DIR}/src/utils")
 target_include_directories(GameEngine PRIVATE "${CMAKE_SOURCE_DIR}/lib/tinyobjloader")
 target_include_directories(GameEngine PRIVATE "${CMAKE_SOURCE_DIR}/lib/miniz-3.0.2")
 target_include_directories(GameEngine PRIVATE "${CMAKE_SOURCE_DIR}/lib/tinyexr-1.0.12")

@@ -18,7 +18,7 @@ namespace graphics
     /// @param id ID assigned by the pipeline manager
     /// @param shader Shader to use
     /// @param cache Pipeline cache to use
-    GraphicsPipeline::GraphicsPipeline(internal::Device &_device, id_t id, const core::Shader &shader, VkPipelineCache cache) 
+    GraphicsPipeline::GraphicsPipeline(internal::Device &_device, id_t id, const Shader &shader, VkPipelineCache cache) 
         : device(_device), ID(id), configInfo(shader.properties)
     {
         createShaderModules(shader);
@@ -55,7 +55,7 @@ namespace graphics
             vkDestroyShaderModule(device.Get(), fragmentShaderModule, nullptr);
     }
 
-    void GraphicsPipeline::createShaderModules(const core::Shader &shader)
+    void GraphicsPipeline::createShaderModules(const Shader &shader)
     {
         const std::vector<uint32_t> &vertSpv = shader.GetVertSpirv();
         const std::vector<uint32_t> &fragSpv = shader.GetFragSpirv();
@@ -84,7 +84,7 @@ namespace graphics
         VK_CHECK(vkCreateShaderModule(device.Get(), &createInfo, nullptr, shaderModule), "Failed to create shader module");
     }
 
-    void GraphicsPipeline::createDescriptors(const core::Shader &shader)
+    void GraphicsPipeline::createDescriptors(const Shader &shader)
     {
         materialSetLayout = DescriptorSetLayout::Builder(device)
             .AddBinding(0, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT)

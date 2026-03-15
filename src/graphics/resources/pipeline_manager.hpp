@@ -5,7 +5,6 @@
 
 #include "graphics/backend/device.hpp"
 #include "graphics_pipeline.hpp"
-#include "core/game_object.hpp"
 
 namespace graphics{
 
@@ -19,8 +18,8 @@ class PipelineManager
         void DestroyPipelines();
         void ReloadPipelines();
 
-        void RegisterShader(core::Shader *shader) { shaders.insert(shader); }
-        void DeregisterShader(core::Shader *shader) { shaders.erase(shader); }
+        void RegisterShader(Shader *shader) { shaders.insert(shader); }
+        void DeregisterShader(Shader *shader) { shaders.erase(shader); }
 
         std::unique_ptr<GraphicsPipeline> &GetPipeline(uint32_t index) { return graphicsPipelines[index]; }
 
@@ -32,7 +31,7 @@ class PipelineManager
 
         VkPipelineCache pipelineCache;
 
-        std::set<core::Shader *> shaders;
+        std::set<Shader *> shaders;
 
         void init();
 

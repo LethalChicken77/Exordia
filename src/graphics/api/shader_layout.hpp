@@ -65,15 +65,19 @@ struct ShaderParameter
 
 extern std::string GetParameterString(ShaderParameter param);
 
-class ShaderLayout
+class BufferLayout
 {
 public:
-    ShaderLayout() = default;
-    ShaderLayout(std::vector<uint32_t> spirv, const std::string_view bufferName);
+    BufferLayout() = default;
+    BufferLayout(std::vector<uint32_t> spirv, const std::string_view bufferName);
 
+    /// @brief Get the size of the layout in bytes.
     const uint32_t GetSize() const { return totalSize; }
+    /// @brief Get a list of the shader parameters 
     const std::vector<ShaderParameter> &GetParameters() const { return parameters; }
-    const ShaderParameter *GetParameter(const std::string &name) const 
+    /// @brief Get a pointer to a single shader parameter
+    /// @return Pointer to the shader parameter, nullptr otherwise
+    const ShaderParameter *GetParameter(const std::string &name) const
     { 
         if(parameterIndex.contains(name))
             return parameterIndex.at(name); 
@@ -87,5 +91,64 @@ private:
     uint32_t set;
     uint32_t binding;
     uint32_t totalSize;
+};
+
+
+// Layout of a shader. Includes all bindings, their type, buffer layouts, and storage properties
+class ShaderLayout
+{
+public:
+    enum BindingType : uint8_t
+    {
+        UniformBuffer,
+        StorageBuffer,
+        DynamicUniformBuffer,
+        DynamicStorageBuffer,
+        
+        SampledImage,
+        CombinedImageSampler,
+        StorageImage,
+        Sampler,
+        UniformTexelBuffer,
+        StorageTexelBuffer,
+        InputAttachment,
+
+        AccelerationStructure,
+        InlineUniformBlock,
+
+        Invalid = 255
+    };
+
+    struct BindingInfo
+    {
+        std::string name;
+        uint32_t set = ~0u;
+        uint32_t binding = ~0u;
+        BindingType type;
+        uint32_t bufferIndex = ~0u; // Index in bufferLayouts list
+        uint32_t count = 1;
+        uint32_t stageFlags = 0;
+        // uint32_t minBindingSize = 0; // Maybe include for validation
+        // NOTE: May want to store image dimensionality for validation
+        // TODO: look into descriptor binding flags (VK_EXT_descriptor_indexing)
+    };
+
+    struct PushConstantRange
+    {
+        uint32_t stageFlags;
+        BufferLayout layout;
+    };
+
+    struct DescriptorSetInfo
+    {
+        uint32_t id = ~0u;
+        std::vector<BindingInfo> bindings{};
+    };
+
+private:
+
+    std::vector<PushConstantRange> pushConstantRanges;
+    std::vector<DescriptorSetInfo> descriptorSets;
+    std::vector<BufferLayout> bufferLayouts;
 };
 } // namespace graphics
