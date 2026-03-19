@@ -275,45 +275,11 @@ void ParseBlock(const SpvReflectBlockVariable *block, std::vector<ShaderParamete
     }
 }
 
-BufferLayout::BufferLayout(std::vector<uint32_t> spirv, const std::string_view bufferName)
+BufferLayout::BufferLayout(const SpvReflectBlockVariable* block)
 {
-    Console::logf("Generating bindings for {}", bufferName, "ShaderAsset");
-    spv_reflect::ShaderModule module(spirv);
-
-    uint32_t bindingCount = 0;
-    SpvReflectResult result = module.EnumerateDescriptorBindings(&bindingCount, nullptr);
-    if(result != SPV_REFLECT_RESULT_SUCCESS)
-    {
-        Console::error(std::format("Failed to enumerate descriptor bindings: {}", (uint32_t)result), "ShaderAsset");
-        return;
-    }
-    
-    if(bindingCount == 0)
-    {
-        Console::log("No descriptor bindings found.", "ShaderAsset");
-        return;
-    }
-
-    std::vector<SpvReflectDescriptorBinding*> bindings(bindingCount);
-    result = module.EnumerateDescriptorBindings(&bindingCount, bindings.data());
-    if(result != SPV_REFLECT_RESULT_SUCCESS)
-    {
-        Console::error(std::format("Failed to retrieve descriptor bindings: {}", (uint32_t)result), "ShaderAsset");
-        return;
-    }
-
-    bool foundMatInfo = false;
-    for(SpvReflectDescriptorBinding* binding : bindings)
-    {
-        if(binding && binding->name == bufferName)
-        {
-            foundMatInfo = true;
-            const SpvReflectBlockVariable* block = &binding->block;
-            ParseBlock(block, &parameters);
-            totalSize = block->size;
-            break;
-        }
-    }
+    // Console::logf("Generating bindings for {}", bufferName, "ShaderAsset");
+    totalSize = block->size;
+    ParseBlock(block, &parameters);
     for(uint32_t i = 0; i < parameters.size(); ++i)
     {
         const ShaderParameter &param = parameters[i];
@@ -331,6 +297,122 @@ std::string GetParameterString(ShaderParameter param)
         param.baseSize,
         param.size,
         param.count);
+}
+
+ShaderLayout::ShaderLayout(const std::vector<uint32_t> spirv)
+{
+    spv_reflect::ShaderModule smodule(spirv);
+
+    uint32_t bindingCount = 0;
+    SpvReflectResult result = smodule.EnumerateDescriptorBindings(&bindingCount, nullptr);
+    if(result != SPV_REFLECT_RESULT_SUCCESS)
+    {
+        Console::error(std::format("Failed to enumerate descriptor bindings: {}", (uint32_t)result), "ShaderAsset");
+        return;
+    }
+    
+    if(bindingCount == 0)
+    {
+        Console::log("No descriptor bindings found.", "ShaderAsset");
+        return;
+    }
+
+    std::vector<SpvReflectDescriptorBinding*> bindings(bindingCount);
+    result = smodule.EnumerateDescriptorBindings(&bindingCount, bindings.data());
+    if(result != SPV_REFLECT_RESULT_SUCCESS)
+    {
+        Console::error(std::format("Failed to retrieve descriptor bindings: {}", (uint32_t)result), "ShaderAsset");
+        return;
+    }
+    bool foundMatInfo = false;
+    std::unordered_map<uint32_t, DescriptorSetInfo*> setMap{};
+    for(SpvReflectDescriptorBinding* binding : bindings)
+    {
+        DescriptorSetInfo *currentInfo = nullptr;
+        if(!setMap.contains(binding->set)) // Add new descriptor set
+        {
+            currentInfo = &descriptorSets.emplace_back(DescriptorSetInfo{
+                binding->set,
+                {}
+            });
+        }
+        else
+        {
+            currentInfo = setMap.at(binding->set);
+        }
+        BindingInfo bindingInfo{};
+        bindingInfo.name = binding->name;
+        bindingInfo.count = binding->count;
+        bindingInfo.set = binding->set;
+        bindingInfo.stageFlags = smodule.GetShaderStage(); // TODO: Modify to ensure all relevant stages are included
+        bindingInfo.binding = binding->binding;
+        Console::log(bindingInfo.name);
+        switch(binding->descriptor_type)
+        {
+            case SPV_REFLECT_DESCRIPTOR_TYPE_SAMPLER:
+                bindingInfo.type = BindingType::Sampler;
+                break;
+            case SPV_REFLECT_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER:
+                bindingInfo.type = BindingType::CombinedImageSampler;
+                break;
+            case SPV_REFLECT_DESCRIPTOR_TYPE_SAMPLED_IMAGE:
+                bindingInfo.type = BindingType::SampledImage;
+                break;
+            case SPV_REFLECT_DESCRIPTOR_TYPE_STORAGE_IMAGE:
+                bindingInfo.type = BindingType::StorageImage;
+                break;
+            case SPV_REFLECT_DESCRIPTOR_TYPE_INPUT_ATTACHMENT:
+                bindingInfo.type = BindingType::InputAttachment;
+                break;
+            case SPV_REFLECT_DESCRIPTOR_TYPE_UNIFORM_TEXEL_BUFFER:
+                bindingInfo.type = BindingType::UniformTexelBuffer;
+                // TODO: Figure out how to correctly handle texel buffers
+                break;
+            case SPV_REFLECT_DESCRIPTOR_TYPE_STORAGE_TEXEL_BUFFER:
+                bindingInfo.type = BindingType::StorageTexelBuffer;
+                break;
+            case SPV_REFLECT_DESCRIPTOR_TYPE_UNIFORM_BUFFER:
+                bindingInfo.type = BindingType::UniformBuffer;
+                generateBufferInfo(binding, &bindingInfo);
+                break;
+            case SPV_REFLECT_DESCRIPTOR_TYPE_STORAGE_BUFFER:
+                bindingInfo.type = BindingType::StorageBuffer;
+                generateBufferInfo(binding, &bindingInfo);
+                break;
+            case SPV_REFLECT_DESCRIPTOR_TYPE_UNIFORM_BUFFER_DYNAMIC:
+                bindingInfo.type = BindingType::DynamicUniformBuffer;
+                generateBufferInfo(binding, &bindingInfo);
+                break;
+            case SPV_REFLECT_DESCRIPTOR_TYPE_STORAGE_BUFFER_DYNAMIC:
+                bindingInfo.type = BindingType::DynamicStorageBuffer;
+                generateBufferInfo(binding, &bindingInfo);
+                break;
+            case SPV_REFLECT_DESCRIPTOR_TYPE_ACCELERATION_STRUCTURE_KHR:
+                bindingInfo.type = BindingType::AccelerationStructure;
+                break;
+        }
+
+        currentInfo->bindings.push_back(bindingInfo);
+    }
+}
+
+void ShaderLayout::generateBufferInfo(const SpvReflectDescriptorBinding *binding, BindingInfo* info)
+{
+    const SpvReflectBlockVariable *block = &binding->block;
+    info->bufferIndex = bufferLayouts.size();
+    bufferLayouts.emplace_back(BufferLayout(block));
+    if(block->name == std::string("cameraData"))
+    {
+        cameraInfo = &bufferLayouts.back();
+    }
+    else if(block->name == std::string("globalData"))
+    {
+        globalInfo = &bufferLayouts.back();
+    }
+    else if(block->name == std::string("materialInfo"))
+    {
+        materialInfo = &bufferLayouts.back();
+    }
 }
 
 } // namespace graphics

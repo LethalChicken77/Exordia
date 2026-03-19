@@ -67,6 +67,7 @@ Buffer::Buffer(
     }
 
     VK_CHECK(vmaCreateBuffer(device.GetAllocator(), &bufferInfo, &allocCreateInfo, &buffer, &bufferAllocation, &bufferAllocationInfo), "Failed to create buffer");
+    vmaGetAllocationInfo(device.GetAllocator(), bufferAllocation, &bufferAllocationInfo);
     // Console::debugf("Created VkBuffer {}", (void*)buffer);
 }
 
@@ -82,21 +83,42 @@ Buffer::~Buffer()
     #endif
 }
 
+Buffer::Buffer(Buffer&& other) 
+    : device(other.device),
+    buffer(other.buffer),
+    bufferAllocation(other.bufferAllocation),
+    bufferAllocationInfo{},
+    bufferSize(other.bufferSize),
+    instanceCount(other.instanceCount),
+    instanceSize(other.instanceSize),
+    alignmentSize(other.alignmentSize),
+    usageFlags(other.usageFlags)
+{
+    other.buffer = VK_NULL_HANDLE;
+    other.bufferAllocation = VK_NULL_HANDLE;
+    other.bufferAllocationInfo.pMappedData = nullptr;
+    other.bufferAllocationInfo = {};
+    other.bufferSize = 0;
+    vmaGetAllocationInfo(device.GetAllocator(), bufferAllocation, &bufferAllocationInfo);
+}
+
 /// @brief Assigns a memory range of the buffer to CPU accessible memory
 /// @param size Size of the memory range to map. Pass VK_WHOLE_SIZE to map the complete buffer range.
 /// @param offset Offset in bytes from the beginning of the buffer
 /// @return Status of the map call
 VkResult Buffer::Map(VkDeviceSize size, VkDeviceSize offset)
 {
+    if(bufferAllocationInfo.pMappedData)
+    {
+        Console::warn("Buffer is already mapped", "Buffer");
+    }
     void* tempData = nullptr;
     VkResult result = vmaMapMemory(device.GetAllocator(), bufferAllocation, &tempData);
-    bufferAllocationInfo.pMappedData = tempData;
-    #ifdef DEBUG
     if(result != VK_SUCCESS)
     {
         Console::error(std::format("Failed to map buffer memory: {}", Debug::VkResultToString(result)), "Buffer");
     }
-    #endif
+    bufferAllocationInfo.pMappedData = tempData;
     return result;
 }
 

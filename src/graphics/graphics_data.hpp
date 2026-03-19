@@ -3,10 +3,11 @@
 
 #include "backend/vulkan_backend.hpp"
 #include "rendering/renderer.hpp"
-#include "resources/descriptor_set.hpp"
+#include "resources/descriptors.hpp"
 #include "resources/pipeline_manager.hpp"
 #include "resources/shader_buffer.hpp"
-#include "resources/mesh_manager.hpp"
+#include "resources/registry.hpp"
+#include "resources/graphics_material.hpp"
 
 
 #define GLM_FORCE_RADIANS
@@ -16,6 +17,7 @@
 
 namespace graphics
 {
+
 class Graphics;
 
 struct CameraUbo
@@ -49,27 +51,35 @@ class GraphicsData
 {
 public:
     ~GraphicsData();
-    internal::VulkanBackend &GetBackend() { return backend; }
+    inline internal::VulkanBackend &GetBackend() { return backend; }
+    inline internal::Device &GetDevice() { return backend.GetDevice(); }
+    inline const internal::PhysicalDevice &GetPhysicalDevice() const { return backend.GetPhysicalDevice(); }
+    inline const VkPhysicalDeviceProperties2 &GetDeviceProperties() const { return backend.GetPhysicalDevice().GetProperties(); }
     Window &GetWindow() { return window; }
     GLFWwindow *GetGLFWWindow() { return window.GetWindow(); }
 
     GlobalUbo globalUbo{};
     CameraUbo cameraUbo{};
 
-    MeshManager meshManager{};
+    MeshRegistry meshRegistry{};
 
-    std::unique_ptr<DescriptorPool> globalDescriptorPool;
-    std::unique_ptr<DescriptorPool> cameraDescriptorPool;
-    std::unique_ptr<DescriptorPool> materialDescriptorPool;
-    std::unique_ptr<DescriptorPool> imguiDescriptorPool;
+    std::unique_ptr<DescriptorPool> globalDescriptorPool{};
+    std::unique_ptr<DescriptorPool> cameraDescriptorPool{};
+    std::unique_ptr<DescriptorPool> materialDescriptorPool{};
+    std::unique_ptr<DescriptorPool> imguiDescriptorPool{};
 
-    std::unique_ptr<DescriptorSetLayout> globalSetLayout;
-    std::unique_ptr<DescriptorSetLayout> cameraSetLayout;
+    std::unique_ptr<DescriptorSetLayout> globalSetLayout{};
+    std::unique_ptr<DescriptorSetLayout> cameraSetLayout{};
+
+    std::unique_ptr<Buffer> globalUBO{};
+    std::vector<Buffer> cameraUBOs{};
+
+    VkDescriptorSet globalDescriptorSet = VK_NULL_HANDLE;
+    std::vector<VkDescriptorSet> cameraDescriptorSets{};
     // Global pool
-    // Global descriptor sets
     // Push constants
     // Default textures, shaders, materials
-    std::unique_ptr<ShaderBuffer> testMaterial;
+    std::unique_ptr<GraphicsMaterial> testMaterial;
 private:
 // Declaration order matters here
 

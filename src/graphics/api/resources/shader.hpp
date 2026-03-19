@@ -26,7 +26,7 @@ public:
 
     const std::vector<uint32_t>& GetVertSpirv() const { return vertSpirv; }
     const std::vector<uint32_t>& GetFragSpirv() const { return fragSpirv; }
-    const graphics::BufferLayout &GetLayout() const { return layout; }
+    const graphics::ShaderLayout &GetLayout() const { return layout; }
 
     void SetVertexShaderAsset(const ShaderAsset* asset) { vertexShaderAsset = asset; }
     void SetFragmentShaderAsset(const ShaderAsset* asset) { fragmentShaderAsset = asset; }
@@ -39,7 +39,7 @@ private:
     const ShaderAsset* fragmentShaderAsset = nullptr;
     std::vector<uint32_t> vertSpirv{};
     std::vector<uint32_t> fragSpirv{};
-    graphics::BufferLayout layout;
+    graphics::ShaderLayout layout;
 
     void compileFrag();
     void compileVert();
@@ -49,7 +49,7 @@ class ComputeShader
 {
 public:
     ComputeShader(ShaderAsset& asset) 
-        : shaderAsset(asset) {}
+        : shaderAsset(&asset) {}
     ~ComputeShader() = default;
 
     ComputeShader(const ComputeShader&) = delete;
@@ -57,14 +57,14 @@ public:
 
     void Compile();
 
-    const std::vector<char>& GetSpirv() const { return spirv; }
-    const graphics::BufferLayout &GetLayout() const { return layout; }
+    const std::vector<uint32_t>& GetSpirv() const { return spirv; }
+    const graphics::ShaderLayout &GetLayout() const { return layout; }
 
 private:
 
-    ShaderAsset& shaderAsset;
-    std::vector<char> spirv;
-    graphics::BufferLayout layout;
+    const ShaderAsset *shaderAsset;
+    std::vector<uint32_t> spirv;
+    ShaderLayout layout;
 };
 
-} // namespace core
+} // namespace graphics

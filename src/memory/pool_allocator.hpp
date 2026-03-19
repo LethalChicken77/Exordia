@@ -74,7 +74,9 @@ public:
         assert((ptr - memory) % blockSize == 0 && "Cannot free misaligned memory within buffer");
         
         ptr->~T();
+        #ifdef DEBUG
         memset(ptr, 0xCD, blockSize); // Poison
+        #endif
 
         FreeNode* node = reinterpret_cast<FreeNode*>(ptr);
         node->next = freeList;
@@ -114,6 +116,9 @@ public:
             if(isFree[i])
             {
                 reinterpret_cast<T*>(node)->~T();
+                #ifdef DEBUG
+                memset(node, 0xCD, blockSize); // Poison
+                #endif
             }
             node->next = (i + 1 < capacity) ? reinterpret_cast<FreeNode*>(memory + (i + 1) * blockSize) : nullptr;
         }

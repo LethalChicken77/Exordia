@@ -120,7 +120,7 @@ void Engine::update(double deltaTime)
 
 void Engine::run()
 {
-    ShaderAsset *testShader = AssetManager::LoadAsset<ShaderAsset>("internal/shaders/test_shader.slang");
+    ShaderAsset *testShader = AssetManager::LoadAsset<ShaderAsset>("internal/shaders/basicShader.slang");
 
     testShader->LoadData();
 
@@ -129,10 +129,6 @@ void Engine::run()
 
     // Shader shader = Shader(testShader, testShader);
     Shader* shader = shaderPool.New(testShader, testShader);
-    shader->SetVertexShaderAsset(testShader);
-    shader->SetFragmentShaderAsset(testShader);
-
-    shader->Compile();
 
     Material mat = Material(shader);
     int64_t testVal = 69;

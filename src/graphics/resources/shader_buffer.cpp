@@ -17,6 +17,7 @@ ShaderBuffer::ShaderBuffer(BufferLayout layout, const uint8_t *data)
     buffer.Map();
     buffer.WriteData((void*)data, layout.GetSize(), 0);
     buffer.Unmap();
+
 }
 
 ShaderBuffer::ShaderBuffer(const Material *material) 

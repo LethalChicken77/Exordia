@@ -40,7 +40,7 @@ public:
     DescriptorSetLayout& operator=(DescriptorSetLayout&&) = delete;
 
     VkDescriptorSetLayout GetDescriptorSetLayout() const { return descriptorSetLayout; }
-    std::unordered_map<uint32_t, VkDescriptorSetLayoutBinding> &GetBindings() { return bindings; }
+    const std::unordered_map<uint32_t, VkDescriptorSetLayoutBinding> &GetBindings() const { return bindings; }
 private:
     DescriptorSetLayout(internal::Device &device, std::unordered_map<uint32_t, VkDescriptorSetLayoutBinding> bindings);
 
@@ -80,7 +80,9 @@ public:
 
     void ResetPool();
 
+    
     const VkDescriptorPool GetPool() const { return pool; }
+    internal::Device &GetDevice() { return device; } // Useful for ensuring descriptor sets track the same device as the pool
 private:
     DescriptorPool(internal::Device &device, const std::vector<VkDescriptorPoolSize> &poolSizes, VkDescriptorPoolCreateFlags flags, uint32_t maxSets);
     internal::Device& device;
@@ -92,19 +94,21 @@ private:
 
 class DescriptorWriter 
 {
-    public:
-        DescriptorWriter(DescriptorSetLayout &setLayout, DescriptorPool &pool);
+public:
+    DescriptorWriter(const DescriptorSetLayout &setLayout, const DescriptorPool &pool);
+    DescriptorWriter(const DescriptorSetLayout *setLayout, const DescriptorPool *pool);
+    DescriptorWriter(const std::unique_ptr<DescriptorSetLayout> &setLayout, const std::unique_ptr<DescriptorPool> &pool);
 
-        DescriptorWriter &WriteBuffer(uint32_t binding, VkDescriptorBufferInfo *bufferInfo);
-        DescriptorWriter &WriteImage(uint32_t binding, VkDescriptorImageInfo *imageInfo);
+    DescriptorWriter &WriteBuffer(uint32_t binding, VkDescriptorBufferInfo *bufferInfo);
+    DescriptorWriter &WriteImage(uint32_t binding, VkDescriptorImageInfo *imageInfo);
 
-        bool Build(VkDescriptorSet &set);
-        void Overwrite(VkDescriptorSet &set);
+    bool Build(VkDescriptorSet &set);
+    void Overwrite(VkDescriptorSet &set);
 
-    private:
-        DescriptorSetLayout &setLayout;
-        DescriptorPool &pool;
-        std::vector<VkWriteDescriptorSet> writes;
+private:
+    const DescriptorSetLayout &setLayout;
+    const DescriptorPool &pool;
+    std::vector<VkWriteDescriptorSet> writes;
 };
 // TODO: Bring back descriptor writer
 } // namespace graphics

@@ -108,9 +108,9 @@ class Console
         /// @param fmt Format string, same rules as std::format
         /// @param args Values to be inserted into the format string
         template<typename... _Args>
-        static inline void errorf(const std::format_string<_Args...> &fmt, _Args&&... args)
+        static inline void errorf(const std::format_string<_Args...> &fmt, _Args&&... args, const std::string_view source, bool terminalOnly)
         {
-            error(std::format(fmt, std::forward<_Args>(args)...));
+            error(std::format(fmt, std::forward<_Args>(args)...), source, terminalOnly);
         }
         template<typename... _Args>
         static inline void errorf(const std::format_string<_Args...> &fmt, _Args&&... args, const std::string_view source)
@@ -118,9 +118,9 @@ class Console
             error(std::format(fmt, std::forward<_Args>(args)...), source);
         }
         template<typename... _Args>
-        static inline void errorf(const std::format_string<_Args...> &fmt, _Args&&... args, const std::string_view source, bool terminalOnly)
+        static inline void errorf(const std::format_string<_Args...> &fmt, _Args&&... args)
         {
-            error(std::format(fmt, std::forward<_Args>(args)...), source, terminalOnly);
+            error(std::format(fmt, std::forward<_Args>(args)...));
         }
         
 };

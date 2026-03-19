@@ -23,8 +23,14 @@ void OnSignal(int sig)
         case SIGFPE:
             std::cout << "Floating point error (core dumped)" << std::endl; // Because windows doesn't like to tell me things
             break;
+        case SIGILL:
+            std::cout << "Illegal instruction (core dumped)" << std::endl; // Does this one dump the core? Who knows!
+            break;
         case SIGABRT:
             std::cout << "Aborted" << std::endl;
+            break;
+        case SIGTERM:
+            std::cout << "Exited successfully" << std::endl;
             break;
     }
     #endif

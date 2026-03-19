@@ -3,7 +3,7 @@
 #include "graphics/backend/buffer.hpp"
 #include "graphics_pipeline.hpp"
 #include "graphics/api/shader_layout.hpp"
-#include "descriptor_set.hpp"
+#include "descriptors.hpp"
 
 namespace graphics
 {
@@ -17,10 +17,10 @@ public:
     VkDescriptorSet GetDescriptorSet() const { return descriptorSet; }
 
 private:
-    const Material *material; // TODO: Remove material dependency
+    const Material *material = nullptr; // TODO: Remove material dependency
     Buffer buffer; // TODO: Replace with index into larger buffer, this won't scale
 
-    VkDescriptorSet descriptorSet;
+    VkDescriptorSet descriptorSet = VK_NULL_HANDLE;
 };
 
 }

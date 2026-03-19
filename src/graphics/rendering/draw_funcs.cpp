@@ -1,41 +1,41 @@
-// #include "draw_funcs.hpp"
-// #include "graphics/graphics_data.hpp"
+#include "draw_funcs.hpp"
+#include "graphics/graphics_data.hpp"
 
-// namespace graphics
-// {
+namespace graphics
+{
 
-// void DrawFunctions::bindCameraDescriptor(RenderContext& frameInfo, GraphicsPipeline* pipeline)
-// {
-//     std::vector<VkDescriptorSet> descriptorSets = { frameInfo.cameraDescriptorSet };
+void DrawFunctions::bindCameraDescriptor(const RenderContext &renderContext, VkDescriptorSet descriptorSet, GraphicsPipeline* pipeline)
+{
+    std::vector<VkDescriptorSet> descriptorSets = { descriptorSet };
 
-//     vkCmdBindDescriptorSets(
-//         frameInfo.commandBuffer, 
-//         VK_PIPELINE_BIND_POINT_GRAPHICS, 
-//         pipeline->GetPipelineLayout(), 
-//         0,
-//         static_cast<uint32_t>(descriptorSets.size()),
-//         descriptorSets.data(), 
-//         0,
-//         nullptr
-//     );
-// }
+    vkCmdBindDescriptorSets(
+        renderContext.commandBuffer, 
+        VK_PIPELINE_BIND_POINT_GRAPHICS, 
+        pipeline->GetPipelineLayout(), 
+        0,
+        static_cast<uint32_t>(descriptorSets.size()),
+        descriptorSets.data(), 
+        0,
+        nullptr
+    );
+}
 
-// void DrawFunctions::bindGlobalDescriptor(RenderContext& frameInfo, GraphicsPipeline* pipeline)
-// {
+void DrawFunctions::bindGlobalDescriptor(const RenderContext &renderContext, VkDescriptorSet descriptorSet, GraphicsPipeline* pipeline)
+{
 
-//     std::vector<VkDescriptorSet> descriptorSets = { frameInfo.globalDescriptorSet };
+    std::vector<VkDescriptorSet> descriptorSets = { descriptorSet };
 
-//     vkCmdBindDescriptorSets(
-//         frameInfo.commandBuffer, 
-//         VK_PIPELINE_BIND_POINT_GRAPHICS, 
-//         pipeline->GetPipelineLayout(), 
-//         1,
-//         static_cast<uint32_t>(descriptorSets.size()),
-//         descriptorSets.data(), 
-//         0,
-//         nullptr
-//     );
-// }
+    vkCmdBindDescriptorSets(
+        renderContext.commandBuffer, 
+        VK_PIPELINE_BIND_POINT_GRAPHICS, 
+        pipeline->GetPipelineLayout(), 
+        1,
+        static_cast<uint32_t>(descriptorSets.size()),
+        descriptorSets.data(), 
+        0,
+        nullptr
+    );
+}
 
 // void DrawFunctions::renderMeshes(RenderContext& context, const std::vector<MeshRenderData> &renderQueue)
 // {
@@ -135,4 +135,4 @@
 //     }
 // }
 
-// }
+}

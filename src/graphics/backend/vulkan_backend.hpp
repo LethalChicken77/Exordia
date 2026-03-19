@@ -17,12 +17,14 @@ class VulkanBackend
         VulkanBackend() = default;
         ~VulkanBackend();
 
+        void Cleanup();
+
         // VkBuffer AllocateBuffer();
         // VkImage AllocateImage();
 
         inline VkInstance &GetInstance() { return instance; }
         inline Device &GetDevice() { return device; }
-        inline const PhysicalDevice &GetPhysicalDevice() { return physicalDevice; }
+        inline const PhysicalDevice &GetPhysicalDevice() const { return physicalDevice; }
 
         inline void WaitForDevice() { device.WaitIdle(); }
     private:
@@ -39,6 +41,8 @@ class VulkanBackend
         PhysicalDevice physicalDevice;
         Device device{physicalDevice};
         VkDebugUtilsMessengerEXT debugMessenger;
+        
+        bool cleanedUp = false;
 
         // Point to centralized values
         const std::string* applicationName;

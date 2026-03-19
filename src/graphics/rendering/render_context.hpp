@@ -4,12 +4,12 @@
 
 namespace graphics
 {
-    struct RenderContext
-    {
-        uint32_t frameIndex;
-        double frameTime;
-        VkCommandBuffer commandBuffer;
-        VkDescriptorSet globalDescriptorSet;
-        VkDescriptorSet cameraDescriptorSet;
-    };
+
+struct RenderContext
+{
+    uint32_t frameIndex;
+    uint32_t imageIndex;
+    VkCommandBuffer commandBuffer;
+};
+
 } // namespace graphics

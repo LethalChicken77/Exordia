@@ -5,40 +5,24 @@ namespace graphics
 {
 // All have the same fields for now, they are defined separately to help prevent the incorrect handle being passed to a function
 
-// Handle for the graphics data for a shader
-struct ShaderHandle
+template<typename Tag>
+struct GHandle
 {
-    uint32_t index = ~0u; // Index of the graphics shader (GraphicsPipeline)
+    uint32_t index = ~0u; // Index into array
     uint32_t generation = 0; // UAF protection
 
     bool IsValid() const { return index != ~0u; }
 };
 
-// Handle for the graphics data for a material
-struct MaterialHandle
-{
-    uint32_t index = ~0u; // Index of the graphics material (ShaderBuffer)
-    uint32_t generation = 0; // UAF protection
+// Defined in a CPP to prevent outside usage
+struct ShaderTag;
+struct MaterialTag;
+struct MeshTag;
+struct TextureTag;
 
-    bool IsValid() const { return index != ~0u; }
-};
-
-// Handle for the graphics data for a mesh
-struct MeshHandle
-{
-    uint32_t index = ~0u; // Index of the graphics mesh
-    uint32_t generation = 0; // UAF protection
-
-    bool IsValid() const { return index != ~0u; }
-};
-
-// Handle for the graphics data for a texture
-struct TextureHandle
-{
-    uint32_t index = ~0u; // Index of the graphics texture
-    uint32_t generation = 0; // UAF protection
-
-    bool IsValid() const { return index != ~0u; }
-};
+using ShaderHandle = GHandle<ShaderTag>;
+using MaterialHandle = GHandle<MaterialTag>;
+using MeshHandle = GHandle<MeshTag>;
+using TextureHandle = GHandle<TextureTag>;
 
 }

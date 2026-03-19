@@ -9,7 +9,7 @@
 // #include "graphics/containers.hpp"
 #include "graphics/api/resources/shader.hpp"
 #include "graphics/api/shader_config.hpp"
-#include "descriptor_set.hpp"
+#include "descriptors.hpp"
 
 namespace graphics
 {
@@ -145,6 +145,7 @@ public:
 
     id_t GetID() const { return ID; }
     VkPipelineLayout GetPipelineLayout() { return pipelineLayout; }
+    DescriptorSetLayout &GetDescriptorSetLayout() { return materialSetLayout; }
 
 private:
     internal::Device &device;
@@ -157,14 +158,14 @@ private:
 
     id_t ID = -1;
 
-    std::unique_ptr<DescriptorSetLayout> materialSetLayout{};
+    DescriptorSetLayout materialSetLayout;
     
     VkShaderModule vertexShaderModule = nullptr;
     VkShaderModule fragmentShaderModule = nullptr;
 
     void createShaderModules(const Shader &shader);
     void createShaderModule(const std::vector<uint32_t>& spvCode, VkShaderModule* shaderModule);
-    void createDescriptors(const Shader &shader);
+    DescriptorSetLayout createDescriptorSetLayout(const Shader &shader);
 
 
     void createStandardPipeline(VkPipelineCache cache);

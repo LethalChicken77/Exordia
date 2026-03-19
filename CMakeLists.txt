@@ -2,8 +2,8 @@ cmake_minimum_required(VERSION 3.20)
 project(GameEngine LANGUAGES CXX C)
 
 # Compiler & basic settings
-set(CMAKE_C_COMPILER "C:/msys64/ucrt64/bin/Clang.exe")
-set(CMAKE_CXX_COMPILER "C:/msys64/ucrt64/bin/Clang++.exe")
+set(CMAKE_C_COMPILER "C:/msys64/clang64/bin/clang.exe") # Set to your C compiler path
+set(CMAKE_CXX_COMPILER "C:/msys64/clang64/bin/clang++.exe") # Set to your C++ compiler path
 set(CMAKE_CXX_STANDARD 23)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
@@ -15,6 +15,8 @@ message(STATUS "Compiler version: ${CMAKE_CXX_COMPILER_VERSION}")
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
 set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -fuse-ld=lld")
+
+set(SANITIZE OFF)
 
 add_compile_options(
     -fdiagnostics-format=msvc
@@ -30,7 +32,13 @@ add_compile_options(
 if(CMAKE_BUILD_TYPE STREQUAL "Debug")
     add_compile_options(
         -g
+        -fno-omit-frame-pointer
     )
+    if(SANITIZE)
+    add_compile_options(
+        -fsanitize=address # Crashes gdb on windows
+    )
+    endif()
 elseif(CMAKE_BUILD_TYPE STREQUAL "Release")
     add_compile_options(
         -O3
@@ -148,6 +156,13 @@ target_compile_options(GameEngine PRIVATE
     -Wno-nullability-extension
 )
 
+if(CMAKE_BUILD_TYPE STREQUAL "Debug")
+    if(SANITIZE)
+    target_link_options(GameEngine PRIVATE
+        -fsanitize=address
+    )
+    endif()
+endif()
 # target_link_options(GameEngine PRIVATE
 #     -static-libstdc++
 #     -static-libgcc

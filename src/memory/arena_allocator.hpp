@@ -2,7 +2,7 @@
 #include <cstddef>
 #include <utility>
 
-/// @brief A simple, allocator with fast allocation, but can only be deallocated all at once.
+/// @brief A simple, allocator with fast allocation, but can only be deallocated all at once. Also acts as a stack allocator.
 /// @note Using stale pointers after calling Reset() causes undefined behavior. This allocator is not thread safe.
 class ArenaAllocator
 {
@@ -39,8 +39,8 @@ public:
     ~ArenaAllocator();
     ArenaAllocator(const ArenaAllocator&) = delete;
     ArenaAllocator& operator=(const ArenaAllocator&) = delete;
-    ArenaAllocator(ArenaAllocator&&) { memory = nullptr; }
-    ArenaAllocator& operator=(ArenaAllocator&&) = default;
+    ArenaAllocator(ArenaAllocator&&); // Allow std::move
+    ArenaAllocator& operator=(ArenaAllocator&&) = delete;
 
     [[nodiscard]] void* Alloc(size_t size, size_t alignment = alignof(std::max_align_t)) noexcept;
     /// @tparam T Type to allocate.

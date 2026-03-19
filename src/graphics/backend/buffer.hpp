@@ -29,6 +29,9 @@ public:
     Buffer(const Buffer&) = delete;
     Buffer& operator=(const Buffer&) = delete;
 
+    Buffer(Buffer&&);
+    Buffer& operator=(Buffer&&) = delete;
+
     
     VkResult Map(VkDeviceSize size = VK_WHOLE_SIZE, VkDeviceSize offset = 0);
     void Unmap();
@@ -60,6 +63,7 @@ public:
         return flags;
     }
     VkDeviceSize GetBufferSize() const { return bufferSize; }
+    VkDescriptorBufferInfo GetDescriptorInfo(size_t offset = 0, size_t range = VK_WHOLE_SIZE) const { return { buffer, offset, range }; }
 private:
     internal::Device &device;
 

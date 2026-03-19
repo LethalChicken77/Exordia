@@ -8,6 +8,7 @@
 
 #include "graphics/push_constants.hpp"
 #include "graphics/graphics_data.hpp"
+#include "console.hpp"
 
 using namespace std;
 
@@ -19,10 +20,9 @@ namespace graphics
     /// @param shader Shader to use
     /// @param cache Pipeline cache to use
     GraphicsPipeline::GraphicsPipeline(internal::Device &_device, id_t id, const Shader &shader, VkPipelineCache cache) 
-        : device(_device), ID(id), configInfo(shader.properties)
+        : device(_device), ID(id), configInfo(shader.properties), materialSetLayout(createDescriptorSetLayout(shader))
     {
         createShaderModules(shader);
-        createDescriptors(shader);
         switch(configInfo.pipelineType)
         {
             case PipelineType::STANDARD:
@@ -44,7 +44,6 @@ namespace graphics
 
     GraphicsPipeline::~GraphicsPipeline()
     {
-        materialSetLayout.reset();
         if(graphicsPipeline != nullptr)
             vkDestroyPipeline(device.Get(), graphicsPipeline, nullptr);
         if(pipelineLayout != nullptr)
@@ -84,11 +83,67 @@ namespace graphics
         VK_CHECK(vkCreateShaderModule(device.Get(), &createInfo, nullptr, shaderModule), "Failed to create shader module");
     }
 
-    void GraphicsPipeline::createDescriptors(const Shader &shader)
-    {
-        materialSetLayout = DescriptorSetLayout::Builder(device)
-            .AddBinding(0, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT)
-            .Build();
+    typedef ShaderLayout::BindingType BindingType; // Why does C++ not allow class qualified using?
+    DescriptorSetLayout GraphicsPipeline::createDescriptorSetLayout(const Shader &shader)
+    {        
+        DescriptorSetLayout::Builder builder{device};
+        const ShaderLayout &layout = shader.GetLayout();
+        const ShaderLayout::DescriptorSetInfo *setInfo = shader.GetLayout().GetMaterialDescriptorSet();
+        if(setInfo == nullptr)
+            return builder.BuildInPlace();
+        for(const ShaderLayout::BindingInfo &bindingInfo : setInfo->bindings)
+        {
+            Console::debugf("{}", bindingInfo.binding);
+            VkDescriptorType type{};
+            switch(bindingInfo.type)
+            {
+                case BindingType::Sampler:
+                    type = VK_DESCRIPTOR_TYPE_SAMPLER;
+                    break;
+                case BindingType::CombinedImageSampler:
+                    type = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
+                    break;
+                case BindingType::SampledImage:
+                    type = VK_DESCRIPTOR_TYPE_SAMPLED_IMAGE;
+                    break;
+                case BindingType::StorageImage:
+                    type = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER;
+                    break;
+                case BindingType::InputAttachment:
+                    type = VK_DESCRIPTOR_TYPE_INPUT_ATTACHMENT;
+                    break;
+                case BindingType::UniformTexelBuffer:
+                    type = VK_DESCRIPTOR_TYPE_UNIFORM_TEXEL_BUFFER;
+                    break;
+                case BindingType::StorageTexelBuffer:
+                    type = VK_DESCRIPTOR_TYPE_STORAGE_TEXEL_BUFFER;
+                    break;
+                case BindingType::UniformBuffer:
+                    type = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
+                    break;
+                case BindingType::StorageBuffer:
+                    type = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER;
+                    break;
+                case BindingType::DynamicUniformBuffer:
+                    type = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER_DYNAMIC;
+                    break;
+                case BindingType::DynamicStorageBuffer:
+                    type = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER_DYNAMIC;
+                    break;
+                case BindingType::AccelerationStructure:
+                    type = VK_DESCRIPTOR_TYPE_ACCELERATION_STRUCTURE_KHR;
+                    break;
+                case BindingType::InlineUniformBlock:
+                    type = VK_DESCRIPTOR_TYPE_INLINE_UNIFORM_BLOCK;
+                    break;
+                case BindingType::Invalid:
+                default:
+                    type = VK_DESCRIPTOR_TYPE_MAX_ENUM;
+                    break;
+            }
+            builder.AddBinding(bindingInfo.binding, type, bindingInfo.stageFlags, bindingInfo.count);
+        }
+        return builder.BuildInPlace();
     }
     
     void GraphicsPipeline::createStandardLayout()
@@ -103,7 +158,7 @@ namespace graphics
         std::vector<VkDescriptorSetLayout> descriptorSetLayouts{
             graphicsData->cameraSetLayout->GetDescriptorSetLayout(),
             graphicsData->globalSetLayout->GetDescriptorSetLayout(),
-            materialSetLayout->GetDescriptorSetLayout()
+            materialSetLayout.GetDescriptorSetLayout()
         };
 
         VkPipelineLayoutCreateInfo pipelineLayoutInfo{};
@@ -170,6 +225,9 @@ namespace graphics
         
         assert(pipelineLayout != nullptr && "Cannot create graphics pipeline:: layout is null");
 
+        configInfo.colorAttachmentFormats = { VK_FORMAT_B8G8R8A8_SRGB };
+        configInfo.depthAttachmentFormat = VK_FORMAT_D32_SFLOAT;
+
         VkPipelineShaderStageCreateInfo shaderStages[2];
         shaderStages[0].sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO;
         shaderStages[0].stage = VK_SHADER_STAGE_VERTEX_BIT;
@@ -203,15 +261,15 @@ namespace graphics
             .pDynamicStates = dynamicStateEnables.data(),
         };
 
-        VkPipelineCreateFlags2CreateInfo flags2{};
-        flags2.sType = VK_STRUCTURE_TYPE_PIPELINE_CREATE_FLAGS_2_CREATE_INFO;
-        flags2.pNext = nullptr;
-        flags2.flags = VK_PIPELINE_CREATE_DESCRIPTOR_BUFFER_BIT_EXT;
+        // VkPipelineCreateFlags2CreateInfo flags2{};
+        // flags2.sType = VK_STRUCTURE_TYPE_PIPELINE_CREATE_FLAGS_2_CREATE_INFO;
+        // flags2.pNext = nullptr;
+        // flags2.flags = 0;
 
         VkPipelineRenderingCreateInfo pipelineRenderingCreateInfo{
             .sType = VK_STRUCTURE_TYPE_PIPELINE_RENDERING_CREATE_INFO,
-            .pNext = &flags2, // Remove for classic descriptor sets
-            // .pNext = nullptr,
+            // .pNext = &flags2, // Remove for classic descriptor sets
+            .pNext = nullptr,
             .viewMask = 0,
             .colorAttachmentCount = static_cast<uint32_t>(configInfo.colorAttachmentFormats.size()),
             .pColorAttachmentFormats = configInfo.colorAttachmentFormats.data(),

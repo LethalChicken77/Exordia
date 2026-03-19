@@ -1,4 +1,4 @@
-#include "descriptor_set.hpp"
+#include "descriptors.hpp"
 
 #include "graphics/graphics_data.hpp"
 
@@ -34,7 +34,7 @@ DescriptorSetLayout::Builder &DescriptorSetLayout::Builder::AddBinding(
     layoutBinding.descriptorType = descriptorType;
     layoutBinding.descriptorCount = count;
     layoutBinding.stageFlags = stageFlags;
-    bindings[binding] = layoutBinding;
+    bindings.insert_or_assign(binding, layoutBinding);
     return *this;
 }
 
@@ -175,19 +175,25 @@ void DescriptorPool::ResetPool()
     vkResetDescriptorPool(device.Get(), pool, 0);
 }
 
-DescriptorWriter::DescriptorWriter(DescriptorSetLayout &setLayout, DescriptorPool &pool)
-    : setLayout{setLayout}, pool{pool} {}
+DescriptorWriter::DescriptorWriter(const DescriptorSetLayout &setLayout, const DescriptorPool &pool)
+: setLayout{setLayout}, pool{pool} {}
+
+DescriptorWriter::DescriptorWriter(const DescriptorSetLayout *setLayout, const DescriptorPool *pool)
+    : setLayout{*setLayout}, pool{*pool} {}
+
+DescriptorWriter::DescriptorWriter(const std::unique_ptr<DescriptorSetLayout> &setLayout, const std::unique_ptr<DescriptorPool> &pool)
+    : setLayout{*setLayout}, pool{*pool} {}
 
 DescriptorWriter &DescriptorWriter::WriteBuffer(uint32_t binding, VkDescriptorBufferInfo *bufferInfo) 
 {
-    std::unordered_map<uint32_t, VkDescriptorSetLayoutBinding> &bindings = setLayout.GetBindings();
+    const std::unordered_map<uint32_t, VkDescriptorSetLayoutBinding> &bindings = setLayout.GetBindings();
     if(bindings.count(binding) != 1)
     {
         Console::errorf("Layout does not contain binding {}", binding, "DescriptorWriter");
         return *this; // Should maybe throw
     }
 
-    VkDescriptorSetLayoutBinding &bindingDescription = bindings[binding];
+    const VkDescriptorSetLayoutBinding &bindingDescription = bindings.at(binding);
     
     if(bindingDescription.descriptorCount != 1)
     {
@@ -208,14 +214,14 @@ DescriptorWriter &DescriptorWriter::WriteBuffer(uint32_t binding, VkDescriptorBu
 
 DescriptorWriter &DescriptorWriter::WriteImage(uint32_t binding, VkDescriptorImageInfo *imageInfo) 
 {
-    std::unordered_map<uint32_t, VkDescriptorSetLayoutBinding> &bindings = setLayout.GetBindings();
+    const std::unordered_map<uint32_t, VkDescriptorSetLayoutBinding> &bindings = setLayout.GetBindings();
     if(bindings.count(binding) != 1)
     {
         Console::errorf("Layout does not contain binding {}", binding, "DescriptorWriter");
         return *this; // Should maybe throw
     }
 
-    VkDescriptorSetLayoutBinding &bindingDescription = bindings[binding];
+    const VkDescriptorSetLayoutBinding &bindingDescription = bindings.at(binding);
 
     if(bindingDescription.descriptorCount != 1)
     {
@@ -251,7 +257,6 @@ void DescriptorWriter::Overwrite(VkDescriptorSet &set)
     {
         write.dstSet = set;
     }
-    
     vkUpdateDescriptorSets(pool.device.Get(), writes.size(), writes.data(), 0, nullptr);
 }
 

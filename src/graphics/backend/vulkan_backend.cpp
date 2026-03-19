@@ -63,13 +63,18 @@ void VulkanBackend::init(const std::string& appName, const std::string& engName,
 
 VulkanBackend::~VulkanBackend()
 {
+    Cleanup();
+}
+
+void VulkanBackend::Cleanup()
+{
+    if(cleanedUp) return;
+
+    WaitForDevice();
+
     if(enableValidationLayers)
     {
-        auto func = (PFN_vkDestroyDebugUtilsMessengerEXT)vkGetInstanceProcAddr(instance, "vkDestroyDebugUtilsMessengerEXT");
-        if(func != nullptr)
-        {
-            func(instance, debugMessenger, nullptr);
-        }
+        vkDestroyDebugUtilsMessengerEXT(instance, debugMessenger, nullptr);
     }
     if(device.device != VK_NULL_HANDLE)
     {
@@ -82,6 +87,8 @@ VulkanBackend::~VulkanBackend()
 
         vkDestroyInstance(instance, nullptr);
     }
+
+    cleanedUp = true;
 }
 
 void VulkanBackend::createInstance() 

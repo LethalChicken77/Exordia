@@ -12,6 +12,7 @@ struct MaterialInfo
     float metallic;
 };
 [[vk::binding(0, 2)]] ConstantBuffer<MaterialInfo> materialInfo;
+[[vk::binding(1, 2)]] ConstantBuffer<MaterialInfo> materialInfo2;
 
 [shader("vertex")]
 VOut vsMain(VertexData vertex, InstanceData instance)
@@ -73,5 +74,5 @@ float4 fsMain(VOut input)
     // outColor = LinearToSRGB(outColor); // Gamma correction
     // outColor *= 0.5;
     // outColor = ACESFilmCurve(outColor);
-    return float4(outColor, 1.0);
+    return float4(outColor * materialInfo2.color.xyz, 1.0);
 }

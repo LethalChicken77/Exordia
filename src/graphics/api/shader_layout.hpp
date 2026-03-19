@@ -6,6 +6,8 @@
 #include <unordered_map>
 
 
+class SpvReflectBlockVariable;
+class SpvReflectDescriptorBinding;
 namespace graphics
 {
 // Shader layout info
@@ -64,12 +66,11 @@ struct ShaderParameter
 };
 
 extern std::string GetParameterString(ShaderParameter param);
-
 class BufferLayout
 {
 public:
     BufferLayout() = default;
-    BufferLayout(std::vector<uint32_t> spirv, const std::string_view bufferName);
+    BufferLayout(const SpvReflectBlockVariable* module);
 
     /// @brief Get the size of the layout in bytes.
     const uint32_t GetSize() const { return totalSize; }
@@ -145,10 +146,33 @@ public:
         std::vector<BindingInfo> bindings{};
     };
 
+    ShaderLayout() = default;
+    ShaderLayout(std::vector<uint32_t> spirv);
+
+    [[nodiscard]] const BufferLayout *GetCameraLayout() const { return cameraInfo; }
+    [[nodiscard]] const BufferLayout *GetGlobalLayout() const { return globalInfo; }
+    [[nodiscard]] const BufferLayout *GetMaterialLayout() const { return materialInfo; }
+    [[nodiscard]] const std::vector<DescriptorSetInfo> &GetDescriptorSets() const { return descriptorSets; }
+    [[nodiscard]] const DescriptorSetInfo *GetMaterialDescriptorSet() const 
+    { 
+        for(const DescriptorSetInfo &info : descriptorSets)
+        {
+            if(info.bindings[0].name == "materialInfo")
+            {
+                return &info;
+            }
+        }
+        return nullptr; 
+    }
 private:
 
-    std::vector<PushConstantRange> pushConstantRanges;
-    std::vector<DescriptorSetInfo> descriptorSets;
-    std::vector<BufferLayout> bufferLayouts;
+    std::vector<PushConstantRange> pushConstantRanges{};
+    std::vector<DescriptorSetInfo> descriptorSets{};
+    std::vector<BufferLayout> bufferLayouts{};
+    BufferLayout* cameraInfo = nullptr; // Should be set 0
+    BufferLayout* globalInfo = nullptr; // Should be set 1
+    BufferLayout* materialInfo = nullptr; // Should be set 2
+
+    void generateBufferInfo(const SpvReflectDescriptorBinding *binding, BindingInfo* info);
 };
 } // namespace graphics

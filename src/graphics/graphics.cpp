@@ -8,6 +8,7 @@
 #include "imgui.h"
 #include "backends/imgui_impl_vulkan.h"
 #include "backends/imgui_impl_glfw.h"
+#include "rendering/draw_funcs.hpp"
 
 #include "tests/graphics_tests.hpp"
 
@@ -34,20 +35,6 @@ namespace graphics
         // testImage->TransitionImageLayout(VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
 
         // tests::RunAllTests();
-        graphicsData->cameraSetLayout = DescriptorSetLayout::Builder()
-            .AddBinding(
-                0,
-                VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER,
-                VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT
-            )
-            .Build();
-        graphicsData->globalSetLayout = DescriptorSetLayout::Builder()
-            .AddBinding(
-                0,
-                VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER,
-                VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT
-            )
-            .Build();
 
         Console::log("Graphics module initialized", "Graphics");
         
@@ -63,6 +50,11 @@ namespace graphics
             .SetPoolFlags(VK_DESCRIPTOR_SET_LAYOUT_CREATE_UPDATE_AFTER_BIND_POOL_BIT)
             .SetMaxSets(Swapchain::MAX_FRAMES_IN_FLIGHT)
             .Build();
+        graphicsData->materialDescriptorPool = DescriptorPool::Builder(graphicsData->GetBackend().GetDevice())
+            .AddPoolSize(VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, Swapchain::MAX_FRAMES_IN_FLIGHT)
+            .SetPoolFlags(VK_DESCRIPTOR_SET_LAYOUT_CREATE_UPDATE_AFTER_BIND_POOL_BIT)
+            .SetMaxSets(Swapchain::MAX_FRAMES_IN_FLIGHT)
+            .Build();
         // BufferLayout s{};
         // std::vector<BufferLayout> layouts = {s};
         // graphicsData->globalDescriptorBuffer = std::make_unique<DescriptorBuffer>(
@@ -70,11 +62,70 @@ namespace graphics
         //     layouts,
         //     20
         // );
+
+        // Init global UBO
+        graphicsData->globalSetLayout = DescriptorSetLayout::Builder()
+            .AddBinding(
+                0,
+                VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER,
+                VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT
+            )
+            .Build();
+        graphicsData->globalUBO = std::make_unique<Buffer>(
+            graphicsData->GetBackend().GetDevice(),
+            sizeof(GlobalUbo),
+            1,
+            VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT, 
+            VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
+            graphicsData->GetDeviceProperties().properties.limits.minUniformBufferOffsetAlignment
+        );
+        graphicsData->globalUBO->Map();
+        graphicsData->globalSetLayout = DescriptorSetLayout::Builder(graphicsData->GetDevice())
+            .AddBinding(0, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT)
+            .Build();
+        VkDescriptorBufferInfo bufferInfo = graphicsData->globalUBO->GetDescriptorInfo();
+        DescriptorWriter(*graphicsData->globalSetLayout, *graphicsData->globalDescriptorPool)
+            .WriteBuffer(0, &bufferInfo)
+            .Build(graphicsData->globalDescriptorSet);
+
+        // Init camera UBO
+        Console::log("Creating camera UBO", "Graphics");
+        graphicsData->cameraUBOs.clear();
+        for(int i = 0; i < Swapchain::MAX_FRAMES_IN_FLIGHT; i++)
+        {
+            graphicsData->cameraUBOs.emplace_back(Buffer(
+                graphicsData->GetDevice(), 
+                sizeof(CameraUbo),
+                1,
+                VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT, 
+                VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
+                graphicsData->GetDeviceProperties().properties.limits.minUniformBufferOffsetAlignment
+            ));
+            graphicsData->cameraUBOs[i].Map();
+        }
+        graphicsData->cameraSetLayout = DescriptorSetLayout::Builder()
+            .AddBinding(
+                0,
+                VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER,
+                VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT
+            )
+            .Build();
+        
+        graphicsData->cameraDescriptorSets = std::vector<VkDescriptorSet>(Swapchain::MAX_FRAMES_IN_FLIGHT);
+        for(int i = 0; i < graphicsData->cameraDescriptorSets.size(); i++)
+        {
+            VkDescriptorBufferInfo bufferInfo = graphicsData->cameraUBOs[i].GetDescriptorInfo();
+            DescriptorWriter(*graphicsData->cameraSetLayout, *graphicsData->cameraDescriptorPool)
+                .WriteBuffer(0, &bufferInfo)
+                .Build(graphicsData->cameraDescriptorSets[i]);
+        }
     }
 
     Graphics::~Graphics()
     {
         Console::log("Shutting down graphics module", "Graphics");
+        drawQueue.clear();
+        graphicsData.reset();
     }
 
     void Graphics::DrawMesh(const core::Mesh& meshData, id_t materialID, const glm::mat4& modelMatrix, int instanceID)
@@ -91,11 +142,11 @@ namespace graphics
         std::vector<VkDescriptorSet> localDescriptorSets;
         if(VkCommandBuffer commandBuffer = renderer.BeginFrame())
         {
-            uint32_t imageIndex = renderer.GetImageIndex();
+            RenderContext renderContext = renderer.GetContext();
             renderer.BeginRenderDynamic(
                 commandBuffer,
-                renderer.GetSwapchain().GetImageView(imageIndex),
-                renderer.GetSwapchain().GetDepthImageView(imageIndex),
+                renderer.GetSwapchain().GetImageView(renderContext.imageIndex),
+                renderer.GetSwapchain().GetDepthImageView(renderContext.imageIndex),
                 extent,
                 VkClearValue{.color = {{0.02f, 0.03f, 0.1f, 1.0f}}}
             );
@@ -105,6 +156,8 @@ namespace graphics
                 currentPipeline.Bind(commandBuffer);
                 localDescriptorSets.push_back(graphicsData->testMaterial->GetDescriptorSet());
     
+                DrawFunctions::bindCameraDescriptor(renderContext, graphicsData->cameraDescriptorSets[renderContext.frameIndex], &currentPipeline);
+                DrawFunctions::bindGlobalDescriptor(renderContext, graphicsData->globalDescriptorSet, &currentPipeline);
                 vkCmdBindDescriptorSets(
                     commandBuffer, 
                     VK_PIPELINE_BIND_POINT_GRAPHICS, 
@@ -116,7 +169,7 @@ namespace graphics
                     nullptr
                 );
 
-                const GraphicsMesh* mesh = graphicsData->meshManager.GetMesh(drawQueue[0].handle);
+                const GraphicsMesh* mesh = graphicsData->meshRegistry.Get(drawQueue[0].handle);
                 if(mesh != nullptr)
                 {
                     mesh->bind(commandBuffer, drawQueue[0].instanceBuffer);
@@ -127,7 +180,7 @@ namespace graphics
             }
 
             renderer.EndRenderDynamic(commandBuffer);
-            drawImgui(commandBuffer, imageIndex);
+            drawImgui(renderContext);
             // RenderContext frameInfo{frameIndex, 0.0, commandBuffer, Descriptors::globalDescriptorSet, Descriptors::cameraDescriptorSets[frameIndex]};
             renderer.EndFrame();
         }
@@ -224,11 +277,11 @@ namespace graphics
         // );
     }
 
-    void Graphics::drawImgui(VkCommandBuffer commandBuffer, uint32_t imageIndex)
+    void Graphics::drawImgui(RenderContext context)
     {
         VkRenderingAttachmentInfo colorAttachment = {};
         colorAttachment.sType = VK_STRUCTURE_TYPE_RENDERING_ATTACHMENT_INFO;
-        colorAttachment.imageView = graphicsData->renderer.GetSwapchain().GetImageView(imageIndex);
+        colorAttachment.imageView = graphicsData->renderer.GetSwapchain().GetImageView(context.imageIndex);
         colorAttachment.imageLayout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
         colorAttachment.loadOp = VK_ATTACHMENT_LOAD_OP_LOAD;
         colorAttachment.storeOp = VK_ATTACHMENT_STORE_OP_STORE;
@@ -240,8 +293,8 @@ namespace graphics
         renderingInfo.colorAttachmentCount = 1;
         renderingInfo.pColorAttachments = &colorAttachment;
 
-        vkCmdBeginRendering(commandBuffer, &renderingInfo);
-        ImGui_ImplVulkan_RenderDrawData(ImGui::GetDrawData(), commandBuffer);
-        vkCmdEndRendering(commandBuffer);
+        vkCmdBeginRendering(context.commandBuffer, &renderingInfo);
+        ImGui_ImplVulkan_RenderDrawData(ImGui::GetDrawData(), context.commandBuffer);
+        vkCmdEndRendering(context.commandBuffer);
     }
 } // namespace graphics

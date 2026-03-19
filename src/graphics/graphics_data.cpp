@@ -15,12 +15,19 @@ GraphicsData::~GraphicsData()
     ImGui::DestroyContext();
 
     pipelineManager.DestroyPipelines();
+    meshRegistry.Reset();
+
     cameraDescriptorPool.reset();
     globalDescriptorPool.reset();
+    materialDescriptorPool.reset();
     imguiDescriptorPool.reset();
     cameraSetLayout.reset();
     globalSetLayout.reset();
     testMaterial.reset();
 
+    globalUBO.reset();
+    cameraUBOs.clear();
+
+    backend.Cleanup();
 }
 } // namespace graphics

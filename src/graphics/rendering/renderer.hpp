@@ -2,19 +2,11 @@
 #include <memory>
 #include "graphics/backend/device.hpp"
 #include "swap_chain.hpp"
+#include "render_context.hpp"
 
 namespace graphics
 {
 class Graphics;
-
-struct RenderContext
-{
-    uint32_t frameIndex;
-    double frameTime;
-    VkCommandBuffer commandBuffer;
-    VkDescriptorSet globalDescriptorSet;
-    VkDescriptorSet cameraDescriptorSet;
-};
 
 class Renderer
 {
@@ -28,7 +20,7 @@ public:
 
     void RecreateSwapchain();
 
-    VkCommandBuffer BeginFrame();
+    [[nodiscard]] VkCommandBuffer BeginFrame();
     void BeginRenderDynamic(VkCommandBuffer cmdBuffer, VkImageView colorView, VkImageView depthView, VkExtent2D extent, VkClearValue clearColor);
     void ExecuteRenderGraph(/*const &RenderGraph graph*/);
     void EndRenderDynamic(VkCommandBuffer cmdBuffer);
@@ -36,9 +28,9 @@ public:
 
     // Getters
 
-    VkExtent2D GetExtent() const { return swapchain->GetSwapChainExtent(); }
-    bool IsFrameInProgress() const { return frameInProgress; }
-    VkCommandBuffer GetCurrentCommandBuffer() const 
+    [[nodiscard]] VkExtent2D GetExtent() const { return swapchain->GetSwapChainExtent(); }
+    [[nodiscard]] bool IsFrameInProgress() const { return frameInProgress; }
+    [[nodiscard]] VkCommandBuffer GetCurrentCommandBuffer() const 
     {
         if(!frameInProgress)
         {
@@ -46,7 +38,7 @@ public:
         }
         return commandBuffers[currentFrameIndex]; 
     }
-    uint32_t GetFrameIndex() const 
+    [[nodiscard]] uint32_t GetFrameIndex() const 
     { 
         if(!frameInProgress)
         {
@@ -54,9 +46,16 @@ public:
         }
         return currentFrameIndex; 
     }
-    uint32_t GetImageIndex() const { return currentImageIndex; }
-    const Swapchain &GetSwapchain() const { return *swapchain; }
-
+    [[nodiscard]] uint32_t GetImageIndex() const { return currentImageIndex; }
+    [[nodiscard]] const Swapchain &GetSwapchain() const { return *swapchain; }
+    [[nodiscard]] RenderContext GetContext() const 
+    { 
+        if(!frameInProgress)
+        {
+            throw std::runtime_error("Cannot get render context as no frame is in progress");
+        }
+        return {currentFrameIndex, currentImageIndex, currentCommandBuffer}; 
+    }
 private:
     internal::Device &device;
     Window &window;

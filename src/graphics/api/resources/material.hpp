@@ -71,6 +71,7 @@ public:
     void SetColor(Color val);
 private:
     const Shader* shader;
+    const BufferLayout* materialLayout;
     std::vector<uint8_t> data{};
     std::unordered_map<std::string, uint32_t> dataIndex{};
 
@@ -95,20 +96,26 @@ private:
             std::is_same_v<glm::u8vec4, T> || std::is_same_v<glm::u16vec4, T> || std::is_same_v<glm::u32vec4, T> || std::is_same_v<glm::u64vec4, T>
         );
 
+        if(materialLayout == nullptr)
+        {
+            Console::warn("No material layout info found for material", "Material");
+            return;
+        }
+
         if(!dataIndex.contains(name))
         {
             Console::warnf("Material has no parameter named {}", name, "Material");
             return;
         }
-        const graphics::ShaderParameter *param = shader->GetLayout().GetParameter(name);
+        const ShaderParameter *param = materialLayout->GetParameter(name);
         uint32_t index = dataIndex[name];
         uint8_t* dest = data.data() + index;
         
         if constexpr (std::is_same_v<bool,T>)
         {
-            if(param->type != graphics::DataType::Bool)
+            if(param->type != DataType::Bool)
             {
-                Console::warnf("Cannot set bool {} to parameter of type {}", name, graphics::GetTypeString(param->type), "Material");
+                Console::warnf("Cannot set bool {} to parameter of type {}", name, GetTypeString(param->type), "Material");
             }
             uint64_t boolVal = value ? 1 : 0;
             switch(param->size)
@@ -320,4 +327,4 @@ private:
     // glm::packHalf2x16()
 };
 
-} // namespace core
+} // namespace graphics

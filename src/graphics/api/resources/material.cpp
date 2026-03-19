@@ -6,10 +6,13 @@ using graphics::BufferLayout;
 namespace graphics
 {
 
-Material::Material(const Shader *_shader) : shader(_shader)
+Material::Material(const Shader *_shader) 
+    : shader(_shader), 
+    materialLayout(shader->GetLayout().GetMaterialLayout())
 {
-    data = std::vector<uint8_t>(shader->GetLayout().GetSize());
-    for(const ShaderParameter &param : shader->GetLayout().GetParameters())
+    assert(materialLayout != nullptr && "Cannot create material if shader has no materialInfo field");
+    data = std::vector<uint8_t>(materialLayout->GetSize());
+    for(const ShaderParameter &param : materialLayout->GetParameters())
     {
         dataIndex[param.name] = param.offset;
     }

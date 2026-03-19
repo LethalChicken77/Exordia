@@ -39,7 +39,13 @@ class Graphics
         
         inline void RegisterMaterial(Material *mat, bool reloadPipelines = true)
         {
-            graphicsData->testMaterial = std::make_unique<ShaderBuffer>(mat);
+            // const DescriptorSetLayout &layout, DescriptorPool &pool, uint32_t binding, const std::vector<uint8_t> data
+            graphicsData->testMaterial = std::make_unique<GraphicsMaterial>(
+                graphicsData->pipelineManager.GetPipeline(0)->GetDescriptorSetLayout(),
+                *graphicsData->materialDescriptorPool,
+                0,
+                mat->GetData()
+            );
         }
         
         inline void DeregisterMaterial(Material *mat, bool reloadPipelines = true)
@@ -47,9 +53,9 @@ class Graphics
             graphicsData->testMaterial.reset();
         }
 
-        inline MeshHandle RegisterMesh(core::MeshData &mesh) { return graphicsData->meshManager.RegisterMesh(mesh); }
-        inline bool UpdateMesh(core::MeshData &mesh) { return graphicsData->meshManager.UpdateMesh(mesh); }
-        inline bool DeregisterMesh(core::MeshData &mesh) { return graphicsData->meshManager.DeregisterMesh(mesh); }
+        inline MeshHandle RegisterMesh(core::MeshData &mesh) { return graphicsData->meshRegistry.Register(mesh); }
+        inline bool UpdateMesh(core::MeshData &mesh) { return graphicsData->meshRegistry.Update(mesh); }
+        inline bool DeregisterMesh(core::MeshData &mesh) { return graphicsData->meshRegistry.Deregister(mesh); }
 
         inline void ReloadPipelines()
         {
@@ -65,7 +71,7 @@ class Graphics
     private:
         std::vector<MeshRenderData> drawQueue;
         // Temporary
-        void drawImgui(VkCommandBuffer commandBuffer, uint32_t imageIndex);
+        void drawImgui(RenderContext context);
 };
 
 } // namespace graphics
