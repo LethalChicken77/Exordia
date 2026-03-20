@@ -132,8 +132,10 @@ void Engine::run()
 
     Material mat = Material(shader);
     int64_t testVal = 69;
-    mat.SetInt("test", testVal);
-    mat.SetVector("color", glm::vec4(1,1,0,1));
+    // mat.SetInt("test", testVal);
+    mat.SetVector("color", glm::vec4(1.f, 0.8f, 0.3f, 1.0f));
+    mat.SetFloat("roughness", 0.4f);
+    mat.SetFloat("metallic", 0.0f);
 
     graphicsModule.RegisterShader(shader);
     graphicsModule.RegisterMaterial(&mat);

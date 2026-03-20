@@ -63,12 +63,12 @@ public:
     inline void SetVector(const std::string &name, glm::vec4 val) { return setPrimitive<glm::vec4>(name, val); }
     inline void SetVector(const std::string &name, glm::dvec4 val) { return setPrimitive<glm::dvec4>(name, val); }
 
+    inline void SetColor(const std::string &name, Color val) { return setPrimitive<glm::vec3>(name, (glm::vec3)val); }
+
 
     void SetMat2x2(std::string_view name, glm::mat2x2 val);
     void SetMat3x3(std::string_view name, glm::mat3x3 val);
     void SetMat4x4(std::string_view name, glm::mat4x4 val);
-
-    void SetColor(Color val);
 private:
     const Shader* shader;
     const BufferLayout* materialLayout;

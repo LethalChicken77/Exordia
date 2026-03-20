@@ -26,6 +26,9 @@ GraphicsMaterial::GraphicsMaterial(const DescriptorSetLayout &_layout, Descripto
     }
     writer.Build(descriptorSet);
     
+    ubo->Map();
+    ubo->WriteData((void*)data.data(), data.size());
+    ubo->Unmap();
 }
 
 } // namespace graphics

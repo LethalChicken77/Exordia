@@ -50,6 +50,12 @@ float4 fsMain(VOut input)
     for (int i = 0; i < globalData.numLights; i++)
     {
         Light currentLight = globalData.lights[i];
+        // Light currentLight = {
+        //     float3(1,1,1),
+        //     LightType.DIRECTIONAL,
+        //     float3(1,1,1),
+        //     4
+        // };
         float3 lightDir = float3(0);
         float attenuation = 1;
         if (currentLight.type == LightType.DIRECTIONAL)
@@ -75,5 +81,6 @@ float4 fsMain(VOut input)
     // outColor = LinearToSRGB(outColor); // Gamma correction
     // outColor *= 0.5;
     // outColor = ACESFilmCurve(outColor);
-    return float4(normal, 1.0);
+    return float4(outColor, 1.0);
+    // return float4(normal, 1.0);
 }
