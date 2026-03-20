@@ -55,11 +55,11 @@ void Scene_t::update(double deltaTime)
     int counter = 0;
     for(GameObject &obj : gameObjects)
     {
-        if(obj->getInstanceID() == 5)
+        if(obj->getInstanceID() == 4)
             obj->transform.rotateYaw(0.25f * deltaTime * 6.28f);
-        if(obj->getInstanceID() == 7)
+        if(obj->getInstanceID() == 6)
             obj->transform.rotatePitch(0.6666f * deltaTime * 6.28f);
-        if(obj->getInstanceID() == 5)
+        if(obj->getInstanceID() == 4)
             obj->transform.rotateAboutAxis(glm::vec3(1,1,1), 0.25f * deltaTime * 6.28f);
         // if(obj.get_id() == 2) break;
         // if(obj.get_id() == 1)

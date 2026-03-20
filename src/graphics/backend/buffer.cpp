@@ -96,10 +96,10 @@ Buffer::Buffer(Buffer&& other)
 {
     other.buffer = VK_NULL_HANDLE;
     other.bufferAllocation = VK_NULL_HANDLE;
-    other.bufferAllocationInfo.pMappedData = nullptr;
+    vmaGetAllocationInfo(device.GetAllocator(), bufferAllocation, &bufferAllocationInfo);
+    bufferAllocationInfo.pMappedData = other.bufferAllocationInfo.pMappedData;
     other.bufferAllocationInfo = {};
     other.bufferSize = 0;
-    vmaGetAllocationInfo(device.GetAllocator(), bufferAllocation, &bufferAllocationInfo);
 }
 
 /// @brief Assigns a memory range of the buffer to CPU accessible memory

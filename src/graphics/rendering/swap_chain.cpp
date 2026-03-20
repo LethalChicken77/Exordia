@@ -267,8 +267,10 @@ void Swapchain::createDepthImages()
 
         VmaAllocationCreateInfo allocInfo{};
         allocInfo.usage = VMA_MEMORY_USAGE_AUTO_PREFER_DEVICE;
-
+        
         vmaCreateImage(device.GetAllocator(), &imageInfo, &allocInfo, &depthImages[i], &depthImageAllocations[i], &depthImageAllocationInfos[i]);
+
+        vmaSetAllocationName(device.GetAllocator(), depthImageAllocations[i], "SC Depth");
 
         VkImageViewCreateInfo viewInfo{};
         viewInfo.sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO;

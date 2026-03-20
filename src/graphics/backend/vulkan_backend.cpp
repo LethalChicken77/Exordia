@@ -63,10 +63,10 @@ void VulkanBackend::init(const std::string& appName, const std::string& engName,
 
 VulkanBackend::~VulkanBackend()
 {
-    Cleanup();
+    Cleanup(graphicsData.get());
 }
 
-void VulkanBackend::Cleanup()
+void VulkanBackend::Cleanup(graphics::GraphicsData *_graphicsData)
 {
     if(cleanedUp) return;
 
@@ -82,8 +82,8 @@ void VulkanBackend::Cleanup()
     }
     if(instance != VK_NULL_HANDLE)
     {
-        if(graphicsData->GetWindow().GetSurface() != VK_NULL_HANDLE)
-            vkDestroySurfaceKHR(instance, graphicsData->GetWindow().GetSurface(), nullptr);
+        if(_graphicsData->GetWindow().GetSurface() != VK_NULL_HANDLE)
+            vkDestroySurfaceKHR(instance, _graphicsData->GetWindow().GetSurface(), nullptr);
 
         vkDestroyInstance(instance, nullptr);
     }

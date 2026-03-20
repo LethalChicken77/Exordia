@@ -72,7 +72,7 @@ void GraphicsMesh::createVertexBuffer(const core::MeshData* meshPtr)
     };
 
     stagingBuffer.Map();
-    stagingBuffer.WriteData((void *)vertices.data(), vertices.size());
+    stagingBuffer.WriteData((void *)vertices.data(), vertices.size() * vertexSize);
 
     vertexBuffer = std::make_unique<Buffer>(
         device,

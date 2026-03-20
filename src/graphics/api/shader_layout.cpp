@@ -277,7 +277,7 @@ void ParseBlock(const SpvReflectBlockVariable *block, std::vector<ShaderParamete
 
 BufferLayout::BufferLayout(const SpvReflectBlockVariable* block)
 {
-    // Console::logf("Generating bindings for {}", bufferName, "ShaderAsset");
+    // Console::logf("Generating bindings for {}", block->name, "ShaderAsset");
     totalSize = block->size;
     ParseBlock(block, &parameters);
     for(uint32_t i = 0; i < parameters.size(); ++i)
@@ -335,6 +335,7 @@ ShaderLayout::ShaderLayout(const std::vector<uint32_t> spirv)
                 binding->set,
                 {}
             });
+            setMap.insert_or_assign(binding->set, currentInfo);
         }
         else
         {
@@ -346,7 +347,7 @@ ShaderLayout::ShaderLayout(const std::vector<uint32_t> spirv)
         bindingInfo.set = binding->set;
         bindingInfo.stageFlags = smodule.GetShaderStage(); // TODO: Modify to ensure all relevant stages are included
         bindingInfo.binding = binding->binding;
-        Console::log(bindingInfo.name);
+        Console::logf("{} \tSet: {}, Binding: {}", bindingInfo.name, bindingInfo.set, bindingInfo.binding);
         switch(binding->descriptor_type)
         {
             case SPV_REFLECT_DESCRIPTOR_TYPE_SAMPLER:
@@ -394,6 +395,7 @@ ShaderLayout::ShaderLayout(const std::vector<uint32_t> spirv)
 
         currentInfo->bindings.push_back(bindingInfo);
     }
+    Console::debugf("{}", descriptorSets[2].bindings.size());
 }
 
 void ShaderLayout::generateBufferInfo(const SpvReflectDescriptorBinding *binding, BindingInfo* info)

@@ -16,6 +16,7 @@ class PipelineManager
 
         void CreatePipelines();
         void DestroyPipelines();
+        void Cleanup();
         void ReloadPipelines();
 
         void RegisterShader(Shader *shader) { shaders.insert(shader); }
@@ -29,7 +30,7 @@ class PipelineManager
 
         uint32_t currentID = 0;
 
-        VkPipelineCache pipelineCache;
+        VkPipelineCache pipelineCache = VK_NULL_HANDLE;
 
         std::set<Shader *> shaders;
 

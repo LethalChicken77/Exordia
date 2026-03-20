@@ -93,7 +93,6 @@ namespace graphics
             return builder.BuildInPlace();
         for(const ShaderLayout::BindingInfo &bindingInfo : setInfo->bindings)
         {
-            Console::debugf("{}", bindingInfo.binding);
             VkDescriptorType type{};
             switch(bindingInfo.type)
             {

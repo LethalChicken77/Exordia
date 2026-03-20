@@ -12,7 +12,6 @@ struct MaterialInfo
     float metallic;
 };
 [[vk::binding(0, 2)]] ConstantBuffer<MaterialInfo> materialInfo;
-[[vk::binding(1, 2)]] ConstantBuffer<MaterialInfo> materialInfo2;
 
 [shader("vertex")]
 VOut vsMain(VertexData vertex, InstanceData instance)
@@ -22,6 +21,8 @@ VOut vsMain(VertexData vertex, InstanceData instance)
     // model = float4x4(1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1);
     output.FragPosition = mul(cameraData.viewProj, mul(model, float4(vertex.Position, 1.0)));
     output.Position = mul(model, float4(vertex.Position, 1.0)).xyz;
+    // output.FragPosition = float4(vertex.Position, 1.0);
+    // output.Position = vertex.Position;
 
     float3x3 normalMatrix = transpose(inverse(float3x3(model)));
     output.Normal = normalize(mul(normalMatrix, vertex.Normal));
@@ -74,5 +75,5 @@ float4 fsMain(VOut input)
     // outColor = LinearToSRGB(outColor); // Gamma correction
     // outColor *= 0.5;
     // outColor = ACESFilmCurve(outColor);
-    return float4(outColor * materialInfo2.color.xyz, 1.0);
+    return float4(normal, 1.0);
 }

@@ -26,6 +26,7 @@ public:
     bool IsOpen() const { return !glfwWindowShouldClose(window); }
     uint32_t GetWidth() const { return width; }
     uint32_t GetHeight() const { return height; }
+    float GetAspectRatio() const { return (float)width / (float)height; }
     VkExtent2D GetExtent() { return {static_cast<uint32_t>(width), static_cast<uint32_t>(height)}; }
     GLFWwindow* GetWindow() { return window; }
     VkSurfaceKHR &GetSurface() { return surface; }

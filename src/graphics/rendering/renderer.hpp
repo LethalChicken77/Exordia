@@ -18,6 +18,8 @@ public:
     Renderer(const Renderer&) = delete;
     Renderer& operator=(const Renderer&) = delete;
 
+    void Cleanup();
+
     void RecreateSwapchain();
 
     [[nodiscard]] VkCommandBuffer BeginFrame();

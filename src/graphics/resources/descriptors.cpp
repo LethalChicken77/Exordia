@@ -77,7 +77,10 @@ DescriptorSetLayout::DescriptorSetLayout(internal::Device &device, std::unordere
         &descriptorSetLayout), "Failed to create descriptor set layout");
 }
 
-DescriptorSetLayout::DescriptorSetLayout(DescriptorSetLayout&& other) : device(other.device), descriptorSetLayout(other.descriptorSetLayout) 
+DescriptorSetLayout::DescriptorSetLayout(DescriptorSetLayout&& other) 
+    : device(other.device), 
+    descriptorSetLayout(other.descriptorSetLayout),
+    bindings(other.bindings)
 {
     other.descriptorSetLayout = VK_NULL_HANDLE;
 }

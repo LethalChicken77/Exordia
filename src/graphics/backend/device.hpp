@@ -1,7 +1,18 @@
 #pragma once
-#include <vma/vk_mem_alloc.h>
 
 #include "physical_device.hpp"
+#ifdef DEBUG
+#define VMA_DEBUG_INITIALIZE_ALLOCATIONS 1
+#define VMA_LEAK_LOG_FORMAT(format, ...) do { \
+        printf((format), __VA_ARGS__); \
+        printf("\n"); \
+    } while(false)
+// #define VMA_DEBUG_LOG_FORMAT(format, ...) do { \
+//     printf((format), __VA_ARGS__); \
+//     printf("\n"); \
+// } while(false)
+#endif
+#include <vma/vk_mem_alloc.h>
 
 namespace graphics::internal
 {
@@ -59,6 +70,8 @@ private:
     void createAllocator(VkInstance &instance);
     
     void cleanup();
+
+    static void vmaDebugHandler(void* pUserData, const char* format, va_list args);
 
     friend class VulkanBackend;
 };

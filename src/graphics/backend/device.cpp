@@ -1,10 +1,10 @@
 #define VMA_IMPLEMENTATION
+#include "device.hpp"
 #include <vma/vk_mem_alloc.h>
 
 #include <set>
 #include <stdexcept>
 
-#include "device.hpp"
 #include "backend_data.hpp"
 
 #include "utils/debug.hpp"
@@ -153,5 +153,10 @@ void Device::createAllocator(VkInstance &instance)
     {
         throw std::runtime_error("Failed to create VMA allocator");
     }
+}
+
+void Device::vmaDebugHandler(void* pUserData, const char* format, va_list args)
+{
+    printf(format, args);
 }
 } // namespace graphics::internal

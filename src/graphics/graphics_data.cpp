@@ -8,6 +8,7 @@ std::unique_ptr<GraphicsData> graphicsData;
 
 GraphicsData::~GraphicsData()
 {
+    Console::log("Destroying graphics data", "GraphicsData");
     backend.WaitForDevice();
 
     ImGui_ImplVulkan_Shutdown();
@@ -15,6 +16,7 @@ GraphicsData::~GraphicsData()
     ImGui::DestroyContext();
 
     pipelineManager.DestroyPipelines();
+    pipelineManager.Cleanup();
     meshRegistry.Reset();
 
     cameraDescriptorPool.reset();
@@ -24,10 +26,13 @@ GraphicsData::~GraphicsData()
     cameraSetLayout.reset();
     globalSetLayout.reset();
     testMaterial.reset();
-
+    
     globalUBO.reset();
     cameraUBOs.clear();
-
-    backend.Cleanup();
+    
+    renderer.Cleanup();
+    backend.WaitForDevice();
+    backend.Cleanup(this);
+    Console::log("Destroyed graphics data", "GraphicsData");
 }
 } // namespace graphics

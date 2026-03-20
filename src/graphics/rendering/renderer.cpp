@@ -15,18 +15,23 @@ Renderer::Renderer(internal::Device &_device, Window &_window) : device(_device)
 
 Renderer::~Renderer()
 {
-    vkFreeCommandBuffers(
-        device.Get(), 
-        device.GetCommandPool(), 
-        static_cast<uint32_t>(commandBuffers.size()), 
-        commandBuffers.data()
-    );
 }
 
 void Renderer::init()
 {
     RecreateSwapchain();
     createCommandBuffers();
+}
+
+void Renderer::Cleanup()
+{
+    swapchain.reset();
+    vkFreeCommandBuffers(
+        device.Get(), 
+        device.GetCommandPool(), 
+        static_cast<uint32_t>(commandBuffers.size()), 
+        commandBuffers.data()
+    );
 }
 
 VkCommandBuffer Renderer::BeginFrame()

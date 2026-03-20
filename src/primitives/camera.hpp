@@ -43,7 +43,7 @@ private:
 
     bool isOrthographic;
     CameraProperties properties;
-    float aspectRatio; // Horizontal / Vertical
+    float aspectRatio = 1; // Horizontal / Vertical
 
     void updateCamera();
 };

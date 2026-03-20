@@ -21,7 +21,7 @@ namespace core
         static constexpr const char* className = "Mesh Data";
         const char* GetClassName() const { return className; }
         
-        struct alignas(16) Vertex
+        struct Vertex
         {
             glm::vec3 position{}; // 12
             glm::vec3 normal{}; // 12

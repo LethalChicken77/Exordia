@@ -8,6 +8,7 @@
 #include "device.hpp"
 
 namespace graphics{class Graphics;}
+namespace graphics{class GraphicsData;}
 namespace graphics::internal
 {
     
@@ -17,7 +18,7 @@ class VulkanBackend
         VulkanBackend() = default;
         ~VulkanBackend();
 
-        void Cleanup();
+        void Cleanup(graphics::GraphicsData *_graphicsData);
 
         // VkBuffer AllocateBuffer();
         // VkImage AllocateImage();

@@ -126,6 +126,15 @@ namespace graphics
         Console::log("Shutting down graphics module", "Graphics");
         drawQueue.clear();
         graphicsData.reset();
+        graphicsData.release(); // Ensure it's not freed again on exit
+    }
+
+    void Graphics::SetCamera(const Camera &camera)
+    {
+        cameraState.view = camera.getView();
+        cameraState.invView = glm::inverse(camera.getView());
+        cameraState.proj = camera.getProjection();
+        cameraState.viewProj = camera.getViewProjection();
     }
 
     void Graphics::DrawMesh(const core::Mesh& meshData, id_t materialID, const glm::mat4& modelMatrix, int instanceID)
@@ -143,6 +152,19 @@ namespace graphics
         if(VkCommandBuffer commandBuffer = renderer.BeginFrame())
         {
             RenderContext renderContext = renderer.GetContext();
+
+            GlobalUbo globalUbo{};
+            globalUbo.lights[0] = {glm::vec3(1, 1, 1), LightType::DIRECTIONAL, glm::vec3(1.0, 1.0, 1.0), 6.0};
+            globalUbo.lights[1] = {glm::vec3(4, 0, 0), LightType::POINT, glm::vec3(1.0, 0.8, 0.1), 30.0};
+            globalUbo.lights[2] = {glm::vec3(0, 4, -4), LightType::POINT, glm::vec3(0.5, 1.0, 0.1), 10.0};
+            globalUbo.lights[3] = {glm::vec3(-4, 0, 2), LightType::POINT, glm::vec3(0.9, 0.2, 1.0), 10.0};
+            globalUbo.numLights = 4;
+            globalUbo.ambient = glm::vec3(0.04, 0.08, 0.2);
+            // globalUbo.ambient = glm::vec3(1, 1, 1);
+            graphicsData->globalUBO->WriteData(&globalUbo);
+
+            graphicsData->cameraUBOs[renderContext.frameIndex].WriteData(&cameraState);
+
             renderer.BeginRenderDynamic(
                 commandBuffer,
                 renderer.GetSwapchain().GetImageView(renderContext.imageIndex),
@@ -150,14 +172,15 @@ namespace graphics
                 extent,
                 VkClearValue{.color = {{0.02f, 0.03f, 0.1f, 1.0f}}}
             );
-            if(drawQueue.size() > 0)
+
+            GraphicsPipeline &currentPipeline = *graphicsData->pipelineManager.GetPipeline(0);
+            currentPipeline.Bind(commandBuffer);
+            localDescriptorSets.push_back(graphicsData->testMaterial->GetDescriptorSet());
+
+            DrawFunctions::bindCameraDescriptor(renderContext, graphicsData->cameraDescriptorSets[renderContext.frameIndex], &currentPipeline);
+            DrawFunctions::bindGlobalDescriptor(renderContext, graphicsData->globalDescriptorSet, &currentPipeline);
+            for(MeshRenderData &renderData : drawQueue)
             {
-                GraphicsPipeline &currentPipeline = *graphicsData->pipelineManager.GetPipeline(0);
-                currentPipeline.Bind(commandBuffer);
-                localDescriptorSets.push_back(graphicsData->testMaterial->GetDescriptorSet());
-    
-                DrawFunctions::bindCameraDescriptor(renderContext, graphicsData->cameraDescriptorSets[renderContext.frameIndex], &currentPipeline);
-                DrawFunctions::bindGlobalDescriptor(renderContext, graphicsData->globalDescriptorSet, &currentPipeline);
                 vkCmdBindDescriptorSets(
                     commandBuffer, 
                     VK_PIPELINE_BIND_POINT_GRAPHICS, 
@@ -169,10 +192,10 @@ namespace graphics
                     nullptr
                 );
 
-                const GraphicsMesh* mesh = graphicsData->meshRegistry.Get(drawQueue[0].handle);
+                const GraphicsMesh* mesh = graphicsData->meshRegistry.Get(renderData.handle);
                 if(mesh != nullptr)
                 {
-                    mesh->bind(commandBuffer, drawQueue[0].instanceBuffer);
+                    mesh->bind(commandBuffer, renderData.instanceBuffer);
                     mesh->draw(commandBuffer, 1);
                 }
     

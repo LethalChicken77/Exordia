@@ -228,6 +228,9 @@ void Engine::run()
         // graphicsModule.drawSkybox();
         scene->drawScene();
         // Render here
+        camera.setAspectRatio(graphicsModule.GetAspectRatio());
+        camera.SetTransform(cameraTransform.getTransform());
+        graphicsModule.SetCamera(camera);
         graphicsModule.DrawFrame();
 
 

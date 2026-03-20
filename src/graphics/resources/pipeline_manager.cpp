@@ -7,8 +7,9 @@ PipelineManager::PipelineManager(internal::Device& _device) : device(_device) {}
 
 PipelineManager::~PipelineManager()
 {
-    if(pipelineCache != nullptr)
+    if(pipelineCache != VK_NULL_HANDLE)
         vkDestroyPipelineCache(device.Get(), pipelineCache, nullptr);
+    pipelineCache = VK_NULL_HANDLE;
 }
 
 void PipelineManager::init()
@@ -54,6 +55,14 @@ void PipelineManager::DestroyPipelines()
     //     graphicsPipeline.();
     // }
     graphicsPipelines.clear();
+}
+
+void PipelineManager::Cleanup()
+{
+    DestroyPipelines();
+    if(pipelineCache != VK_NULL_HANDLE)
+        vkDestroyPipelineCache(device.Get(), pipelineCache, nullptr);
+    pipelineCache = VK_NULL_HANDLE;
 }
 
 void PipelineManager::createPipelineCache()

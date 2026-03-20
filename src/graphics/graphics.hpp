@@ -4,6 +4,7 @@
 #include "backend/vulkan_backend.hpp"
 #include "graphics_data.hpp"
 #include "resources/graphics_mesh.hpp"
+#include "primitives/camera.hpp"
 
 namespace graphics
 {
@@ -56,6 +57,8 @@ class Graphics
         inline MeshHandle RegisterMesh(core::MeshData &mesh) { return graphicsData->meshRegistry.Register(mesh); }
         inline bool UpdateMesh(core::MeshData &mesh) { return graphicsData->meshRegistry.Update(mesh); }
         inline bool DeregisterMesh(core::MeshData &mesh) { return graphicsData->meshRegistry.Deregister(mesh); }
+        
+        void SetCamera(const Camera &camera);
 
         inline void ReloadPipelines()
         {
@@ -64,12 +67,14 @@ class Graphics
 
         Window &GetWindow() { return graphicsData->GetWindow(); }
         GLFWwindow* GetGLFWWindow() { return graphicsData->GetWindow().GetWindow(); }
+        float GetAspectRatio() const { return graphicsData->GetWindow().GetAspectRatio(); }
 
         bool IsOpen() const { return graphicsData->GetWindow().IsOpen(); }
         inline internal::Device &GetDevice() { return graphicsData->GetBackend().GetDevice(); }
         void GraphicsInitImgui();
     private:
         std::vector<MeshRenderData> drawQueue;
+        CameraUbo cameraState{};
         // Temporary
         void drawImgui(RenderContext context);
 };
