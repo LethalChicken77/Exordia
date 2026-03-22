@@ -3,7 +3,6 @@ struct VertexData
     float3 Position : POSITION;
     float3 Normal : NORMAL;
     float4 Tangent : TANGENT;
-    float3 Bitangent : BITANGENT;
     float3 Color : COLOR;
     float2 UV : TEXCOORD0;
 };

@@ -121,24 +121,36 @@ void Engine::update(double deltaTime)
 void Engine::run()
 {
     ShaderAsset *testShader = AssetManager::LoadAsset<ShaderAsset>("internal/shaders/basicShader.slang");
+    ShaderAsset *pbrShader = AssetManager::LoadAsset<ShaderAsset>("internal/shaders/PBR.slang");
 
     testShader->LoadData();
+    pbrShader->LoadData();
 
     MemoryArena arena{4096};
     MemoryPool<Shader> shaderPool{64};
 
     // Shader shader = Shader(testShader, testShader);
     Shader* shader = shaderPool.New(testShader, testShader);
+    Shader* pbr = shaderPool.New(pbrShader, pbrShader);
 
     Material mat = Material(shader);
+    Material mat2 = Material(pbr);
     int64_t testVal = 69;
     // mat.SetInt("test", testVal);
     mat.SetVector("color", glm::vec4(1.f, 0.8f, 0.3f, 1.0f));
     mat.SetFloat("roughness", 0.4f);
     mat.SetFloat("metallic", 0.0f);
 
+    mat2.SetVector("color", glm::vec4(1));
+    mat2.SetFloat("normalMapStrength", 1.0f);
+    // mat2.SetTexture("albedoMap", );
+    // mat2.SetTexture("roughnessMap", );
+    // mat2.SetTexture("metallicMap", );
+    // mat2.SetTexture("normalMap", );
+
     graphicsModule.RegisterShader(shader);
     graphicsModule.RegisterMaterial(&mat);
+    graphicsModule.RegisterMaterial(&mat2);
 
     graphicsModule.GraphicsInitImgui();
     // ImGui::GetIO().ConfigFlags |= ImGuiConfigFlags_DockingEnable;

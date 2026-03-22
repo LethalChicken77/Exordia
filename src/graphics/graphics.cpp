@@ -137,6 +137,11 @@ namespace graphics
         cameraState.viewProj = camera.getViewProjection();
     }
 
+    void Graphics::DrawMesh(const core::Mesh& meshData, id_t materialID, const std::vector<glm::mat4>& modelMatrices, int instanceID)
+    {
+        drawQueue.push_back(MeshRenderData(meshData->graphicsHandle, modelMatrices, materialID, instanceID));
+    }
+
     void Graphics::DrawMesh(const core::Mesh& meshData, id_t materialID, const glm::mat4& modelMatrix, int instanceID)
     {
         drawQueue.push_back(MeshRenderData(meshData->graphicsHandle, modelMatrix, materialID, instanceID));
@@ -196,7 +201,7 @@ namespace graphics
                 if(mesh != nullptr)
                 {
                     mesh->bind(commandBuffer, renderData.instanceBuffer);
-                    mesh->draw(commandBuffer, 1);
+                    mesh->draw(commandBuffer, renderData.transforms.size());
                 }
     
                 

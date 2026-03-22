@@ -1,6 +1,7 @@
 #pragma once
 #include "shader.hpp"
 #include "utils/packing.hpp"
+#include "graphics/api/handles.hpp"
 
 namespace graphics
 {
@@ -65,15 +66,19 @@ public:
 
     inline void SetColor(const std::string &name, Color val) { return setPrimitive<glm::vec3>(name, (glm::vec3)val); }
 
-
     void SetMat2x2(std::string_view name, glm::mat2x2 val);
     void SetMat3x3(std::string_view name, glm::mat3x3 val);
     void SetMat4x4(std::string_view name, glm::mat4x4 val);
+
+    void SetTexture(const std::string &name, TextureHandle handle);
+
+    MaterialHandle graphicsHandle;
 private:
     const Shader* shader;
     const BufferLayout* materialLayout;
     std::vector<uint8_t> data{};
     std::unordered_map<std::string, uint32_t> dataIndex{};
+    std::unordered_map<std::string, TextureHandle> textureIndex{};
 
     template<typename T>
     void setPrimitive(const std::string &name, T value)

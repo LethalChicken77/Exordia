@@ -6,7 +6,9 @@
 #include "resources/descriptors.hpp"
 #include "resources/pipeline_manager.hpp"
 #include "resources/shader_buffer.hpp"
-#include "resources/registry.hpp"
+#include "resources/registries/mesh_registry.hpp"
+#include "resources/registries/material_registry.hpp"
+#include "resources/registries/pipeline_registry.hpp"
 #include "resources/graphics_material.hpp"
 
 
@@ -49,6 +51,12 @@ struct GlobalUbo
 // Maybe singleton?
 class GraphicsData
 {
+private:
+// Declaration order matters here
+    Window window;
+    internal::VulkanBackend backend;
+    Renderer renderer{backend.GetDevice(), window};
+
 public:
     ~GraphicsData();
     inline internal::VulkanBackend &GetBackend() { return backend; }
@@ -62,6 +70,8 @@ public:
     CameraUbo cameraUbo{};
 
     MeshRegistry meshRegistry{};
+    MaterialRegistry materialRegistry{};
+    PipelineRegistry pipelineRegistry{backend.GetDevice()};
 
     std::unique_ptr<DescriptorPool> globalDescriptorPool{};
     std::unique_ptr<DescriptorPool> cameraDescriptorPool{};
@@ -81,21 +91,11 @@ public:
     // Default textures, shaders, materials
     std::unique_ptr<GraphicsMaterial> testMaterial;
 private:
-// Declaration order matters here
-
-    Window window;
-    internal::VulkanBackend backend;
-    Renderer renderer{backend.GetDevice(), window};
     PipelineManager pipelineManager{backend.GetDevice()};
 
     friend class Graphics;
 };
 
 extern std::unique_ptr<GraphicsData> graphicsData;
-// Failed attempt lol
-// // Construct in data/bss after main starts rather than before
-// GraphicsData& graphicsData = []() -> GraphicsData& {
-//     static GraphicsData instance;
-//     return instance;
-// }();
+
 } // namespace graphics

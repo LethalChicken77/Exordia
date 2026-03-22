@@ -140,10 +140,12 @@ void Mesh::generateTangents()
         return;
     }
 
+    std::vector<glm::vec3> vertBitangents{};
+    vertBitangents.resize(vertices.size());
     for(Vertex& vertex : vertices)
     {
         vertex.tangent = glm::vec4(0.0f);
-        vertex.bitangent = glm::vec3(0.0f);
+        vertBitangents.emplace_back(glm::vec3(0.0f));
     }
     for(Triangle& triangle : triangles)
     {
@@ -176,27 +178,30 @@ void Mesh::generateTangents()
         v0.tangent += tempTangent;
         v1.tangent += tempTangent;
         v2.tangent += tempTangent;
-        v0.bitangent += bitangent;
-        v1.bitangent += bitangent;
-        v2.bitangent += bitangent;
+        vertBitangents[triangle.v0] += bitangent;
+        vertBitangents[triangle.v1] += bitangent;
+        vertBitangents[triangle.v2] += bitangent;
     }
+    uint32_t index = 0;
     for(Vertex& vertex : vertices)
     {
         vertex.tangent = glm::normalize(vertex.tangent);
-        vertex.bitangent = glm::normalize(vertex.bitangent);
+        // vertex.bitangent = glm::normalize(vertex.bitangent);
 
         // Gram-Schmidt orthogonalize
         glm::vec3 tempTangent = glm::vec3(vertex.tangent);
+        glm::vec3 bitangent = vertBitangents[index];
         vertex.tangent = glm::vec4(glm::normalize(tempTangent - vertex.normal * glm::dot(vertex.normal, tempTangent)), 1.0f);
-        vertex.bitangent = glm::normalize(vertex.bitangent - vertex.normal * glm::dot(vertex.normal, vertex.bitangent));
+        bitangent = glm::normalize(bitangent - vertex.normal * glm::dot(vertex.normal, bitangent));
 
         // Calculate handedness
         tempTangent = glm::vec3(vertex.tangent);
-        if(glm::dot(glm::cross(vertex.normal, tempTangent), vertex.bitangent) < 0.0f)
+        if(glm::dot(glm::cross(vertex.normal, tempTangent), bitangent) < 0.0f)
         {
-            vertex.bitangent = vertex.bitangent * -1.0f;
+            bitangent = bitangent * -1.0f;
             vertex.tangent.w = -1.0f;
         }
+        index++;
     }
 }
 
@@ -206,14 +211,14 @@ Mesh Mesh::createCube(float edgeLength, const std::string& objectName)
     float inverseSqrt3 = 1.0f / glm::sqrt(3.0f);
 
     std::vector<MeshData::Vertex> vertices {
-        {{-edgeLength, -edgeLength, -edgeLength}, {-inverseSqrt3, -inverseSqrt3, -inverseSqrt3}, {0,0,0,1}, {0,0,0}, {1.f, 1.f, 1.f}, {0.0f, 0.0f}},
-        {{edgeLength, -edgeLength, -edgeLength}, {inverseSqrt3, -inverseSqrt3, -inverseSqrt3}, {0,0,0,1}, {0,0,0}, {1.f, 1.f, 1.f}, {1.0f, 0.0f}},
-        {{-edgeLength, edgeLength, -edgeLength}, {-inverseSqrt3, inverseSqrt3, -inverseSqrt3}, {0,0,0,1}, {0,0,0}, {1.f, 1.f, 1.f}, {0.0f, 0.0f}},
-        {{edgeLength, edgeLength, -edgeLength}, {inverseSqrt3, inverseSqrt3, -inverseSqrt3}, {0,0,0,1}, {0,0,0}, {1.f, 1.f, 1.f}, {1.0f, 0.0f}},
-        {{-edgeLength, -edgeLength, edgeLength}, {-inverseSqrt3, -inverseSqrt3, inverseSqrt3}, {0,0,0,1}, {0,0,0}, {1.f, 1.f, 1.f}, {0.0f, 1.0f}},
-        {{edgeLength, -edgeLength, edgeLength}, {inverseSqrt3, -inverseSqrt3, inverseSqrt3}, {0,0,0,1}, {0,0,0}, {1.f, 1.f, 1.f}, {1.0f, 1.0f}},
-        {{-edgeLength, edgeLength, edgeLength}, {-inverseSqrt3, inverseSqrt3, inverseSqrt3}, {0,0,0,1}, {0,0,0}, {1.f, 1.f, 1.f}, {0.0f, 1.0f}},
-        {{edgeLength, edgeLength, edgeLength}, {inverseSqrt3, inverseSqrt3, inverseSqrt3}, {0,0,0,1}, {0,0,0}, {1.f, 1.f, 1.f}, {1.0f, 1.0f}},
+        {{-edgeLength, -edgeLength, -edgeLength},   {-inverseSqrt3, -inverseSqrt3, -inverseSqrt3},    {0,0,0,1}, {1.f, 1.f, 1.f}, {0.0f, 0.0f}},
+        {{edgeLength, -edgeLength, -edgeLength},    {inverseSqrt3, -inverseSqrt3, -inverseSqrt3},     {0,0,0,1}, {1.f, 1.f, 1.f}, {1.0f, 0.0f}},
+        {{-edgeLength, edgeLength, -edgeLength},    {-inverseSqrt3, inverseSqrt3, -inverseSqrt3},     {0,0,0,1}, {1.f, 1.f, 1.f}, {0.0f, 0.0f}},
+        {{edgeLength, edgeLength, -edgeLength},     {inverseSqrt3, inverseSqrt3, -inverseSqrt3},      {0,0,0,1}, {1.f, 1.f, 1.f}, {1.0f, 0.0f}},
+        {{-edgeLength, -edgeLength, edgeLength},    {-inverseSqrt3, -inverseSqrt3, inverseSqrt3},     {0,0,0,1}, {1.f, 1.f, 1.f}, {0.0f, 1.0f}},
+        {{edgeLength, -edgeLength, edgeLength},     {inverseSqrt3, -inverseSqrt3, inverseSqrt3},      {0,0,0,1}, {1.f, 1.f, 1.f}, {1.0f, 1.0f}},
+        {{-edgeLength, edgeLength, edgeLength},     {-inverseSqrt3, inverseSqrt3, inverseSqrt3},      {0,0,0,1}, {1.f, 1.f, 1.f}, {0.0f, 1.0f}},
+        {{edgeLength, edgeLength, edgeLength},      {inverseSqrt3, inverseSqrt3, inverseSqrt3},       {0,0,0,1}, {1.f, 1.f, 1.f}, {1.0f, 1.0f}},
     };
 
     std::vector<uint32_t> indices{
@@ -339,7 +344,7 @@ Mesh Mesh::createGrid(int width, int length, glm::vec2 dimensions, const std::st
                 {x0, 0, z0},
                 {0, 1, 0},
                 {1, 0, 0, 1},
-                {0, 0, 1},
+                // {0, 0, 1},
                 {1, 1, 1},
                 {x / (float)width, z / (float)length}
             };

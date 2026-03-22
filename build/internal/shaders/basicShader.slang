@@ -71,8 +71,10 @@ float4 fsMain(VOut input)
 
         float3 lightColor = currentLight.color * currentLight.intensity * attenuation;
         outColor += pbrBRDF(albedo, materialInfo.roughness, materialInfo.metallic, F0, lightColor, normal, lightDir, viewDir);
+        // outColor += PhongBRDF(albedo, 80, lightColor * 0.25, float3(0,0,0), normal, lightDir, viewDir);
     }
     outColor += pbrAmbient(albedo, materialInfo.roughness, materialInfo.metallic, F0, ambientColor, ambientColor, normal, viewDir);
+    // outColor += ambientColor * 0.1;
     // float3 outColor = PhongBRDF(albedo, 80, lightColor, ambientColor, normal, lightDir, viewDir);
 
     // outColor = OklabToLinear(outColor);

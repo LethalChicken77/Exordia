@@ -21,6 +21,7 @@ class Graphics
         Graphics& operator=(const Graphics&) = delete;
 
 
+        void DrawMesh(const core::Mesh& meshData, id_t materialID, const std::vector<glm::mat4>& modelMatrices, int instanceID = -1);
         void DrawMesh(const core::Mesh& meshData, id_t materialID, const glm::mat4& modelMatrix, int instanceID = -1);
         void DrawFrame();
 
@@ -38,18 +39,20 @@ class Graphics
                 graphicsData->pipelineManager.ReloadPipelines();
         }
         
-        inline void RegisterMaterial(Material *mat, bool reloadPipelines = true)
+        inline void RegisterMaterial(Material &mat)
         {
             // const DescriptorSetLayout &layout, DescriptorPool &pool, uint32_t binding, const std::vector<uint8_t> data
-            graphicsData->testMaterial = std::make_unique<GraphicsMaterial>(
-                graphicsData->pipelineManager.GetPipeline(0)->GetDescriptorSetLayout(),
-                *graphicsData->materialDescriptorPool,
-                0,
-                mat->GetData()
-            );
+            // graphicsData->testMaterial = std::make_unique<GraphicsMaterial>(
+            //     graphicsData->pipelineManager.GetPipeline(0)->GetDescriptorSetLayout(),
+            //     *graphicsData->materialDescriptorPool,
+            //     0,
+            //     mat->GetData()
+            // );
+            // if(mat == nullptr) return;
+            // graphicsData->materialRegistry.Register(*mat);
         }
         
-        inline void DeregisterMaterial(Material *mat, bool reloadPipelines = true)
+        inline void DeregisterMaterial(Material &mat)
         {
             graphicsData->testMaterial.reset();
         }

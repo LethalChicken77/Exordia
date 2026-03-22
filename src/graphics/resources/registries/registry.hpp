@@ -1,10 +1,10 @@
 #pragma once
+#include <memory>
 #include <unordered_map>
+#include <vector>
 
 #include "registry.hpp"
 #include "graphics/api/handles.hpp"
-#include "graphics_mesh.hpp"
-#include "graphics_material.hpp"
 
 namespace graphics
 {
@@ -44,11 +44,11 @@ public:
     {
         if(!IsValid(handle))
         {
-            Console::errorf("Entry at index {} is invalid.", handle.index, "Registry");
             return nullptr;
         }
         return entries[handle.index].value.get();
     };
+    
     bool IsValid(H handle) const
     {
         return handle.IsValid() && // Check if index is valid
@@ -68,7 +68,7 @@ protected:
     struct Entry
     {
         std::unique_ptr<T> value{}; // TODO: Look into removing pointer or allocating from a pool
-        uint32_t generation = 0;
+        uint32_t generation = ~0u;
         bool inUse = false;
     };
     
@@ -76,32 +76,6 @@ protected:
     std::vector<uint32_t> freeList{};
 
     uint32_t nextGeneration = 1;
-};
-
-class MeshRegistry : public GraphicsRegistry<GraphicsMesh, MeshHandle>
-{
-public:
-    MeshHandle Register(core::MeshData &meshData);
-    bool Update(core::MeshData &meshData);
-    using GraphicsRegistry<GraphicsMesh, MeshHandle>::Deregister;
-    inline bool Deregister(core::MeshData &meshData)
-    {
-        bool result = Deregister(meshData.graphicsHandle);
-        return result;
-    }
-};
-
-class MaterialRegistry : public GraphicsRegistry<GraphicsMaterial, MaterialHandle>
-{
-public:
-    MeshHandle Register(core::MeshData &meshData);
-    bool Update(core::MeshData &meshData);
-    using GraphicsRegistry<GraphicsMaterial, MaterialHandle>::Deregister;
-    // inline bool Deregister(core::MeshData &meshData)
-    // {
-    //     bool result = Deregister(meshData.graphicsHandle);
-    //     return result;
-    // }
 };
 
 } // namespace graphics

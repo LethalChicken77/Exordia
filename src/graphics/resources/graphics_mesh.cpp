@@ -149,44 +149,50 @@ std::vector<VkVertexInputBindingDescription> GraphicsMesh::getVertexBindingDescr
 
 std::vector<VkVertexInputAttributeDescription> GraphicsMesh::getVertexAttributeDescriptions()
 {
-    std::vector<VkVertexInputAttributeDescription> attributeDescriptions(10);
-    attributeDescriptions[0].binding = 0;
-    attributeDescriptions[0].location = 0;
-    attributeDescriptions[0].format = VK_FORMAT_R32G32B32_SFLOAT;
-    attributeDescriptions[0].offset = offsetof(Vertex, position);
+    std::vector<VkVertexInputAttributeDescription> attributeDescriptions(9);
+    uint32_t currentOffset = 0;
+    attributeDescriptions[currentOffset].binding = 0;
+    attributeDescriptions[currentOffset].location = currentOffset;
+    attributeDescriptions[currentOffset].format = VK_FORMAT_R32G32B32_SFLOAT;
+    attributeDescriptions[currentOffset].offset = offsetof(Vertex, position);
+    currentOffset++;
 
-    attributeDescriptions[1].binding = 0;
-    attributeDescriptions[1].location = 1;
-    attributeDescriptions[1].format = VK_FORMAT_R32G32B32_SFLOAT;
-    attributeDescriptions[1].offset = offsetof(Vertex, normal);
+    attributeDescriptions[currentOffset].binding = 0;
+    attributeDescriptions[currentOffset].location = currentOffset;
+    attributeDescriptions[currentOffset].format = VK_FORMAT_R32G32B32_SFLOAT;
+    attributeDescriptions[currentOffset].offset = offsetof(Vertex, normal);
+    currentOffset++;
 
-    attributeDescriptions[2].binding = 0;
-    attributeDescriptions[2].location = 2;
-    attributeDescriptions[2].format = VK_FORMAT_R32G32B32A32_SFLOAT;
-    attributeDescriptions[2].offset = offsetof(Vertex, tangent);
+    attributeDescriptions[currentOffset].binding = 0;
+    attributeDescriptions[currentOffset].location = currentOffset;
+    attributeDescriptions[currentOffset].format = VK_FORMAT_R32G32B32A32_SFLOAT;
+    attributeDescriptions[currentOffset].offset = offsetof(Vertex, tangent);
+    currentOffset++;
 
-    attributeDescriptions[3].binding = 0;
-    attributeDescriptions[3].location = 3;
-    attributeDescriptions[3].format = VK_FORMAT_R32G32B32_SFLOAT;
-    attributeDescriptions[3].offset = offsetof(Vertex, bitangent);
+    // attributeDescriptions[3].binding = 0;
+    // attributeDescriptions[3].location = 3;
+    // attributeDescriptions[3].format = VK_FORMAT_R32G32B32_SFLOAT;
+    // attributeDescriptions[3].offset = offsetof(Vertex, bitangent);
 
-    attributeDescriptions[4].binding = 0;
-    attributeDescriptions[4].location = 4;
-    attributeDescriptions[4].format = VK_FORMAT_R32G32B32_SFLOAT;
-    attributeDescriptions[4].offset = offsetof(Vertex, color);
+    attributeDescriptions[currentOffset].binding = 0;
+    attributeDescriptions[currentOffset].location = currentOffset;
+    attributeDescriptions[currentOffset].format = VK_FORMAT_R32G32B32_SFLOAT;
+    attributeDescriptions[currentOffset].offset = offsetof(Vertex, color);
+    currentOffset++;
 
-    attributeDescriptions[5].binding = 0;
-    attributeDescriptions[5].location = 5;
-    attributeDescriptions[5].format = VK_FORMAT_R32G32_SFLOAT;
-    attributeDescriptions[5].offset = offsetof(Vertex, texCoord);
+    attributeDescriptions[currentOffset].binding = 0;
+    attributeDescriptions[currentOffset].location = currentOffset;
+    attributeDescriptions[currentOffset].format = VK_FORMAT_R32G32_SFLOAT;
+    attributeDescriptions[currentOffset].offset = offsetof(Vertex, texCoord);
+    currentOffset++;
 
     // Instance attributes
     for(int i = 0; i < 4; i++)
     {
-        attributeDescriptions[i + 6].binding = 1;
-        attributeDescriptions[i + 6].location = i + 6;
-        attributeDescriptions[i + 6].format = VK_FORMAT_R32G32B32A32_SFLOAT;
-        attributeDescriptions[i + 6].offset = sizeof(glm::vec4) * i;
+        attributeDescriptions[i + currentOffset].binding = 1;
+        attributeDescriptions[i + currentOffset].location = i + currentOffset;
+        attributeDescriptions[i + currentOffset].format = VK_FORMAT_R32G32B32A32_SFLOAT;
+        attributeDescriptions[i + currentOffset].offset = sizeof(glm::vec4) * i;
     }
 
     return attributeDescriptions;

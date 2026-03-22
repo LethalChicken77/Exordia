@@ -29,7 +29,7 @@ VOut vsMain(VertexData input, InstanceData instance)
     float3x3 normalMatrix = transpose(inverse(float3x3(model)));
     output.Normal = normalize(mul(normalMatrix, input.Normal));
     output.Tangent = float4(normalize(mul(normalMatrix, input.Tangent.xyz)), input.Tangent.w);
-    output.Bitangent = normalize(mul(normalMatrix, input.Bitangent));
+    output.Bitangent = normalize(mul(normalMatrix, cross(input.Normal.xyz, input.Tangent.xyz)));
     output.Color = input.Color;
     output.UV = input.UV;
 

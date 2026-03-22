@@ -26,13 +26,13 @@ namespace core
             glm::vec3 position{}; // 12
             glm::vec3 normal{}; // 12
             glm::vec4 tangent{}; // 16
-            glm::vec3 bitangent{}; // 12
+            // glm::vec3 bitangent{}; // 12
             glm::vec3 color{1.0f, 1.0f, 1.0f}; // 12
             glm::vec2 texCoord{}; // 8
             // 72
         };
 
-        struct alignas(16) SmallVertex
+        struct SmallVertex
         {
             glm::vec3 position{}; // 12
             glm::i8vec2 normal{}; // 2

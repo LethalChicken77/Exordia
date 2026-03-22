@@ -31,6 +31,8 @@ enum class DataType
     Vec4,
     IVec4,
     UVec4,
+
+    Struct
 };
 
 constexpr std::string GetTypeString(DataType type)
@@ -49,6 +51,7 @@ constexpr std::string GetTypeString(DataType type)
         case DataType::Vec4: return "Vec4";
         case DataType::IVec4: return "IVec4";
         case DataType::UVec4: return "UVec4";
+        case DataType::Struct: return "Struct";
         case DataType::Invalid:
         default: return "Invalid";
     }

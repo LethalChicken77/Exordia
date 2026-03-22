@@ -21,6 +21,7 @@ struct MeshTag;
 struct TextureTag;
 
 using ShaderHandle = GHandle<ShaderTag>;
+using PipelineHandle = ShaderHandle;
 using MaterialHandle = GHandle<MaterialTag>;
 using MeshHandle = GHandle<MeshTag>;
 using TextureHandle = GHandle<TextureTag>;

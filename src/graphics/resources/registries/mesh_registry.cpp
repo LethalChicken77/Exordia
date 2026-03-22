@@ -1,4 +1,4 @@
-#include "registry.hpp"
+#include "mesh_registry.hpp"
 
 namespace graphics
 {
@@ -8,7 +8,7 @@ namespace graphics
 /// @return Handle for new mesh, invalid on failure
 MeshHandle MeshRegistry::Register(core::MeshData &meshData)
 {
-    if(meshData.graphicsHandle.IsValid()) return meshData.graphicsHandle; // Mesh is already registered
+    if(IsValid(meshData.graphicsHandle)) return meshData.graphicsHandle; // Mesh is already registered
 
     uint32_t index;
     if(freeList.size() > 0)
@@ -38,7 +38,7 @@ MeshHandle MeshRegistry::Register(core::MeshData &meshData)
 bool MeshRegistry::Update(core::MeshData &meshData)
 {
     MeshHandle &handle = meshData.graphicsHandle;
-    if(!meshData.graphicsHandle.IsValid()) return false;
+    if(!handle.IsValid()) return false;
 
     Entry &entry = entries[handle.index];
 

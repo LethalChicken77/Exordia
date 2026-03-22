@@ -80,7 +80,7 @@ void Scene_t::drawScene()
     for(const GameObject& obj : gameObjects)
     {
         // std::vector<glm::mat4> transforms{};
-        // int gridSize = 30;
+        // int gridSize = 20;
         // for(int x = 0; x < gridSize; x++)
         // {
         // for(int y = 0; y < gridSize; y++)
@@ -88,13 +88,14 @@ void Scene_t::drawScene()
         // for(int z = 0; z < gridSize; z++)
         // {
         //     Transform temp{};
-        //     temp.position = obj->transform.position + glm::vec3(x, y, z);
+        //     temp.setPosition(obj->transform.getPosition() + glm::vec3(x, y, z));
+        //     temp.setRotation(obj->transform.getLocalRotation());
         //     transforms.push_back(temp.getTransform());
         // }
         // }
         // }
+        // graphicsModule.DrawMesh(obj->mesh, obj->materialID, transforms);
         graphicsModule.DrawMesh(obj->mesh, obj->materialID, obj->transform.getTransform(), obj->getInstanceID());
-        // // graphicsModule.drawMeshInstanced(obj->mesh, obj->materialID, transforms);
         // if(obj->getInstanceID() == selectedObject)
         //     graphicsModule.drawMeshOutline(obj->mesh, obj->transform.getTransform());
     }

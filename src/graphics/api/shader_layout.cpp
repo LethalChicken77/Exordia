@@ -199,6 +199,19 @@ inline ShaderParameter CreateVectorFloatParameterArray(const SpvReflectBlockVari
     );
 }
 
+inline ShaderParameter CreateStructArray(const SpvReflectBlockVariable &member, std::string parentName = "")
+{    
+    return ShaderParameter(
+        parentName + member.name,
+        member.absolute_offset,
+        DataType::Struct,
+        0,
+        member.array.stride,
+        member.array.dims[0], // TODO: Support multidimensional arrays
+        false
+    );
+}
+
 
 void ParseBlock(const SpvReflectBlockVariable *block, std::vector<ShaderParameter> *parameters, std::string parentName = "");
 
@@ -234,7 +247,7 @@ void ParseMember(const SpvReflectBlockVariable &member, std::vector<ShaderParame
         }
         else if(td->type_flags & SPV_REFLECT_TYPE_FLAG_STRUCT)
         {
-            Console::log("Arrays of structs not yet supported", "BufferLayout"); // TODO: Support arrays of structs
+            parameters->emplace_back(CreateStructArray(member, parentName.substr(0, parentName.length() - 1)));
         }
         else
         {

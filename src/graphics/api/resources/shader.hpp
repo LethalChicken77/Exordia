@@ -3,6 +3,7 @@
 #include <slang.h>
 #include "graphics/api/shader_config.hpp"
 #include "graphics/api/shader_layout.hpp"
+#include "graphics/api/handles.hpp"
 #include "core/assets/shader_asset.hpp"
 
 #include "glm/glm.hpp"
@@ -32,6 +33,8 @@ public:
     void SetFragmentShaderAsset(const ShaderAsset* asset) { fragmentShaderAsset = asset; }
 
     graphics::ShaderProperties properties{};
+
+    ShaderHandle graphicsHandle;
 
 private:
 
