@@ -4,11 +4,34 @@ namespace graphics
 {
 
 PipelineRegistry::PipelineRegistry(internal::Device &_device)
-    : device(_device) {}
+    : device(_device) 
+{
+}
+
+PipelineRegistry::~PipelineRegistry()
+{
+    Cleanup();
+}
+
+void PipelineRegistry::init()
+{
+    createPipelineCache();
+}
+
+void PipelineRegistry::createPipelineCache()
+{
+    VkPipelineCacheCreateInfo cacheCreateInfo{};
+    cacheCreateInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_CACHE_CREATE_INFO;
+
+    if(vkCreatePipelineCache(device.Get(), &cacheCreateInfo, nullptr, &pipelineCache) != VK_SUCCESS)
+    {
+        throw std::runtime_error("Failed to create pipeline cache!");
+    }
+}
 
 /// @brief Create a pipeline for a given shader
 /// @param shader 
-/// @return Handle for new mesh, invalid on failure
+/// @return Handle for new pipeline, invalid on failure
 PipelineHandle PipelineRegistry::Register(Shader &shader)
 {
     if(IsValid(shader.graphicsHandle)) return shader.graphicsHandle; // Mesh is already registered
@@ -56,14 +79,6 @@ bool PipelineRegistry::Reload(Shader &shader)
         pipelineCache);
 
     return true;
-}
-
-/// @brief Destroy all pipelines
-void PipelineRegistry::Reset()
-{
-    entries.clear();
-
-    nextGeneration++;
 }
 
 /// @brief Destroy all pipelines and cleanup GPU resources

@@ -7,6 +7,7 @@
 #include "components/transform.hpp"
 #include "components/mesh_components.hpp"
 #include "utils/smart_reference.hpp"
+#include "graphics/api/resources/material.hpp"
 
 namespace core
 {
@@ -28,7 +29,7 @@ namespace core
         Transform transform;
         // MeshRenderer meshRenderer;
 
-        id_t materialID{};
+        graphics::Material* material = nullptr;
     protected:
         GameObject_t(id_t newID) : Object(newID) {}
         id_t localID; // ID local to scene/prefab

@@ -66,8 +66,8 @@ public:
     Window &GetWindow() { return window; }
     GLFWwindow *GetGLFWWindow() { return window.GetWindow(); }
 
-    GlobalUbo globalUbo{};
-    CameraUbo cameraUbo{};
+    GlobalUbo globalUboData{};
+    CameraUbo cameraUboData{};
 
     MeshRegistry meshRegistry{};
     MaterialRegistry materialRegistry{};
@@ -89,9 +89,8 @@ public:
     // Global pool
     // Push constants
     // Default textures, shaders, materials
-    std::unique_ptr<GraphicsMaterial> testMaterial;
 private:
-    PipelineManager pipelineManager{backend.GetDevice()};
+    // PipelineManager pipelineManager{backend.GetDevice()};
 
     friend class Graphics;
 };

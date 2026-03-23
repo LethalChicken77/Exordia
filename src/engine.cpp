@@ -34,16 +34,79 @@ namespace core
 
 Engine::Engine()
 {
+    gameData = std::make_unique<GameData>();
     init();
 }
 
 Engine::~Engine()
 {
+    gameData.reset();
     close();
 }
 
 void Engine::init()
 {
+    ShaderAsset *testShader = AssetManager::LoadAsset<ShaderAsset>("internal/shaders/basicShader.slang");
+    ShaderAsset *pbrShader = AssetManager::LoadAsset<ShaderAsset>("internal/shaders/PBR.slang");
+
+    testShader->LoadData();
+    pbrShader->LoadData();
+
+    MemoryArena arena{4096};
+    MemoryPool<Shader> shaderPool{64};
+
+    // Shader shader = Shader(testShader, testShader);
+    // This is just to test memory pools, this will be replaced with a proper resource management system
+    Shader* shader = shaderPool.New(testShader, testShader);
+    // Shader* pbr = shaderPool.New(pbrShader, pbrShader);
+    graphicsModule.RegisterShader(*shader);
+
+    gameData->materials.emplace_back(Material(shader));
+    gameData->materials.emplace_back(Material(shader));
+    gameData->materials.emplace_back(Material(shader));
+    int64_t testVal = 69;
+    // mat.SetInt("test", testVal);
+    gameData->materials[0].SetVector("color", glm::vec4(1.f, 0.8f, 0.3f, 1.0f));
+    gameData->materials[0].SetFloat("roughness", 0.4f);
+    gameData->materials[0].SetFloat("metallic", 0.0f);
+
+    gameData->materials[1].SetVector("color", glm::vec4(0.2f, 0.5f, 0.8f, 1.0f));
+    gameData->materials[1].SetFloat("roughness", 0.2f);
+    gameData->materials[1].SetFloat("metallic", 1.0f);
+
+    gameData->materials[2].SetVector("color", glm::vec4(0.1f, 0.5f, 0.1f, 1.0f));
+    gameData->materials[2].SetFloat("roughness", 0.8f);
+    gameData->materials[2].SetFloat("metallic", 0.0f);
+
+    // mat2.SetVector("color", glm::vec4(1));
+    // mat2.SetFloat("normalMapStrength", 1.0f);
+    // mat2.SetTexture("albedoMap", );
+    // mat2.SetTexture("roughnessMap", );
+    // mat2.SetTexture("metallicMap", );
+    // mat2.SetTexture("normalMap", );
+
+    graphicsModule.RegisterMaterial(gameData->materials[0]);
+    graphicsModule.RegisterMaterial(gameData->materials[1]);
+    graphicsModule.RegisterMaterial(gameData->materials[2]);
+
+    graphicsModule.GraphicsInitImgui();
+    // ImGui::GetIO().ConfigFlags |= ImGuiConfigFlags_DockingEnable;
+
+
+    Input::initializeKeys();
+
+
+    camera = Camera(
+        {0.01f, 1000.0f, 90.0f},
+        false
+    );
+    // camera = Camera(
+    //     {0.01f, 100.0f, 20.0f},
+    //     true
+    // );
+    cameraTransform.setPosition(glm::vec3(0.0f, 2.0f, -5.0f));
+    cameraTransform.setPosition(glm::vec3(glm::radians(20.0f), 0.0f, 0.0f));
+
     scene = Scene("Test");
     scene->loadScene();
 }
@@ -120,55 +183,7 @@ void Engine::update(double deltaTime)
 
 void Engine::run()
 {
-    ShaderAsset *testShader = AssetManager::LoadAsset<ShaderAsset>("internal/shaders/basicShader.slang");
-    ShaderAsset *pbrShader = AssetManager::LoadAsset<ShaderAsset>("internal/shaders/PBR.slang");
-
-    testShader->LoadData();
-    pbrShader->LoadData();
-
-    MemoryArena arena{4096};
-    MemoryPool<Shader> shaderPool{64};
-
-    // Shader shader = Shader(testShader, testShader);
-    Shader* shader = shaderPool.New(testShader, testShader);
-    Shader* pbr = shaderPool.New(pbrShader, pbrShader);
-
-    Material mat = Material(shader);
-    Material mat2 = Material(pbr);
-    int64_t testVal = 69;
-    // mat.SetInt("test", testVal);
-    mat.SetVector("color", glm::vec4(1.f, 0.8f, 0.3f, 1.0f));
-    mat.SetFloat("roughness", 0.4f);
-    mat.SetFloat("metallic", 0.0f);
-
-    mat2.SetVector("color", glm::vec4(1));
-    mat2.SetFloat("normalMapStrength", 1.0f);
-    // mat2.SetTexture("albedoMap", );
-    // mat2.SetTexture("roughnessMap", );
-    // mat2.SetTexture("metallicMap", );
-    // mat2.SetTexture("normalMap", );
-
-    graphicsModule.RegisterShader(shader);
-    graphicsModule.RegisterMaterial(&mat);
-    graphicsModule.RegisterMaterial(&mat2);
-
-    graphicsModule.GraphicsInitImgui();
-    // ImGui::GetIO().ConfigFlags |= ImGuiConfigFlags_DockingEnable;
-
-
-    Input::initializeKeys();
-
-
-    camera = Camera(
-        {0.01f, 1000.0f, 90.0f},
-        false
-    );
-    // camera = Camera(
-    //     {0.01f, 100.0f, 20.0f},
-    //     true
-    // );
-    cameraTransform.setPosition(glm::vec3(0.0f, 2.0f, -5.0f));
-    cameraTransform.setPosition(glm::vec3(glm::radians(20.0f), 0.0f, 0.0f));
+    
     // camera.transform.parent = &scene->getGameObjects()[0]->transform;
 
     // graphicsModule.SetCamera(&camera);

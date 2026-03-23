@@ -8,7 +8,7 @@
 
 namespace graphics{
 
-class PipelineManager
+class [[deprecated("Replaced with PipelineRegistry")]] PipelineManager
 {
     public:
         PipelineManager(internal::Device &device);

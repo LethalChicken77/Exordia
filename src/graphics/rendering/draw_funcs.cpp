@@ -4,7 +4,7 @@
 namespace graphics
 {
 
-void DrawFunctions::bindCameraDescriptor(const RenderContext &renderContext, VkDescriptorSet descriptorSet, GraphicsPipeline* pipeline)
+void DrawFunctions::bindCameraDescriptor(const RenderContext &renderContext, VkDescriptorSet descriptorSet, const GraphicsPipeline* pipeline)
 {
     std::vector<VkDescriptorSet> descriptorSets = { descriptorSet };
 
@@ -20,7 +20,7 @@ void DrawFunctions::bindCameraDescriptor(const RenderContext &renderContext, VkD
     );
 }
 
-void DrawFunctions::bindGlobalDescriptor(const RenderContext &renderContext, VkDescriptorSet descriptorSet, GraphicsPipeline* pipeline)
+void DrawFunctions::bindGlobalDescriptor(const RenderContext &renderContext, VkDescriptorSet descriptorSet, const GraphicsPipeline* pipeline)
 {
 
     std::vector<VkDescriptorSet> descriptorSets = { descriptorSet };

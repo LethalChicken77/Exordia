@@ -12,6 +12,7 @@
 #include "utils/random.hpp"
 #include "utils/console.hpp"
 #include "core/scene.hpp"
+#include "temp_data.hpp"
 
 namespace core
 {

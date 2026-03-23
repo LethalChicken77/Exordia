@@ -6,17 +6,18 @@
 namespace graphics
 {
 
+class GraphicsPipeline;
 class MaterialRegistry : public GraphicsRegistry<GraphicsMaterial, MaterialHandle>
 {
 public:
-    MaterialHandle Register(Material &material);
+    MaterialHandle Register(Material &material, const GraphicsPipeline &pipeline, DescriptorPool &pool);
     bool Update(Material &material);
     using GraphicsRegistry<GraphicsMaterial, MaterialHandle>::Deregister;
-    // inline bool Deregister(core::MeshData &meshData)
-    // {
-    //     bool result = Deregister(meshData.graphicsHandle);
-    //     return result;
-    // }
+    inline bool Deregister(Material &material)
+    {
+        bool result = Deregister(material.graphicsHandle);
+        return result;
+    }
 };
 
 };

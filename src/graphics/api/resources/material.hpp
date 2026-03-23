@@ -73,8 +73,9 @@ public:
     void SetTexture(const std::string &name, TextureHandle handle);
 
     MaterialHandle graphicsHandle;
+    ShaderHandle shaderHandle;
 private:
-    const Shader* shader;
+    // const Shader* shader;
     const BufferLayout* materialLayout;
     std::vector<uint8_t> data{};
     std::unordered_map<std::string, uint32_t> dataIndex{};

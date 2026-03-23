@@ -18,7 +18,7 @@ class GraphicsRegistry
 public:
     // GraphicsRegistry(uint32_t maxEntries);
 
-    // Add specialization functions to specialized classes
+    // Add specialization functions to subclasses
     // Register()
     // Update()
 
@@ -40,7 +40,10 @@ public:
         return true;
     }
 
-    const T* Get(H handle) const 
+    /// @brief Get a pointer to a stored resource
+    /// @param handle The handle of the resource to retrieve
+    /// @return Pointer to the resource. nullptr if invalid.
+    T* Get(H handle) const 
     {
         if(!IsValid(handle))
         {
@@ -48,7 +51,10 @@ public:
         }
         return entries[handle.index].value.get();
     };
-    
+
+    /// @brief Check the validity of a handle
+    /// @param handle
+    /// @return True if valid, false otherwise
     bool IsValid(H handle) const
     {
         return handle.IsValid() && // Check if index is valid
@@ -58,6 +64,7 @@ public:
             handle.generation == entries[handle.index].generation; // Check for UAF
     }
 
+    /// @brief Delete all entries stored in the registry
     void Reset()
     {
         entries.clear();

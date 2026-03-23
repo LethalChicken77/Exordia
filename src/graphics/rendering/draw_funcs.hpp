@@ -9,8 +9,8 @@ class GraphicsPipeline;
 class DrawFunctions
 {
     public:
-        static void bindCameraDescriptor(const RenderContext &renderContext, VkDescriptorSet descriptorSet, GraphicsPipeline* pipeline);
-        static void bindGlobalDescriptor(const RenderContext &renderContext, VkDescriptorSet descriptorSet, GraphicsPipeline* pipeline);
+        static void bindCameraDescriptor(const RenderContext &renderContext, VkDescriptorSet descriptorSet, const GraphicsPipeline* pipeline);
+        static void bindGlobalDescriptor(const RenderContext &renderContext, VkDescriptorSet descriptorSet, const GraphicsPipeline* pipeline);
     private:
         static void renderMeshes(RenderContext& frameInfo, const std::vector<MeshRenderData> &renderQueue);
         static void renderGameObjectIDs(RenderContext& frameInfo, const std::vector<MeshRenderData> &renderQueue);

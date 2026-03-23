@@ -15,9 +15,9 @@ GraphicsData::~GraphicsData()
     ImGui_ImplGlfw_Shutdown();
     ImGui::DestroyContext();
 
-    pipelineManager.DestroyPipelines();
-    pipelineManager.Cleanup();
+    pipelineRegistry.Cleanup();
     meshRegistry.Reset();
+    materialRegistry.Reset();
 
     cameraDescriptorPool.reset();
     globalDescriptorPool.reset();
@@ -25,7 +25,6 @@ GraphicsData::~GraphicsData()
     imguiDescriptorPool.reset();
     cameraSetLayout.reset();
     globalSetLayout.reset();
-    testMaterial.reset();
     
     globalUBO.reset();
     cameraUBOs.clear();

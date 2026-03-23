@@ -1,11 +1,12 @@
 #include "material_registry.hpp"
+#include "graphics/resources/graphics_pipeline.hpp"
 
 namespace graphics
 {
 /// @brief Create graphics mesh data for a given mesh
 /// @param meshData 
 /// @return Handle for new mesh, invalid on failure
-MaterialHandle MaterialRegistry::Register(Material &material)
+MaterialHandle MaterialRegistry::Register(Material &material, const GraphicsPipeline &pipeline, DescriptorPool &pool)
 {
     if(material.graphicsHandle.IsValid()) return material.graphicsHandle; // Material is already registered
 
@@ -23,7 +24,13 @@ MaterialHandle MaterialRegistry::Register(Material &material)
     }
 
     Entry &entry = entries[index];
-    // entry.value = std::make_unique<GraphicsMaterial>(&material);
+    entry.value = std::make_unique<GraphicsMaterial>( // TODO: Let graphicsMaterial know about material
+        pipeline.GetDescriptorSetLayout(),
+        pool,
+        0,
+        material.GetData(),
+        material.shaderHandle
+    );
     entry.inUse = true;
     entry.generation = nextGeneration++;
 
@@ -41,7 +48,7 @@ bool MaterialRegistry::Update(Material &material)
 
     Entry &entry = entries[handle.index];
 
-    // Update Material
+    // Update Material TODO: Implement
     // entry.value
 
     return true;

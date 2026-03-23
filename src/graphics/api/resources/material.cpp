@@ -6,9 +6,9 @@ using graphics::BufferLayout;
 namespace graphics
 {
 
-Material::Material(const Shader *_shader) 
-    : shader(_shader), 
-    materialLayout(shader->GetLayout().GetMaterialLayout())
+Material::Material(const Shader *shader) 
+    // : shader(_shader), 
+    : materialLayout(shader->GetLayout().GetMaterialLayout())
 {
     if(materialLayout == nullptr) 
     {
@@ -21,6 +21,8 @@ Material::Material(const Shader *_shader)
     {
         dataIndex[param.name] = param.offset;
     }
+
+    shaderHandle = shader->graphicsHandle;
 }
 
 } // namespace core

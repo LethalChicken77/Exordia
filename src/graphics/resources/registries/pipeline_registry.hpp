@@ -4,11 +4,14 @@
 
 namespace graphics
 {
-    
+
+/// @brief Manager for graphics pipelines. Shaders are registered, and a handle is returned.
 class PipelineRegistry : public GraphicsRegistry<GraphicsPipeline, PipelineHandle>
 {
 public:
     PipelineRegistry(internal::Device &device);
+    ~PipelineRegistry();
+    
     PipelineHandle Register(Shader &shader);
     bool Reload(Shader &shader);
     void ReloadAll();
@@ -18,7 +21,6 @@ public:
         bool result = Deregister(shader);
         return result;
     }
-    void Reset();
     void Cleanup();
 private:
     internal::Device &device;

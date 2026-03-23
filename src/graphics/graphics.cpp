@@ -9,6 +9,7 @@
 #include "backends/imgui_impl_vulkan.h"
 #include "backends/imgui_impl_glfw.h"
 #include "rendering/draw_funcs.hpp"
+#include "limits.hpp"
 
 #include "tests/graphics_tests.hpp"
 
@@ -21,9 +22,7 @@ namespace graphics
         graphicsData->window.init(800, 600, engName + " - " + appName);
         graphicsData->backend.init(appName, engName, graphicsData->window);
         graphicsData->renderer.init();
-        graphicsData->pipelineManager.init();
-
-        graphicsData->pipelineManager.CreatePipelines();
+        graphicsData->pipelineRegistry.init();
         
         // testImage = std::make_unique<Image>(
         //     graphicsData->GetBackend().GetDevice(),
@@ -51,9 +50,9 @@ namespace graphics
             .SetMaxSets(Swapchain::MAX_FRAMES_IN_FLIGHT)
             .Build();
         graphicsData->materialDescriptorPool = DescriptorPool::Builder(graphicsData->GetBackend().GetDevice())
-            .AddPoolSize(VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, Swapchain::MAX_FRAMES_IN_FLIGHT)
+            .AddPoolSize(VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, 1)
             .SetPoolFlags(VK_DESCRIPTOR_SET_LAYOUT_CREATE_UPDATE_AFTER_BIND_POOL_BIT)
-            .SetMaxSets(Swapchain::MAX_FRAMES_IN_FLIGHT)
+            .SetMaxSets(EXO_MAX_MATERIALS)
             .Build();
         // BufferLayout s{};
         // std::vector<BufferLayout> layouts = {s};
@@ -137,14 +136,14 @@ namespace graphics
         cameraState.viewProj = camera.getViewProjection();
     }
 
-    void Graphics::DrawMesh(const core::Mesh& meshData, id_t materialID, const std::vector<glm::mat4>& modelMatrices, int instanceID)
+    void Graphics::DrawMesh(const core::Mesh& meshData, const Material& material, const std::vector<glm::mat4>& modelMatrices, int instanceID)
     {
-        drawQueue.push_back(MeshRenderData(meshData->graphicsHandle, modelMatrices, materialID, instanceID));
+        drawQueue.push_back(MeshRenderData(meshData->graphicsHandle, modelMatrices, material.graphicsHandle, instanceID));
     }
 
-    void Graphics::DrawMesh(const core::Mesh& meshData, id_t materialID, const glm::mat4& modelMatrix, int instanceID)
+    void Graphics::DrawMesh(const core::Mesh& meshData, const Material& material, const glm::mat4& modelMatrix, int instanceID)
     {
-        drawQueue.push_back(MeshRenderData(meshData->graphicsHandle, modelMatrix, materialID, instanceID));
+        drawQueue.push_back(MeshRenderData(meshData->graphicsHandle, modelMatrix, material.graphicsHandle, instanceID));
     }
 
     void Graphics::DrawFrame()
@@ -158,15 +157,15 @@ namespace graphics
         {
             RenderContext renderContext = renderer.GetContext();
 
-            GlobalUbo globalUbo{};
-            globalUbo.lights[0] = {glm::vec3(1, 1, 1), LightType::DIRECTIONAL, glm::vec3(1.0, 1.0, 1.0), 6.0};
-            globalUbo.lights[1] = {glm::vec3(4, 0, 0), LightType::POINT, glm::vec3(1.0, 0.8, 0.1), 30.0};
-            globalUbo.lights[2] = {glm::vec3(0, 4, -4), LightType::POINT, glm::vec3(0.5, 1.0, 0.1), 10.0};
-            globalUbo.lights[3] = {glm::vec3(-4, 0, 2), LightType::POINT, glm::vec3(0.9, 0.2, 1.0), 10.0};
-            globalUbo.numLights = 4;
-            globalUbo.ambient = glm::vec3(0.04, 0.08, 0.2);
-            // globalUbo.ambient = glm::vec3(1, 1, 1);
-            graphicsData->globalUBO->WriteData(&globalUbo);
+            GlobalUbo globalUboData{};
+            globalUboData.lights[0] = {glm::vec3(1, 1, 1), LightType::DIRECTIONAL, glm::vec3(1.0, 1.0, 1.0), 6.0};
+            globalUboData.lights[1] = {glm::vec3(4, 0, 0), LightType::POINT, glm::vec3(1.0, 0.8, 0.1), 30.0};
+            globalUboData.lights[2] = {glm::vec3(0, 4, -4), LightType::POINT, glm::vec3(0.5, 1.0, 0.1), 10.0};
+            globalUboData.lights[3] = {glm::vec3(-4, 0, 2), LightType::POINT, glm::vec3(0.9, 0.2, 1.0), 10.0};
+            globalUboData.numLights = 4;
+            globalUboData.ambient = glm::vec3(0.04, 0.08, 0.2);
+            // globalUboData.ambient = glm::vec3(1, 1, 1);
+            graphicsData->globalUBO->WriteData(&globalUboData);
 
             graphicsData->cameraUBOs[renderContext.frameIndex].WriteData(&cameraState);
 
@@ -178,18 +177,23 @@ namespace graphics
                 VkClearValue{.color = {{0.02f, 0.03f, 0.1f, 1.0f}}}
             );
 
-            GraphicsPipeline &currentPipeline = *graphicsData->pipelineManager.GetPipeline(0);
-            currentPipeline.Bind(commandBuffer);
-            localDescriptorSets.push_back(graphicsData->testMaterial->GetDescriptorSet());
-
-            DrawFunctions::bindCameraDescriptor(renderContext, graphicsData->cameraDescriptorSets[renderContext.frameIndex], &currentPipeline);
-            DrawFunctions::bindGlobalDescriptor(renderContext, graphicsData->globalDescriptorSet, &currentPipeline);
             for(MeshRenderData &renderData : drawQueue)
             {
+                GraphicsMaterial *mat = graphicsData->materialRegistry.Get(renderData.materialHandle);
+                // Console::debugf("{}", renderData.materialHandle.index);
+                if(mat == nullptr) continue;
+                GraphicsPipeline *currentPipeline = graphicsData->pipelineRegistry.Get(mat->shaderHandle);
+                if(currentPipeline == nullptr) continue;
+                currentPipeline->Bind(commandBuffer);
+                localDescriptorSets = {mat->GetDescriptorSet()}; // This is terrible. TODO: literally anything else
+
+                DrawFunctions::bindCameraDescriptor(renderContext, graphicsData->cameraDescriptorSets[renderContext.frameIndex], currentPipeline);
+                DrawFunctions::bindGlobalDescriptor(renderContext, graphicsData->globalDescriptorSet, currentPipeline);
+
                 vkCmdBindDescriptorSets(
                     commandBuffer, 
                     VK_PIPELINE_BIND_POINT_GRAPHICS, 
-                    currentPipeline.GetPipelineLayout(), 
+                    currentPipeline->GetPipelineLayout(), 
                     2,
                     1,
                     localDescriptorSets.data(), 

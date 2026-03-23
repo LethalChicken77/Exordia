@@ -274,10 +274,10 @@ std::vector<Vertex> generateSierpinski(float edgeLength, int depth)
     }
 }
 
-MeshRenderData::MeshRenderData(MeshHandle _handle, const glm::mat4& _transform, uint32_t materialID, id_t objID)
-    : handle(_handle), objectID(objID), transforms{_transform}, materialIndex{materialID}, instanceBuffer{CreateInstanceBuffer(graphicsData->GetBackend().GetDevice(), transforms)} {}
-MeshRenderData::MeshRenderData(MeshHandle _handle, const std::vector<glm::mat4>& _transform, uint32_t materialID, id_t objID)
-    : handle(_handle), objectID(objID), transforms{_transform}, materialIndex{materialID}, instanceBuffer{CreateInstanceBuffer(graphicsData->GetBackend().GetDevice(), transforms)} {}
+MeshRenderData::MeshRenderData(MeshHandle _handle, const glm::mat4& _transform, MaterialHandle _materialHandle, id_t objID)
+    : handle(_handle), objectID(objID), transforms{_transform}, materialHandle{_materialHandle}, instanceBuffer{CreateInstanceBuffer(graphicsData->GetBackend().GetDevice(), transforms)} {}
+MeshRenderData::MeshRenderData(MeshHandle _handle, const std::vector<glm::mat4>& _transform, MaterialHandle _materialHandle, id_t objID)
+    : handle(_handle), objectID(objID), transforms{_transform}, materialHandle{_materialHandle}, instanceBuffer{CreateInstanceBuffer(graphicsData->GetBackend().GetDevice(), transforms)} {}
 
 std::unique_ptr<Buffer> MeshRenderData::CreateInstanceBuffer(internal::Device &device, const std::vector<glm::mat4>& transforms)
 {

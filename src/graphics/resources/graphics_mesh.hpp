@@ -49,12 +49,12 @@ namespace graphics
     
     struct MeshRenderData
     {
-        MeshRenderData(MeshHandle handle, const glm::mat4& _transform, uint32_t materialID = 0, id_t objID = -1);
-        MeshRenderData(MeshHandle handle, const std::vector<glm::mat4>& _transform, uint32_t materialID = 0, id_t objID = -1);
+        MeshRenderData(MeshHandle handle, const glm::mat4& _transform, MaterialHandle materialHandle = {}, id_t objID = -1);
+        MeshRenderData(MeshHandle handle, const std::vector<glm::mat4>& _transform, MaterialHandle materialHandle = {}, id_t objID = -1);
 
         MeshHandle handle;
         uint32_t objectID;
-        uint32_t materialIndex;
+        MaterialHandle materialHandle;
         std::vector<glm::mat4> transforms{};
         std::unique_ptr<Buffer> instanceBuffer{};
 

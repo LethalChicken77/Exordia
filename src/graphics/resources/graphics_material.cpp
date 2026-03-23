@@ -4,7 +4,7 @@
 namespace graphics
 {
 
-GraphicsMaterial::GraphicsMaterial(const DescriptorSetLayout &_layout, DescriptorPool &pool, uint32_t binding, const std::vector<uint8_t> data) 
+GraphicsMaterial::GraphicsMaterial(const DescriptorSetLayout &_layout, DescriptorPool &pool, uint32_t binding, const std::vector<uint8_t> data, ShaderHandle _shaderHandle) 
     : device(pool.GetDevice()), layout(_layout)
 {
     Console::log("Creating GraphicsMaterial", "GraphicsMaterial");
@@ -29,6 +29,8 @@ GraphicsMaterial::GraphicsMaterial(const DescriptorSetLayout &_layout, Descripto
     ubo->Map();
     ubo->WriteData((void*)data.data(), data.size());
     ubo->Unmap();
+
+    shaderHandle = _shaderHandle;
 }
 
 } // namespace graphics

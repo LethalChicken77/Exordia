@@ -21,41 +21,24 @@ class Graphics
         Graphics& operator=(const Graphics&) = delete;
 
 
-        void DrawMesh(const core::Mesh& meshData, id_t materialID, const std::vector<glm::mat4>& modelMatrices, int instanceID = -1);
-        void DrawMesh(const core::Mesh& meshData, id_t materialID, const glm::mat4& modelMatrix, int instanceID = -1);
+        void DrawMesh(const core::Mesh& meshData, const Material& material, const std::vector<glm::mat4>& modelMatrices, int instanceID = -1);
+        void DrawMesh(const core::Mesh& meshData, const Material& material, const glm::mat4& modelMatrix, int instanceID = -1);
         void DrawFrame();
 
-        void RegisterShader(Shader *shader, bool reloadPipelines = true)
-        {
-            graphicsData->pipelineManager.RegisterShader(shader);
-            if(reloadPipelines)
-                graphicsData->pipelineManager.ReloadPipelines();
+        inline void RegisterShader(Shader &shader) { graphicsData->pipelineRegistry.Register(shader); }
+        inline void DeregisterShader(Shader &shader) { graphicsData->pipelineRegistry.Deregister(shader); }
+
+        void RegisterMaterial(Material &mat) 
+        { 
+            GraphicsPipeline *pipeline = graphicsData->pipelineRegistry.Get(mat.shaderHandle);
+            if(pipeline == nullptr)
+            {
+                Console::error("Shader associated with material is invalid");
+                return;
+            }
+            graphicsData->materialRegistry.Register(mat, *pipeline, *graphicsData->materialDescriptorPool);
         }
-        
-        void DeregisterShader(Shader *shader, bool reloadPipelines = true)
-        {
-            graphicsData->pipelineManager.DeregisterShader(shader);
-            if(reloadPipelines)
-                graphicsData->pipelineManager.ReloadPipelines();
-        }
-        
-        inline void RegisterMaterial(Material &mat)
-        {
-            // const DescriptorSetLayout &layout, DescriptorPool &pool, uint32_t binding, const std::vector<uint8_t> data
-            // graphicsData->testMaterial = std::make_unique<GraphicsMaterial>(
-            //     graphicsData->pipelineManager.GetPipeline(0)->GetDescriptorSetLayout(),
-            //     *graphicsData->materialDescriptorPool,
-            //     0,
-            //     mat->GetData()
-            // );
-            // if(mat == nullptr) return;
-            // graphicsData->materialRegistry.Register(*mat);
-        }
-        
-        inline void DeregisterMaterial(Material &mat)
-        {
-            graphicsData->testMaterial.reset();
-        }
+        inline void DeregisterMaterial(Material &mat) { graphicsData->materialRegistry.Deregister(mat); }
 
         inline MeshHandle RegisterMesh(core::MeshData &mesh) { return graphicsData->meshRegistry.Register(mesh); }
         inline bool UpdateMesh(core::MeshData &mesh) { return graphicsData->meshRegistry.Update(mesh); }
@@ -63,10 +46,10 @@ class Graphics
         
         void SetCamera(const Camera &camera);
 
-        inline void ReloadPipelines()
-        {
-            graphicsData->pipelineManager.ReloadPipelines();
-        }
+        // inline void ReloadPipelines()
+        // {
+        //     graphicsData->pipelineRegistry.ReloadPipelines();
+        // }
 
         Window &GetWindow() { return graphicsData->GetWindow(); }
         GLFWwindow* GetGLFWWindow() { return graphicsData->GetWindow().GetWindow(); }

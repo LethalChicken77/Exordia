@@ -131,7 +131,7 @@ struct PipelineConfigInfo
     }
 };
 
-class GraphicsPipeline
+class GraphicsPipeline // TODO: Look into merging with ComputePipeline
 {
 public:
     GraphicsPipeline(internal::Device &device, id_t id, const Shader &shader, VkPipelineCache cache);
@@ -144,8 +144,8 @@ public:
     void Bind(VkCommandBuffer commandBuffer);
 
     id_t GetID() const { return ID; }
-    VkPipelineLayout GetPipelineLayout() { return pipelineLayout; }
-    DescriptorSetLayout &GetDescriptorSetLayout() { return materialSetLayout; }
+    VkPipelineLayout GetPipelineLayout() const { return pipelineLayout; }
+    const DescriptorSetLayout &GetDescriptorSetLayout() const { return materialSetLayout; }
 
 private:
     internal::Device &device;
