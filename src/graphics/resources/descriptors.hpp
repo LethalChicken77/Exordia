@@ -1,8 +1,8 @@
 #pragma once
 #include "graphics/backend/device.hpp"
 #include <memory>
-#include "graphics/backend/image.hpp"
-#include "graphics/backend/buffer.hpp"
+#include "image.hpp"
+#include "buffer.hpp"
 
 namespace graphics
 {

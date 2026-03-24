@@ -1,4 +1,5 @@
 #pragma once
+#include "shared_config.hpp"
 
 namespace graphics
 {
@@ -51,18 +52,6 @@ enum class CullMode
     BOTH = 3
 };
 
-enum class DepthTest
-{
-    NEVER = 0,
-    LESS = 1,
-    LESS_EQUAL = 2,
-    EQUAL = 3,
-    GREATER_EQUAL = 4,
-    GREATER = 5,
-    NOT_EQUAL = 6,
-    ALWAYS = 7
-};
-
 enum class DepthWrite
 {
     AUTO = 0,
@@ -89,7 +78,7 @@ struct ShaderProperties
     DrawMode drawMode = DrawMode::FILL;
     BlendMode blendMode = BlendMode::ALPHA;
     CullMode cullMode = CullMode::BACK;
-    DepthTest depthTest = DepthTest::LESS_EQUAL;
+    CompareOp depthTest = CompareOp::LessEqual;
     DepthWrite depthWrite = DepthWrite::AUTO;
 
     bool alphaClipping = false;

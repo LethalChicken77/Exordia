@@ -29,7 +29,7 @@ VOut vsMain(VertexData vertex, InstanceData instance)
 
 // Entry point
 [shader("fragment")]
-float4 fsMain(VOut input)
+float4 fsMain(FIn input)
 {
     float3 sunDir = normalize(globalData.lights[0].position);
     float3 skyDir = normalize(input.Position);

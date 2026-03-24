@@ -6,14 +6,23 @@
 namespace graphics
 {
 
+class TextureData;
 class Material
 {
+public:
+    struct TextureBinding
+    {
+        uint32_t binding;
+        TextureHandle handle;
+    };
+
 public:
     Material(const Shader *shader);
 
     
     const uint32_t GetBufferSize() const { return data.size(); }
     const std::vector<uint8_t> &GetData() const { return data; }
+    const std::vector<TextureBinding> &GetTextureBindings() const { return textureBindings; }
     
     inline void SetInt(const std::string &name, int8_t val) { return setPrimitive<int8_t>(name, val); }
     inline void SetInt(const std::string &name, int16_t val) { return setPrimitive<int16_t>(name, val); }
@@ -71,6 +80,7 @@ public:
     void SetMat4x4(std::string_view name, glm::mat4x4 val);
 
     void SetTexture(const std::string &name, TextureHandle handle);
+    void SetTexture(const std::string &name, const TextureData& texture);
 
     MaterialHandle graphicsHandle;
     ShaderHandle shaderHandle;
@@ -78,8 +88,9 @@ private:
     // const Shader* shader;
     const BufferLayout* materialLayout;
     std::vector<uint8_t> data{};
+    std::vector<TextureBinding> textureBindings{};
     std::unordered_map<std::string, uint32_t> dataIndex{};
-    std::unordered_map<std::string, TextureHandle> textureIndex{};
+    std::unordered_map<std::string, uint32_t> textureIndex{};
 
     template<typename T>
     void setPrimitive(const std::string &name, T value)
@@ -318,7 +329,7 @@ private:
             }
         }
 
-        Console::logf("Set parameter {} at offset {}", name, index, "Material");
+        // Console::logf("Set parameter {} at offset {}", name, index, "Material");
     }
 
     template<typename T>

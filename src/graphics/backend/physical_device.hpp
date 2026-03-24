@@ -30,7 +30,7 @@ public:
 
     const VkPhysicalDevice &Get() const { return physicalDevice; }
     const VkPhysicalDeviceProperties2 &GetProperties() const { return properties; }
-    const VkPhysicalDeviceDescriptorBufferPropertiesEXT &GetDescriptorBufferProperties() const { return descriptorBufferProperties; }
+    const vk::PhysicalDeviceLimits GetLimits() const { return properties.properties.limits; }
     const QueueFamilyIndices &GetQueueFamilyIndices() const { return queueFamilyIndices; }
     SwapchainSupportDetails &GetSwapchainSupportDetails(VkSurfaceKHR* surface) { 
         swapchainSupport = querySwapChainSupport(physicalDevice, surface);
@@ -50,7 +50,6 @@ private:
     VkPhysicalDevice physicalDevice = VK_NULL_HANDLE;
 
     VkPhysicalDeviceProperties2 properties{};
-    VkPhysicalDeviceDescriptorBufferPropertiesEXT descriptorBufferProperties{};
 
     QueueFamilyIndices queueFamilyIndices{};
     SwapchainSupportDetails swapchainSupport{};

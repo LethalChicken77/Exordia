@@ -38,7 +38,7 @@ VOut vsMain(VertexData input, InstanceData instance)
 
 // Entry point
 [shader("fragment")]
-float4 fsMain(VOut input)
+float4 fsMain(FIn input)
 {
     float3 normal = normalize(input.Normal);
     float3 tangent = normalize(input.Tangent.xyz);

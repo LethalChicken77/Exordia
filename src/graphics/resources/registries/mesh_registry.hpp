@@ -13,8 +13,7 @@ public:
     using GraphicsRegistry<GraphicsMesh, MeshHandle>::Deregister;
     inline bool Deregister(core::MeshData &meshData)
     {
-        bool result = Deregister(meshData.graphicsHandle);
-        return result;
+        return Deregister(meshData.graphicsHandle);
     }
 };
 

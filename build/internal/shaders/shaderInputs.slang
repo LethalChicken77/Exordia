@@ -26,6 +26,19 @@ struct VOut
     float2 UV : TEXCOORD0;
 };
 
+struct FIn
+{
+    float4 FragPosition : SV_POSITION;
+    float3 Position : POSITION;
+    float3 Normal : NORMAL;
+    float4 Tangent : TANGENT;
+    float3 Bitangent : BITANGENT;
+    float3 Color : COLOR;
+    float2 UV : TEXCOORD0;
+
+    bool isFrontFace : SV_IsFrontFace;
+};
+
 struct PushConstants
 {
     int objectID;

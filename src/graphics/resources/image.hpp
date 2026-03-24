@@ -1,8 +1,8 @@
 #pragma once
 #include "graphics/backend/vulkan_include.h"
 
-#include "core/textureData.hpp"
-#include "vulkan_backend.hpp"
+#include "graphics/api/resources/texture_data.hpp"
+#include "graphics/backend/device.hpp"
 
 namespace graphics
 {
@@ -76,13 +76,13 @@ public:
     );
 
     Image(
-        const core::TextureData *textureData,
+        const TextureData &textureData,
         const ImageProperties &properties = ImageProperties::getDefaultProperties(),
         VkMemoryPropertyFlags memoryProperties = VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT
     );
     Image(
         internal::Device &device,
-        const core::TextureData *textureData,
+        const TextureData &textureData,
         const ImageProperties &properties = ImageProperties::getDefaultProperties(),
         VkMemoryPropertyFlags memoryProperties = VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT
     );
@@ -104,8 +104,8 @@ public:
     /// @brief Reset to default image layout with command buffer
     inline void ResetImageLayout(VkCommandBuffer commandBuffer) { TransitionImageLayout(defaultLayout, commandBuffer); }
 
-    void SetData(const core::TextureData *data);
-    void GetData(const core::TextureData *data);
+    void SetData(const TextureData &data);
+    void GetData(TextureData *data) const;
     VkImage GetImage() const { return image; }
     VkImageView GetImageView() const { return imageView; }
 

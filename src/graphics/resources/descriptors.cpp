@@ -192,7 +192,7 @@ DescriptorWriter &DescriptorWriter::WriteBuffer(uint32_t binding, VkDescriptorBu
     const std::unordered_map<uint32_t, VkDescriptorSetLayoutBinding> &bindings = setLayout.GetBindings();
     if(bindings.count(binding) != 1)
     {
-        Console::errorf("Layout does not contain binding {}", binding, "DescriptorWriter");
+        Console::error(std::format("Layout does not contain binding {}", binding), "DescriptorWriter");
         return *this; // Should maybe throw
     }
 

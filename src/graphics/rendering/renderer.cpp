@@ -2,7 +2,7 @@
 #include "graphics/graphics_data.hpp"
 #include "utils/console.hpp"
 #include "utils/debug.hpp"
-#include "graphics/backend/image.hpp"
+#include "graphics/resources/image.hpp"
 
 namespace graphics
 {

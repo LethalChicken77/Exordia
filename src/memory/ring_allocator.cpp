@@ -38,7 +38,7 @@ overflow:
     if(newOffset > capacity)
     {
         offset = 0;
-        goto overflow;
+        goto overflow; // hehe I used a goto :D
     }
     
     offset = newOffset;

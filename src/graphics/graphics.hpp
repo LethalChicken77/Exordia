@@ -36,7 +36,7 @@ class Graphics
                 Console::error("Shader associated with material is invalid");
                 return;
             }
-            graphicsData->materialRegistry.Register(mat, *pipeline, *graphicsData->materialDescriptorPool);
+            graphicsData->materialRegistry.Register(mat, *graphicsData->materialDescriptorPool);
         }
         inline void DeregisterMaterial(Material &mat) { graphicsData->materialRegistry.Deregister(mat); }
 

@@ -1,7 +1,7 @@
 #pragma once
 #include "graphics/backend/vulkan_include.h"
 
-#include "device.hpp"
+#include "graphics/backend/device.hpp"
 // #define DISABLE_VALIDATION // Disable validation checks for performance. Ensure correctness manually.
 
 namespace graphics

@@ -3,12 +3,24 @@
 
 namespace graphics
 {
+
+MaterialRegistry::MaterialRegistry(const PipelineRegistry &_pipelineRegistry)
+    : pipelineRegistry(_pipelineRegistry)
+{}
+
 /// @brief Create graphics mesh data for a given mesh
 /// @param meshData 
 /// @return Handle for new mesh, invalid on failure
-MaterialHandle MaterialRegistry::Register(Material &material, const GraphicsPipeline &pipeline, DescriptorPool &pool)
+MaterialHandle MaterialRegistry::Register(Material &material, DescriptorPool &pool)
 {
     if(material.graphicsHandle.IsValid()) return material.graphicsHandle; // Material is already registered
+
+    GraphicsPipeline* pipeline = pipelineRegistry.Get(material.shaderHandle);
+    if(pipeline == nullptr)
+    {
+        Console::error("Failed to create graphics material: Invalid pipeline", "GraphicsMaterial");
+        return {};
+    }
 
     uint32_t index;
     if(freeList.size() > 0)
@@ -24,12 +36,10 @@ MaterialHandle MaterialRegistry::Register(Material &material, const GraphicsPipe
     }
 
     Entry &entry = entries[index];
-    entry.value = std::make_unique<GraphicsMaterial>( // TODO: Let graphicsMaterial know about material
-        pipeline.GetDescriptorSetLayout(),
-        pool,
-        0,
-        material.GetData(),
-        material.shaderHandle
+    entry.value = std::make_unique<GraphicsMaterial>(
+        material,
+        *pipeline,
+        pool
     );
     entry.inUse = true;
     entry.generation = nextGeneration++;

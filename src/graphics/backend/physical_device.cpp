@@ -45,12 +45,9 @@ void PhysicalDevice::pickPhysicalDevice(VkInstance instance, VkSurfaceKHR* surfa
         throw std::runtime_error("Failed to find a suitable GPU!");
     }
 
-    descriptorBufferProperties = {
-        .sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_DESCRIPTOR_BUFFER_PROPERTIES_EXT
-    };
     properties = {
         .sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_PROPERTIES_2,
-        .pNext = &descriptorBufferProperties
+        .pNext = nullptr
     };
     vkGetPhysicalDeviceProperties2(physicalDevice, &properties);
     Console::log("Physical device: " + std::string(properties.properties.deviceName), "PhysicalDevice");

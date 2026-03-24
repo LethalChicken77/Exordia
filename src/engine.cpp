@@ -46,24 +46,30 @@ Engine::~Engine()
 
 void Engine::init()
 {
+    gameData->skyboxMesh = Mesh::createSkybox(10);
+    graphicsModule.RegisterMesh(*gameData->skyboxMesh);
+
     ShaderAsset *testShader = AssetManager::LoadAsset<ShaderAsset>("internal/shaders/basicShader.slang");
     ShaderAsset *pbrShader = AssetManager::LoadAsset<ShaderAsset>("internal/shaders/PBR.slang");
+    ShaderAsset *skyboxShader = AssetManager::LoadAsset<ShaderAsset>("internal/shaders/skybox.slang");
 
     testShader->LoadData();
     pbrShader->LoadData();
-
-    MemoryArena arena{4096};
-    MemoryPool<Shader> shaderPool{64};
+    skyboxShader->LoadData();
 
     // Shader shader = Shader(testShader, testShader);
     // This is just to test memory pools, this will be replaced with a proper resource management system
-    Shader* shader = shaderPool.New(testShader, testShader);
+    Shader* shader = gameData->shaderPool.New(testShader, testShader);
+    Shader* sbShader = gameData->shaderPool.New(skyboxShader, skyboxShader);
+    sbShader->properties.depthWrite = DepthWrite::DISABLED;
     // Shader* pbr = shaderPool.New(pbrShader, pbrShader);
     graphicsModule.RegisterShader(*shader);
+    graphicsModule.RegisterShader(*sbShader);
 
     gameData->materials.emplace_back(Material(shader));
     gameData->materials.emplace_back(Material(shader));
     gameData->materials.emplace_back(Material(shader));
+    gameData->materials.emplace_back(Material(sbShader));
     int64_t testVal = 69;
     // mat.SetInt("test", testVal);
     gameData->materials[0].SetVector("color", glm::vec4(1.f, 0.8f, 0.3f, 1.0f));
@@ -88,6 +94,7 @@ void Engine::init()
     graphicsModule.RegisterMaterial(gameData->materials[0]);
     graphicsModule.RegisterMaterial(gameData->materials[1]);
     graphicsModule.RegisterMaterial(gameData->materials[2]);
+    graphicsModule.RegisterMaterial(gameData->materials[3]);
 
     graphicsModule.GraphicsInitImgui();
     // ImGui::GetIO().ConfigFlags |= ImGuiConfigFlags_DockingEnable;
@@ -254,7 +261,9 @@ void Engine::run()
         
         update(deltaTime);
 
-        // graphicsModule.drawSkybox();
+        Transform skyboxTransform{};
+        skyboxTransform.setPosition(cameraTransform.getPosition());
+        graphicsModule.DrawMesh(gameData->skyboxMesh, gameData->materials[3], skyboxTransform.getTransform(), -1); // Draw skybox
         scene->drawScene();
         // Render here
         camera.setAspectRatio(graphicsModule.GetAspectRatio());

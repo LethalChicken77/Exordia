@@ -643,28 +643,28 @@ namespace graphics
         depthStencilInfo.depthTestEnable = VK_TRUE;
         switch(shaderConfig.depthTest)
         {
-            case DepthTest::NEVER:
+            case CompareOp::Never:
                 depthStencilInfo.depthCompareOp = VK_COMPARE_OP_NEVER;
                 break;
-            case DepthTest::LESS:
+            case CompareOp::Less:
                 depthStencilInfo.depthCompareOp = VK_COMPARE_OP_LESS;
                 break;
-            case DepthTest::LESS_EQUAL:
+            case CompareOp::LessEqual:
                 depthStencilInfo.depthCompareOp = VK_COMPARE_OP_LESS_OR_EQUAL;
                 break;
-            case DepthTest::EQUAL:
+            case CompareOp::Equal:
                 depthStencilInfo.depthCompareOp = VK_COMPARE_OP_EQUAL;
                 break;
-            case DepthTest::GREATER_EQUAL:
+            case CompareOp::GreaterEqual:
                 depthStencilInfo.depthCompareOp = VK_COMPARE_OP_GREATER_OR_EQUAL;
                 break;
-            case DepthTest::GREATER:
+            case CompareOp::Greater:
                 depthStencilInfo.depthCompareOp = VK_COMPARE_OP_GREATER;
                 break;
-            case DepthTest::NOT_EQUAL:
+            case CompareOp::NotEqual:
                 depthStencilInfo.depthCompareOp = VK_COMPARE_OP_NOT_EQUAL;
                 break;
-            case DepthTest::ALWAYS:
+            case CompareOp::Always:
                 depthStencilInfo.depthTestEnable = VK_FALSE; // Disable depth test for ALWAYS, fragment always passes
                 depthStencilInfo.depthCompareOp = VK_COMPARE_OP_ALWAYS;
                 break;

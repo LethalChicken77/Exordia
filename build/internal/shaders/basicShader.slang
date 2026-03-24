@@ -34,9 +34,9 @@ VOut vsMain(VertexData vertex, InstanceData instance)
 
 // Entry point
 [shader("fragment")]
-float4 fsMain(VOut input)
+float4 fsMain(FIn input)
 {
-    float3 normal = normalize(input.Normal);
+    float3 normal = normalize(input.Normal) * (input.isFrontFace ? 1 : -1);
     // float3 lightDir = normalize(float3(0.5, 0.4, 1));
     float3 cameraPos = cameraData.view[3].xyz;
     float3 viewDir = normalize(input.Position.xyz - cameraPos);

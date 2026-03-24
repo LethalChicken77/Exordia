@@ -2,8 +2,8 @@
 #include "graphics.hpp"
 #include "graphics_data.hpp"
 #include "utils/console.hpp"
-#include "backend/buffer.hpp"
-#include "backend/image.hpp"
+#include "resources/buffer.hpp"
+#include "resources/image.hpp"
 #include "rendering/swap_chain.hpp"
 #include "imgui.h"
 #include "backends/imgui_impl_vulkan.h"
@@ -158,7 +158,8 @@ namespace graphics
             RenderContext renderContext = renderer.GetContext();
 
             GlobalUbo globalUboData{};
-            globalUboData.lights[0] = {glm::vec3(1, 1, 1), LightType::DIRECTIONAL, glm::vec3(1.0, 1.0, 1.0), 6.0};
+            // globalUboData.lights[0] = {glm::vec3(1, 1, 1), LightType::DIRECTIONAL, glm::vec3(1.0, 1.0, 1.0), 6.0};
+            globalUboData.lights[0] = {glm::vec3(1, 1, 1), LightType::DIRECTIONAL, glm::vec3(1.0, 1.0, 1.0), 3.0};
             globalUboData.lights[1] = {glm::vec3(4, 0, 0), LightType::POINT, glm::vec3(1.0, 0.8, 0.1), 30.0};
             globalUboData.lights[2] = {glm::vec3(0, 4, -4), LightType::POINT, glm::vec3(0.5, 1.0, 0.1), 10.0};
             globalUboData.lights[3] = {glm::vec3(-4, 0, 2), LightType::POINT, glm::vec3(0.9, 0.2, 1.0), 10.0};

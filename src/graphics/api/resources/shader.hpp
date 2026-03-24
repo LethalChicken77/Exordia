@@ -27,12 +27,12 @@ public:
 
     const std::vector<uint32_t>& GetVertSpirv() const { return vertSpirv; }
     const std::vector<uint32_t>& GetFragSpirv() const { return fragSpirv; }
-    const graphics::ShaderLayout &GetLayout() const { return layout; }
+    const ShaderLayout &GetLayout() const { return layout; }
 
     void SetVertexShaderAsset(const ShaderAsset* asset) { vertexShaderAsset = asset; }
     void SetFragmentShaderAsset(const ShaderAsset* asset) { fragmentShaderAsset = asset; }
 
-    graphics::ShaderProperties properties{};
+    ShaderProperties properties{};
 
     ShaderHandle graphicsHandle;
 
@@ -42,7 +42,7 @@ private:
     const ShaderAsset* fragmentShaderAsset = nullptr;
     std::vector<uint32_t> vertSpirv{};
     std::vector<uint32_t> fragSpirv{};
-    graphics::ShaderLayout layout;
+    ShaderLayout layout;
 
     void compileFrag();
     void compileVert();

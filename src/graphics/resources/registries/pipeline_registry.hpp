@@ -18,8 +18,7 @@ public:
     using GraphicsRegistry<GraphicsPipeline, PipelineHandle>::Deregister;
     inline bool Deregister(Shader &shader)
     {
-        bool result = Deregister(shader);
-        return result;
+        return Deregister(shader);
     }
     void Cleanup();
 private:

@@ -1,5 +1,5 @@
 #pragma once
-#include "graphics/backend/image.hpp"
+#include "graphics/resources/image.hpp"
 #include "render_context.hpp"
 
 namespace graphics

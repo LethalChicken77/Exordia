@@ -70,6 +70,25 @@ Image::Image(
     create();
 }
 
+Image::Image(
+    const TextureData &textureData,
+    const ImageProperties &properties,
+    VkMemoryPropertyFlags memoryProperties
+) : Image(graphicsData->GetBackend().GetDevice(), textureData.GetWidth(), textureData.GetHeight(), textureData.GetDepth(), properties, memoryProperties)
+{
+    SetData(textureData);
+}
+
+Image::Image(
+    internal::Device &_device,
+    const TextureData &textureData,
+    const ImageProperties &properties,
+    VkMemoryPropertyFlags memoryProperties
+) : Image(_device, textureData.GetWidth(), textureData.GetHeight(), textureData.GetDepth(), properties, memoryProperties)
+{
+    SetData(textureData);
+}
+
 /// @brief Create a copy of an existing image on the same device
 /// @param other 
 /// @note New image shares the same image data. Can be changed with SetCPUData later as long as the resolution matches. Use with caution.
@@ -205,6 +224,11 @@ size_t getFormatSize(VkFormat format)
         case VK_FORMAT_R8G8B8A8_SRGB:
         case VK_FORMAT_R8G8B8A8_UNORM: return 4;
 
+        case VK_FORMAT_R16_SFLOAT: return 2;
+        case VK_FORMAT_R16G16_SFLOAT: return 4;
+        case VK_FORMAT_R16G16B16_SFLOAT: return 6;
+        case VK_FORMAT_R16G16B16A16_SFLOAT: return 8;
+
         case VK_FORMAT_R32_SFLOAT: return 4;
         case VK_FORMAT_R32G32_SFLOAT: return 8;
         case VK_FORMAT_R32G32B32_SFLOAT: return 12;
@@ -216,27 +240,20 @@ size_t getFormatSize(VkFormat format)
     }
 }
 
-void Image::SetData(const core::TextureData *data)
+void Image::SetData(const TextureData &data)
 {
-    #ifndef DISABLE_VALIDATION
-    if(!data)
-    {
-        Console::error("No texture data to copy to image", "Image");
-        return;
-    }
-    #endif
     uint32_t pixelCount = width * height;
     uint32_t pixelSize = getFormatSize(properties.format);
     VkDeviceSize bufferSize = pixelSize * pixelCount;
     // std::cout << "Buffer size: " << bufferSize << std::endl;
     // std::cout << "Data size: " << data.size() << std::endl;
     // std::cout << "Width: " << width << " Height: " << height << std::endl;
-    if(data->GetSize() != bufferSize)
+    if(data.GetSize() != bufferSize)
     {
         Console::error(
             std::format(
                 "Texture data size ({}) does not match buffer size ({})",
-                data->GetSize(),
+                data.GetSize(),
                 bufferSize
             ),
             "Image"
@@ -253,12 +270,12 @@ void Image::SetData(const core::TextureData *data)
     };
     
     stagingBuffer.Map();
-    stagingBuffer.WriteData((void *)data->GetDataPtr());
+    stagingBuffer.WriteData((void *)data.GetDataPtr());
     
     // device->copyBufferToImage(stagingBuffer.getBuffer(), image, width, height, 1);
 }
 
-void Image::GetData(const core::TextureData *data)
+void Image::GetData(TextureData *data) const
 {
     #ifndef DISABLE_VALIDATION
     if(!data)

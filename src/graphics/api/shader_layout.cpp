@@ -408,7 +408,6 @@ ShaderLayout::ShaderLayout(const std::vector<uint32_t> spirv)
 
         currentInfo->bindings.push_back(bindingInfo);
     }
-    Console::debugf("{}", descriptorSets[2].bindings.size());
 }
 
 void ShaderLayout::generateBufferInfo(const SpvReflectDescriptorBinding *binding, BindingInfo* info)

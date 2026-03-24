@@ -9,6 +9,7 @@
 #include "resources/registries/mesh_registry.hpp"
 #include "resources/registries/material_registry.hpp"
 #include "resources/registries/pipeline_registry.hpp"
+#include "resources/registries/texture_registry.hpp"
 #include "resources/graphics_material.hpp"
 
 
@@ -70,8 +71,9 @@ public:
     CameraUbo cameraUboData{};
 
     MeshRegistry meshRegistry{};
-    MaterialRegistry materialRegistry{};
+    TextureRegistry textureRegistry{};
     PipelineRegistry pipelineRegistry{backend.GetDevice()};
+    MaterialRegistry materialRegistry{pipelineRegistry, textureRegistry};
 
     std::unique_ptr<DescriptorPool> globalDescriptorPool{};
     std::unique_ptr<DescriptorPool> cameraDescriptorPool{};

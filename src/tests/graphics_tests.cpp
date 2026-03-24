@@ -3,7 +3,7 @@
 #include <memory>
 #include "graphics_tests.hpp"
 #include "graphics/graphics_data.hpp"
-#include "graphics/backend/buffer.hpp"
+#include "graphics/resources/buffer.hpp"
 #include "utils/console.hpp"
 #include "utils/debug.hpp"
 namespace graphics::tests
