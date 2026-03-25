@@ -1,5 +1,5 @@
 # Exordia
-Exordium (noun), plural Exordia
+Exordium (noun), plural Exordia:
     A beginning or introduction especially to a discourse or *composition*
     -Merriam-Webster
 
