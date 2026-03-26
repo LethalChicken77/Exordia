@@ -61,29 +61,64 @@ void Engine::init()
     // This is just to test memory pools, this will be replaced with a proper resource management system
     Shader* shader = gameData->shaderPool.New(testShader, testShader);
     Shader* sbShader = gameData->shaderPool.New(skyboxShader, skyboxShader);
+    Shader* pbr = gameData->shaderPool.New(pbrShader, pbrShader);
     sbShader->properties.depthWrite = DepthWrite::DISABLED;
     // Shader* pbr = shaderPool.New(pbrShader, pbrShader);
     graphicsModule.RegisterShader(*shader);
+    graphicsModule.RegisterShader(*pbr);
     graphicsModule.RegisterShader(*sbShader);
 
-    gameData->materials.emplace_back(Material(shader));
-    gameData->materials.emplace_back(Material(shader));
-    gameData->materials.emplace_back(Material(shader));
-    gameData->materials.emplace_back(Material(sbShader));
+
+    std::unique_ptr<TextureData> texa = TextureData::LoadFromFile("./internal/textures/worn_tile_floor/worn_tile_floor_diff_1k.jpg");
+    std::unique_ptr<TextureData> texr = TextureData::LoadFromFileEXR("./internal/textures/worn_tile_floor/worn_tile_floor_rough_1k.exr");
+    std::unique_ptr<TextureData> texm = TextureData::LoadFromFileEXR("./internal/textures/defaults/default_metal.exr");
+    std::unique_ptr<TextureData> texs = TextureData::LoadFromFileEXR("./internal/textures/defaults/default_spec.exr");
+    std::unique_ptr<TextureData> texn = TextureData::LoadFromFileEXR("./internal/textures/worn_tile_floor/worn_tile_floor_nor_gl_1k.exr");
+
+    TextureHandle thA{};
+    TextureHandle thR{};
+    TextureHandle thM{};
+    TextureHandle thS{};
+    TextureHandle thN{};
+
+    TextureData* texaP = gameData->textures.New(std::move(*texa));
+    TextureData* texrP = gameData->textures.New(std::move(*texr));
+    TextureData* texmP = gameData->textures.New(std::move(*texm));
+    TextureData* texsP = gameData->textures.New(std::move(*texs));
+    TextureData* texnP = gameData->textures.New(std::move(*texn));
+
+    if(texa != nullptr) thA = graphicsModule.RegisterTexture(*texaP);
+    if(texr != nullptr) thR = graphicsModule.RegisterTexture(*texrP);
+    if(texm != nullptr) thM = graphicsModule.RegisterTexture(*texmP);
+    if(texs != nullptr) thS = graphicsModule.RegisterTexture(*texsP);
+    if(texn != nullptr) thN = graphicsModule.RegisterTexture(*texnP);
+
+    graphics::Material *yella = gameData->materials.New(Material(shader));
+    graphics::Material *blue = gameData->materials.New(Material(shader));
+    graphics::Material *pbrMat = gameData->materials.New(Material(pbr));
+    graphics::Material *skyboxMat = gameData->materials.New(Material(sbShader));
     int64_t testVal = 69;
     // mat.SetInt("test", testVal);
-    gameData->materials[0].SetVector("color", glm::vec4(1.f, 0.8f, 0.3f, 1.0f));
-    gameData->materials[0].SetFloat("roughness", 0.4f);
-    gameData->materials[0].SetFloat("metallic", 0.0f);
+    yella->SetVector("color", glm::vec4(1.f, 0.8f, 0.3f, 1.0f));
+    yella->SetFloat("roughness", 0.4f);
+    yella->SetFloat("metallic", 0.0f);
 
-    gameData->materials[1].SetVector("color", glm::vec4(0.2f, 0.5f, 0.8f, 1.0f));
-    gameData->materials[1].SetFloat("roughness", 0.2f);
-    gameData->materials[1].SetFloat("metallic", 1.0f);
+    blue->SetVector("color", glm::vec4(0.2f, 0.5f, 0.8f, 1.0f));
+    blue->SetFloat("roughness", 0.2f);
+    blue->SetFloat("metallic", 1.0f);
 
-    gameData->materials[2].SetVector("color", glm::vec4(0.1f, 0.5f, 0.1f, 1.0f));
-    gameData->materials[2].SetFloat("roughness", 0.8f);
-    gameData->materials[2].SetFloat("metallic", 0.0f);
+    // pbrMat->SetVector("color", glm::vec4(0.1f, 0.5f, 0.1f, 1.0f));
+    pbrMat->SetVector("color", glm::vec4(1.f, 1.f, 1.f, 1.f));
+    pbrMat->SetFloat("normalMapStrength", 1.f);
+    // gameData->materials[2].SetFloat("roughness", 0.8f);
+    // gameData->materials[2].SetFloat("metallic", 0.0f);
+    pbrMat->SetTexture("albedoMap", thA);
+    pbrMat->SetTexture("roughnessMap", thR);
+    pbrMat->SetTexture("metallicMap", thM);
+    pbrMat->SetTexture("specularMap", thS);
+    pbrMat->SetTexture("normalMap", thN);
 
+    gameData->skyboxMaterial = skyboxMat;
     // mat2.SetVector("color", glm::vec4(1));
     // mat2.SetFloat("normalMapStrength", 1.0f);
     // mat2.SetTexture("albedoMap", );
@@ -91,10 +126,10 @@ void Engine::init()
     // mat2.SetTexture("metallicMap", );
     // mat2.SetTexture("normalMap", );
 
-    graphicsModule.RegisterMaterial(gameData->materials[0]);
-    graphicsModule.RegisterMaterial(gameData->materials[1]);
-    graphicsModule.RegisterMaterial(gameData->materials[2]);
-    graphicsModule.RegisterMaterial(gameData->materials[3]);
+    graphicsModule.RegisterMaterial(*yella);
+    graphicsModule.RegisterMaterial(*blue);
+    graphicsModule.RegisterMaterial(*pbrMat);
+    graphicsModule.RegisterMaterial(*skyboxMat);
 
     graphicsModule.GraphicsInitImgui();
     // ImGui::GetIO().ConfigFlags |= ImGuiConfigFlags_DockingEnable;
@@ -263,7 +298,7 @@ void Engine::run()
 
         Transform skyboxTransform{};
         skyboxTransform.setPosition(cameraTransform.getPosition());
-        graphicsModule.DrawMesh(gameData->skyboxMesh, gameData->materials[3], skyboxTransform.getTransform(), -1); // Draw skybox
+        graphicsModule.DrawMesh(gameData->skyboxMesh, *gameData->skyboxMaterial, skyboxTransform.getTransform(), -1); // Draw skybox
         scene->drawScene();
         // Render here
         camera.setAspectRatio(graphicsModule.GetAspectRatio());

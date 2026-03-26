@@ -62,7 +62,7 @@ float4 fsMain(FIn input)
     normalMapSample = normalize(normalMapSample);
     normal = normalize(
         normalMapSample.x * tangent + 
-        normalMapSample.y * -bitangent * input.Tangent.w + 
+        normalMapSample.y * bitangent * input.Tangent.w + 
         normalMapSample.z * normal);
 
     float3 reflectDir = reflect(viewDir, normal);
@@ -91,7 +91,8 @@ float4 fsMain(FIn input)
         outColor += pbrBRDF(albedo, roughness, metallic, specular, lightColor, normal, lightDir, viewDir);
     }
     outColor += pbrAmbient(albedo, roughness, metallic, specular, ambientColor, ambientColor, normal, viewDir);
-    // float3 outColor = PhongBRDF(albedo, 80, lightColor, ambientColor, normal, lightDir, viewDir);
+    // outColor = PhongBRDF(albedo, 80, lightColor, ambientColor, normal, lightDir, viewDir);
 
     return float4(outColor, 1.0);
+    // return float4(normalMap.Sample(UV).xyz, 1.0);
 }

@@ -8,12 +8,18 @@ ImageProperties GetImageProperties(const TextureData &texture)
 {
     const TextureConfig& config = texture.properties;
     ImageProperties props{};
+    if(imageFormatToVkFormat.contains(config.format))
+        props.format = imageFormatToVkFormat.at(config.format);
+    else
+    {
+        Console::error("Unsupported format", "Texture");
+        return props;
+    }
     switch(config.type) // TODO: Make more of these options configurable
     {
     default:
     case TextureType::Default:
-        props.format = VK_FORMAT_R8G8B8A8_SRGB;
-        props.usage = VK_IMAGE_USAGE_SAMPLED_BIT;
+        props.usage = VK_IMAGE_USAGE_SAMPLED_BIT | VK_IMAGE_USAGE_TRANSFER_DST_BIT;
         props.imageType = VK_IMAGE_TYPE_2D;
         props.imageViewType = VK_IMAGE_VIEW_TYPE_2D;
         props.sampleCount = VK_SAMPLE_COUNT_1_BIT;
@@ -21,8 +27,7 @@ ImageProperties GetImageProperties(const TextureData &texture)
         props.arrayLayers = 1;
         break;
     case TextureType::NormalMap:
-        props.format = VK_FORMAT_R8G8B8_SNORM;
-        props.usage = VK_IMAGE_USAGE_SAMPLED_BIT;
+        props.usage = VK_IMAGE_USAGE_SAMPLED_BIT | VK_IMAGE_USAGE_TRANSFER_DST_BIT;
         props.imageType = VK_IMAGE_TYPE_2D;
         props.imageViewType = VK_IMAGE_VIEW_TYPE_2D;
         props.sampleCount = VK_SAMPLE_COUNT_1_BIT;
@@ -30,8 +35,7 @@ ImageProperties GetImageProperties(const TextureData &texture)
         props.arrayLayers = 1;
         break;
     case TextureType::CubeMap:
-        props.format = VK_FORMAT_R8G8B8_SNORM;
-        props.usage = VK_IMAGE_USAGE_SAMPLED_BIT;
+        props.usage = VK_IMAGE_USAGE_SAMPLED_BIT | VK_IMAGE_USAGE_TRANSFER_DST_BIT;
         props.imageType = VK_IMAGE_TYPE_2D;
         props.imageViewType = VK_IMAGE_VIEW_TYPE_CUBE;
         props.sampleCount = VK_SAMPLE_COUNT_1_BIT;

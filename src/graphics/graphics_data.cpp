@@ -15,9 +15,10 @@ GraphicsData::~GraphicsData()
     ImGui_ImplGlfw_Shutdown();
     ImGui::DestroyContext();
 
-    pipelineRegistry.Cleanup();
     meshRegistry.Reset();
     materialRegistry.Reset();
+    pipelineRegistry.Cleanup();
+    textureRegistry.Reset();
 
     cameraDescriptorPool.reset();
     globalDescriptorPool.reset();

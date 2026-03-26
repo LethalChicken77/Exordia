@@ -6,6 +6,7 @@
 #include "graphics/api/handles.hpp"
 #include "graphics/api/resources/material.hpp"
 #include "texture.hpp"
+#include "registries/texture_registry.hpp"
 
 namespace graphics
 {
@@ -15,7 +16,7 @@ class GraphicsMaterial
 {
 public:
     static const uint32_t MATERIAL_BUFFER_BINDING = 0;
-    GraphicsMaterial(const Material &base, const GraphicsPipeline &pipeline, DescriptorPool &pool);
+    GraphicsMaterial(const Material &base, const GraphicsPipeline &pipeline, const TextureRegistry& textureRegistry, DescriptorPool &pool);
 
     void UpdateMaterial(const Material &base);
 

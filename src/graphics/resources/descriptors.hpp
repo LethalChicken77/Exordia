@@ -99,8 +99,8 @@ public:
     DescriptorWriter(const DescriptorSetLayout *setLayout, const DescriptorPool *pool);
     DescriptorWriter(const std::unique_ptr<DescriptorSetLayout> &setLayout, const std::unique_ptr<DescriptorPool> &pool);
 
-    DescriptorWriter &WriteBuffer(uint32_t binding, VkDescriptorBufferInfo *bufferInfo);
-    DescriptorWriter &WriteImage(uint32_t binding, VkDescriptorImageInfo *imageInfo);
+    DescriptorWriter &WriteBuffer(uint32_t binding, VkDescriptorBufferInfo bufferInfo);
+    DescriptorWriter &WriteImage(uint32_t binding, VkDescriptorImageInfo imageInfo);
 
     bool Build(VkDescriptorSet &set);
     void Overwrite(VkDescriptorSet &set);
@@ -108,7 +108,9 @@ public:
 private:
     const DescriptorSetLayout &setLayout;
     const DescriptorPool &pool;
-    std::vector<VkWriteDescriptorSet> writes;
+    std::vector<VkWriteDescriptorSet> writes{};
+    std::vector<VkDescriptorBufferInfo> bufferInfos{};
+    std::vector<VkDescriptorImageInfo> imageInfos{};
 };
 // TODO: Bring back descriptor writer
 } // namespace graphics

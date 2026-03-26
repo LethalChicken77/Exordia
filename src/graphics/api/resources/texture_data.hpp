@@ -1,6 +1,7 @@
 #pragma once
 #include <vector>
 #include <cstdint>
+#include <memory>
 
 #include "primitives/color.hpp"
 #include "graphics/api/texture_properties.hpp"
@@ -13,8 +14,13 @@ namespace graphics
     class TextureData
     {
         public:
-            TextureData() = default;
+            TextureData(uint32_t width, uint32_t height, TextureConfig props = {});
+            TextureData(uint32_t width, uint32_t height, uint32_t depth, TextureConfig props = {});
             ~TextureData() = default;
+
+            // TODO: Replace with asset importer
+            static std::unique_ptr<TextureData> LoadFromFile(const std::string& path); // Use stb_image to load image
+            static std::unique_ptr<TextureData> LoadFromFileEXR(const std::string& path, TextureDataType dataType = TextureDataType::Invalid, uint32_t channelSize = 4); // Use tinyexr to load image
 
             const uint8_t* GetDataPtr() const { return data.data(); }
             const std::vector<uint8_t>& GetData() const { return data; }
@@ -50,9 +56,9 @@ namespace graphics
             inline uint32_t GetWidth() const { return width; }
             inline uint32_t GetHeight() const { return height; }
             inline uint32_t GetDepth() const { return depth; }
-            inline uint32_t GetTypeSize() const { return typeSize; }
-            inline uint32_t GetChannelCount() const { return channelCount; }
-            inline uint32_t GetPixelSize() const { return typeSize * channelCount; }
+            inline uint32_t GetComponentSize() const { return properties.format.channelSize; }
+            inline uint32_t GetChannelCount() const { return properties.format.channelCount; }
+            inline uint32_t GetPixelSize() const { return properties.format.PixelSize(); }
 
             TextureConfig properties{};
 
@@ -66,8 +72,5 @@ namespace graphics
             uint32_t width = 0;
             uint32_t height = 0;
             uint32_t depth = 0;
-
-            uint32_t typeSize = 4; // Size of a single channel in bytes
-            uint32_t channelCount = 4; // Number of channels per pixel
     };
 } // namespace core

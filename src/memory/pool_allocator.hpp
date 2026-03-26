@@ -125,6 +125,15 @@ public:
         freeList = reinterpret_cast<FreeNode*>(memory);
     }
 
+    /// @brief Retrieve the value stored in a slot regardless of whether it is free.
+    /// @param index Position in the pool
+    /// @return Very unsafe pointer
+    /// @note Abhorrently unsafe, mainly for debug purposes! Track yo pointers!
+    T* Get(size_t index)
+    {
+       return reinterpret_cast<T*>(&memory[index * sizeof(T)]); 
+    }
+
 private:
     struct FreeNode
     {

@@ -84,7 +84,7 @@ namespace graphics
             .Build();
         VkDescriptorBufferInfo bufferInfo = graphicsData->globalUBO->GetDescriptorInfo();
         DescriptorWriter(*graphicsData->globalSetLayout, *graphicsData->globalDescriptorPool)
-            .WriteBuffer(0, &bufferInfo)
+            .WriteBuffer(0, bufferInfo)
             .Build(graphicsData->globalDescriptorSet);
 
         // Init camera UBO
@@ -115,7 +115,7 @@ namespace graphics
         {
             VkDescriptorBufferInfo bufferInfo = graphicsData->cameraUBOs[i].GetDescriptorInfo();
             DescriptorWriter(*graphicsData->cameraSetLayout, *graphicsData->cameraDescriptorPool)
-                .WriteBuffer(0, &bufferInfo)
+                .WriteBuffer(0, bufferInfo)
                 .Build(graphicsData->cameraDescriptorSets[i]);
         }
     }

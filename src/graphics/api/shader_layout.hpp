@@ -5,6 +5,7 @@
 #include <string>
 #include <unordered_map>
 
+#include "descriptor_standards.hpp"
 
 class SpvReflectBlockVariable;
 class SpvReflectDescriptorBinding;
@@ -160,10 +161,14 @@ public:
     { 
         for(const DescriptorSetInfo &info : descriptorSets)
         {
-            if(info.bindings[0].name == "materialInfo")
+            if(info.id == MATERIAL_DESCRIPTOR_SET)
             {
                 return &info;
             }
+            // if(info.bindings[0].name == "materialInfo")
+            // {
+            //     return &info;
+            // }
         }
         return nullptr; 
     }

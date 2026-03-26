@@ -10,9 +10,11 @@ namespace core
 class GameData
 {
 public:
-    std::vector<graphics::Material> materials{};
+    MemoryPool<graphics::Material> materials{1024};
     MemoryPool<graphics::Shader> shaderPool{64};
+    MemoryPool<graphics::TextureData> textures{1024};
     Mesh skyboxMesh;
+    graphics::Material* skyboxMaterial;
 };
 
 extern std::unique_ptr<GameData> gameData;

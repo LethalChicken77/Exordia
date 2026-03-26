@@ -3,6 +3,7 @@
 #include "graphics/resources/graphics_material.hpp"
 #include "graphics/api/resources/material.hpp"
 #include "pipeline_registry.hpp"
+#include "texture_registry.hpp"
 
 namespace graphics
 {

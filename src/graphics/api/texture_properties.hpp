@@ -4,7 +4,7 @@
 
 namespace graphics
 {
-enum class TextureType
+enum class TextureType : uint8_t
 {
     Default = 0, // Color, linear channels
     NormalMap = 1, // Normal maps, perform remapping beforehand for performance
@@ -12,7 +12,7 @@ enum class TextureType
     // LIGHT_MAP, SPRITE, HDRI, etc.
 };
 
-enum class TextureWrapMode
+enum class TextureWrapMode : uint8_t
 {
     Repeat = 0,
     MirroredRepeat = 1,
@@ -21,14 +21,14 @@ enum class TextureWrapMode
     MirrorClampToEdge = 4
 };
 
-enum class TextureFilterMode
+enum class TextureFilterMode : uint8_t
 {
     Nearest = 0,
     Bilinear = 1,
     Cubic = 2
 };
 
-enum class MipmapMode
+enum class MipmapMode : uint8_t
 {
     None = 0, // Used to determine whether to create mipmaps. Sets the sample to nearest.
     Nearest = 1,
@@ -47,7 +47,7 @@ enum class BorderColorMode
     ICustom = 1000287004
 };
 
-enum class SwizzleChannel
+enum class SwizzleChannel : uint8_t
 {
     Red = 0,
     Green = 1,
@@ -64,34 +64,86 @@ struct Swizzle
     SwizzleChannel b = SwizzleChannel::Blue;
     SwizzleChannel a = SwizzleChannel::Alpha;
 };
-// typedef struct VkSamplerCreateInfo {
-//     VkStructureType         sType;
-//     const void*             pNext;
-//     VkSamplerCreateFlags    flags;
-//     VkFilter                magFilter;
-//     VkFilter                minFilter;
-//     VkSamplerMipmapMode     mipmapMode;
-//     VkSamplerAddressMode    addressModeU;
-//     VkSamplerAddressMode    addressModeV;
-//     VkSamplerAddressMode    addressModeW;
-//     float                   mipLodBias;
-//     VkBool32                anisotropyEnable;
-//     float                   maxAnisotropy;
-//     VkBool32                compareEnable;
-//     VkCompareOp             compareOp;
-//     float                   minLod;
-//     float                   maxLod;
-//     VkBorderColor           borderColor;
-//     VkBool32                unnormalizedCoordinates;
-// } VkSamplerCreateInfo;
+
+enum class TextureDataType : uint8_t
+{
+    UInt,
+    SInt,
+    UNorm,
+    SNorm,
+    Float,
+
+    Packed_B10G11R11_UFloat,
+    Packed_A2R10G10B10_UNorm,
+
+    D16_UNorm,
+    D24_UNorm,
+    D32_SFloat,
+    D16_UNorm_S8_UInt,
+    D24_UNorm_S8_UInt,
+    D32_SFloat_S8_UInt,
+    S8_UInt,
+
+    Invalid
+};
+
+enum class ChannelOrder : uint8_t
+{
+    RGBA,
+    BGRA,
+    ABGR
+};
+
+/// @brief Defines an image format as a set of properties.
+/// @note Treat packed formats as single channel, non-srgb, RGBA, Color images. The channel size should match the packed size.
+/// These types can be specified in TextureDataType as needed.
+struct ImageFormat
+{
+    bool isSRGB = false;
+    uint8_t channelCount = 4;
+    uint8_t channelSize = 1;
+    TextureDataType dataType = TextureDataType::UInt;
+    ChannelOrder channelOrder = ChannelOrder::RGBA;
+
+    uint32_t PixelSize() const { return channelCount * channelSize; }
+
+    std::string ToString() const;
+
+    bool operator==(const ImageFormat& other) const
+    {
+        return isSRGB == other.isSRGB
+            && channelCount == other.channelCount
+            && channelSize == other.channelSize
+            && dataType == other.dataType
+            && channelOrder == other.channelOrder;
+    }
+};
+
+struct ImageFormatHash
+{
+    std::size_t operator()(const ImageFormat& fmt) const
+    {
+        std::size_t h = 0;
+        h |= (uint8_t)fmt.isSRGB; // 1 bit (1) - bool value
+        h |= ((uint8_t)fmt.channelCount) << 1; // 3 bits (4) - values up to and including 4
+        h |= ((uint8_t)fmt.channelSize) << 4; // 5 bits (9) - values up to and including 16
+        h |= ((uint8_t)fmt.dataType) << 9; // 8 bits (17) - 14 values but expandible
+        h |= ((uint8_t)fmt.channelOrder) << 17; // 2 bits (19) - 3 values
+        return h;
+    }
+};
+
 struct TextureConfig
 {
     // Preprocessing properties
     TextureType type = TextureType::Default; // Perform preprocessing based on type
-    Swizzle swizzle; // Swizzle channels
     bool generateMipmaps = false; // Change to true when mipmaps are implemented
+    
+    // Texture properties
+    ImageFormat format{};
+    Swizzle swizzle{};
 
-    // General properties
+    // Sampler properties
     TextureWrapMode wrapU = TextureWrapMode::Repeat;
     TextureWrapMode wrapV = TextureWrapMode::Repeat;
     TextureWrapMode wrapW = TextureWrapMode::Repeat;

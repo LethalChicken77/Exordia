@@ -86,7 +86,7 @@ public:
     ShaderHandle shaderHandle;
 private:
     // const Shader* shader;
-    const BufferLayout* materialLayout;
+    const ShaderLayout* materialLayout = nullptr;
     std::vector<uint8_t> data{};
     std::vector<TextureBinding> textureBindings{};
     std::unordered_map<std::string, uint32_t> dataIndex{};
@@ -118,13 +118,19 @@ private:
             Console::warn("No material layout info found for material", "Material");
             return;
         }
+        const BufferLayout* materialInfoLayout = materialLayout->GetMaterialLayout();
+        if(materialInfoLayout == nullptr)
+        {
+            Console::warn("No material buffer layout info found for material", "Material");
+            return;
+        }
 
         if(!dataIndex.contains(name))
         {
             Console::warnf("Material has no parameter named {}", name, "Material");
             return;
         }
-        const ShaderParameter *param = materialLayout->GetParameter(name);
+        const ShaderParameter *param = materialInfoLayout->GetParameter(name);
         uint32_t index = dataIndex[name];
         uint8_t* dest = data.data() + index;
         

@@ -4,8 +4,8 @@
 namespace graphics
 {
 
-MaterialRegistry::MaterialRegistry(const PipelineRegistry &_pipelineRegistry)
-    : pipelineRegistry(_pipelineRegistry)
+MaterialRegistry::MaterialRegistry(const PipelineRegistry& _pipelineRegistry, const TextureRegistry& _textureRegistry)
+    : pipelineRegistry(_pipelineRegistry), textureRegistry(_textureRegistry)
 {}
 
 /// @brief Create graphics mesh data for a given mesh
@@ -39,6 +39,7 @@ MaterialHandle MaterialRegistry::Register(Material &material, DescriptorPool &po
     entry.value = std::make_unique<GraphicsMaterial>(
         material,
         *pipeline,
+        textureRegistry,
         pool
     );
     entry.inUse = true;

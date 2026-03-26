@@ -187,7 +187,7 @@ DescriptorWriter::DescriptorWriter(const DescriptorSetLayout *setLayout, const D
 DescriptorWriter::DescriptorWriter(const std::unique_ptr<DescriptorSetLayout> &setLayout, const std::unique_ptr<DescriptorPool> &pool)
     : setLayout{*setLayout}, pool{*pool} {}
 
-DescriptorWriter &DescriptorWriter::WriteBuffer(uint32_t binding, VkDescriptorBufferInfo *bufferInfo) 
+DescriptorWriter &DescriptorWriter::WriteBuffer(uint32_t binding, VkDescriptorBufferInfo bufferInfo) 
 {
     const std::unordered_map<uint32_t, VkDescriptorSetLayoutBinding> &bindings = setLayout.GetBindings();
     if(bindings.count(binding) != 1)
@@ -204,18 +204,20 @@ DescriptorWriter &DescriptorWriter::WriteBuffer(uint32_t binding, VkDescriptorBu
         return *this;
     }
 
+    VkDescriptorBufferInfo &info = bufferInfos.emplace_back(bufferInfo);
+
     VkWriteDescriptorSet write{};
     write.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
     write.descriptorType = bindingDescription.descriptorType;
     write.dstBinding = binding;
-    write.pBufferInfo = bufferInfo;
+    write.pBufferInfo = &info;
     write.descriptorCount = 1;
 
     writes.push_back(write);
     return *this;
 }
 
-DescriptorWriter &DescriptorWriter::WriteImage(uint32_t binding, VkDescriptorImageInfo *imageInfo) 
+DescriptorWriter &DescriptorWriter::WriteImage(uint32_t binding, VkDescriptorImageInfo imageInfo) 
 {
     const std::unordered_map<uint32_t, VkDescriptorSetLayoutBinding> &bindings = setLayout.GetBindings();
     if(bindings.count(binding) != 1)
@@ -232,11 +234,13 @@ DescriptorWriter &DescriptorWriter::WriteImage(uint32_t binding, VkDescriptorIma
         return *this;
     }
 
+    VkDescriptorImageInfo &info = imageInfos.emplace_back(imageInfo);
+
     VkWriteDescriptorSet write{};
     write.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
     write.descriptorType = bindingDescription.descriptorType;
     write.dstBinding = binding;
-    write.pImageInfo = imageInfo;
+    write.pImageInfo = &info;
     write.descriptorCount = 1;
 
     writes.push_back(write);

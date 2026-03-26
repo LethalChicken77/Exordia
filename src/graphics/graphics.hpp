@@ -30,19 +30,17 @@ class Graphics
 
         void RegisterMaterial(Material &mat) 
         { 
-            GraphicsPipeline *pipeline = graphicsData->pipelineRegistry.Get(mat.shaderHandle);
-            if(pipeline == nullptr)
-            {
-                Console::error("Shader associated with material is invalid");
-                return;
-            }
-            graphicsData->materialRegistry.Register(mat, *graphicsData->materialDescriptorPool);
+            graphicsData->materialRegistry.Register(mat, *graphicsData->materialDescriptorPool); // TODO: Deal with descriptor pools differently
         }
         inline void DeregisterMaterial(Material &mat) { graphicsData->materialRegistry.Deregister(mat); }
 
         inline MeshHandle RegisterMesh(core::MeshData &mesh) { return graphicsData->meshRegistry.Register(mesh); }
         inline bool UpdateMesh(core::MeshData &mesh) { return graphicsData->meshRegistry.Update(mesh); }
         inline bool DeregisterMesh(core::MeshData &mesh) { return graphicsData->meshRegistry.Deregister(mesh); }
+
+        inline TextureHandle RegisterTexture(TextureData &tex) { return graphicsData->textureRegistry.Register(tex); }
+        inline bool UpdateTexture(TextureData &tex) { return graphicsData->textureRegistry.Update(tex); }
+        inline bool DeregisterTexture(TextureData &tex) { return graphicsData->textureRegistry.Deregister(tex); }
         
         void SetCamera(const Camera &camera);
 
@@ -59,7 +57,7 @@ class Graphics
         inline internal::Device &GetDevice() { return graphicsData->GetBackend().GetDevice(); }
         void GraphicsInitImgui();
     private:
-        std::vector<MeshRenderData> drawQueue;
+        std::vector<MeshRenderData> drawQueue{};
         CameraUbo cameraState{};
         // Temporary
         void drawImgui(RenderContext context);
