@@ -6,9 +6,12 @@ Exordium (noun), plural Exordia:
 Exordia is a modern graphics engine written in C++ using Vulkan. It is meant as a starting point for many projects, which is where the name comes from. I intend to expand the engine's capabilities through experiments ranging from graphics tech demos to physics simulation to small games. The end goal is a flexible, open source game engine with high fidelity graphics, modern C++ standards, and a customizable design.
 
 ## Features
-3D rendering using Vulkan (Work in progress)
+3D rendering using Vulkan
+
 Slang shaders
+
 Compute shaders
+
 Asset management system (Work in progress)
 
 ## Planned Features
