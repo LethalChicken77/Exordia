@@ -2,18 +2,21 @@
 #include "imgui.h"
 #include <vector>
 #include <iostream>
+#include "file_util.hpp"
 
 using namespace std;
 
 std::queue<Console::ConsoleMessage> Console::messages{};
 bool Console::scrollToBottom = true;
 
-Console::ConsoleMessage Console::constructMessage(const string& message, const string& source, ConsoleMessage::Type type)
+Console::ConsoleMessage Console::constructMessage(const string_view message, const string_view source, ConsoleMessage::Type type)
 {
     string result = "";
     if(source != "")
     {
-        result += "[" + source + "] ";
+        result += "[";
+        result += source;
+        result += "] - "; // More verbose than a one-liner but there is no + operater for string views
     }
     result += message;
     ConsoleMessage newMessage{result, type};
@@ -29,31 +32,34 @@ void Console::pushMessage(ConsoleMessage& message)
     }
 }
 
-void Console::logRaw(const string& message, bool terminalOnly)
+void Console::logRaw(const string_view message, bool terminalOnly)
 {
-    ConsoleMessage newMessage{message, ConsoleMessage::NONE};
+    ConsoleMessage newMessage{message.data(), ConsoleMessage::NONE};
     cout << message << endl; // Print to standard output
     if(!terminalOnly)
         pushMessage(newMessage);
 }
 
-void Console::log(const string& message, const string& source, bool terminalOnly)
+void Console::log(const string_view message, const string_view source, bool terminalOnly)
 {
     ConsoleMessage newMessage = constructMessage(message, source, ConsoleMessage::INFO);
-    cout << ANSIgray << "[INFO] " << ANSIreset << newMessage.message << consoleEndl; // Print to standard output
+    cout << ANSIgray << "[INFO]\t" << ANSIreset << newMessage.message << consoleEndl; // Print to standard output
     if(!terminalOnly)
         pushMessage(newMessage);
 }
 
-void Console::debug(const string& message, const string& source, bool terminalOnly)
+void Console::debug(const string_view message, const string_view source, bool terminalOnly)
 {
-    ConsoleMessage newMessage = constructMessage(message, source, ConsoleMessage::DEBUG);
-    cout << "[DEBUG] " << newMessage.message << consoleEndl; // Print to standard output
+    #ifndef DEBUG
+    return; // Strip debug messages in release mode
+    #endif
+    ConsoleMessage newMessage = constructMessage(message, source, ConsoleMessage::DEBUG_T);
+    cout << ANSIgreen << "[DEBUG]\t" << ANSIreset << newMessage.message << consoleEndl; // Print to standard output
     if(!terminalOnly)
         pushMessage(newMessage);
 }
 
-void Console::warn(const string& message, const string& source, bool terminalOnly)
+void Console::warn(const string_view message, const string_view source, bool terminalOnly)
 {
     ConsoleMessage newMessage = constructMessage(message, source, ConsoleMessage::WARNING);
     cout << ANSIyellow << "[WARNING] " << ANSIreset << newMessage.message << consoleEndl; // Print to standard output
@@ -61,10 +67,10 @@ void Console::warn(const string& message, const string& source, bool terminalOnl
         pushMessage(newMessage);
 }
 
-void Console::error(const string& message, const string& source, bool terminalOnly)
+void Console::error(const string_view message, const string_view source, bool terminalOnly)
 {
     ConsoleMessage newMessage = constructMessage(message, source, ConsoleMessage::ERROR);
-    cout << ANSIred << "[ERROR] " << ANSIreset << newMessage.message << endl; // Print to standard output
+    cout << ANSIred << "[ERROR]\t" << ANSIreset << newMessage.message << endl; // Print to standard output
     if(!terminalOnly)
         pushMessage(newMessage);
 }
@@ -129,8 +135,8 @@ void Console::drawImGui()
                     ImGui::SameLine();
                     break;
 
-                case ConsoleMessage::DEBUG:
-                    ImGui::TextColored(ImVec4(1,1,1,1), "[DEBUG]");
+                case ConsoleMessage::DEBUG_T:
+                    ImGui::TextColored(ImVec4(0,1,0,1), "[DEBUG]");
                     ImGui::SameLine();
                     break;
                 
@@ -160,4 +166,41 @@ void Console::drawImGui()
     }
 
     ImGui::End();
+}
+
+const std::string logExt = ".log";
+const std::string logName = "player";
+const std::string logPrevName = "player_prev";
+const std::string logErrorName = "player_err";
+
+void Console::saveLog()
+{
+    std::string fullLogName = "./" + logName + ".log";
+    if(FileUtil::FileExists(fullLogName))
+    {
+        FileUtil::Move(fullLogName, "./" + logPrevName + ".log", false, true);
+    }
+
+    std::string fullLog = "";
+    while(messages.size() > 0)
+    {
+        ConsoleMessage msg = messages.front();
+        fullLog += msg.message + "\n";
+        messages.pop();
+    }
+
+    FileUtil::Write(fullLog, fullLogName);
+}
+
+void Console::saveLogError()
+{
+    std::string fullLog = "";
+    while(messages.size() > 0)
+    {
+        ConsoleMessage msg = messages.front();
+        fullLog += msg.message + "\n";
+        messages.pop();
+    }
+
+    FileUtil::Write(fullLog, "./" + logErrorName + ".log");
 }

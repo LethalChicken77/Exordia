@@ -1,11 +1,12 @@
 #include "scene.hpp"
 #include "modules.hpp"
+#include "temp_data.hpp"
 
 namespace core
 {
 void Scene_t::loadScene()
 {
-    std::cout << "Loading scene" << std::endl;
+    Console::log("Loading scene: " + name, "Scene");
     // Original vertex buffer testing code, must keep
     // Triangle
     // std::vector<GraphicsMesh::Vertex> vertices {
@@ -27,7 +28,7 @@ void Scene_t::loadScene()
     // obj->mesh = graphics::GraphicsMesh::loadObj("internal/models/Nefertiti.obj");
     // obj->mesh->generateNormals();
     // obj->mesh->createBuffers();
-    obj->materialID = 1;
+    obj->material = gameData->materials.Get(0);
     obj->transform.setPosition(glm::vec3(0, 1, 0));
     // obj->transform.scale = glm::vec3(0.01f);
     // obj->transform.scale = glm::vec3(-0.01f, 0.01f, 0.01f); // TODO: Make sure negative scaling doesn't turn models inside out
@@ -35,11 +36,11 @@ void Scene_t::loadScene()
 
     // obj2.mesh = GraphicsMesh::loadObj("internal/models/monkey_high_res.obj");
     obj2->mesh = Mesh::createGrid(16,16, {50.0f, 50.0f});
-    obj2->materialID = 3;
+    obj2->material = gameData->materials.Get(2);
     obj2->transform.setPosition(glm::vec3(0, -3, 0));
 
     obj3->mesh = monkeyMesh;
-    obj3->materialID = 2;
+    obj3->material = gameData->materials.Get(1);
     obj3->transform.setPosition(glm::vec3(-3, -1, 0));
     obj3->transform.parent = &obj->transform;
     // obj3.mesh = GraphicsMesh::createSierpinskiPyramid(12.0f, 8);
@@ -47,7 +48,7 @@ void Scene_t::loadScene()
     gameObjects.push_back(std::move(obj));
     gameObjects.push_back(std::move(obj2));
     gameObjects.push_back(std::move(obj3));
-    std::cout << "Loaded game objects" << std::endl;
+    Console::log("Scene loaded with " + std::to_string(gameObjects.size()) + " game objects.", "Scene");
 }
 
 void Scene_t::update(double deltaTime)
@@ -55,12 +56,13 @@ void Scene_t::update(double deltaTime)
     int counter = 0;
     for(GameObject &obj : gameObjects)
     {
-        if(obj->getInstanceID() == 5)
-            obj->transform.rotateYaw(0.25f * deltaTime * 6.28f);
-        if(obj->getInstanceID() == 7)
-            obj->transform.rotatePitch(0.6666f * deltaTime * 6.28f);
-        if(obj->getInstanceID() == 5)
-            obj->transform.rotateAboutAxis(glm::vec3(1,1,1), 0.25f * deltaTime * 6.28f);
+        // if(obj->getInstanceID() == 6)
+        //     obj->transform.rotateYaw(0.25f * deltaTime * 6.28f);
+        // if(obj->getInstanceID() == 8)
+        //     obj->transform.rotatePitch(0.6666f * deltaTime * 6.28f);
+        // if(obj->getInstanceID() == 6)
+        //     obj->transform.rotateAboutAxis(glm::vec3(1,1,1), 0.25f * deltaTime * 6.28f);
+
         // if(obj.get_id() == 2) break;
         // if(obj.get_id() == 1)
         // {
@@ -80,7 +82,7 @@ void Scene_t::drawScene()
     for(const GameObject& obj : gameObjects)
     {
         // std::vector<glm::mat4> transforms{};
-        // int gridSize = 30;
+        // int gridSize = 20;
         // for(int x = 0; x < gridSize; x++)
         // {
         // for(int y = 0; y < gridSize; y++)
@@ -88,15 +90,16 @@ void Scene_t::drawScene()
         // for(int z = 0; z < gridSize; z++)
         // {
         //     Transform temp{};
-        //     temp.position = obj->transform.position + glm::vec3(x, y, z);
+        //     temp.setPosition(obj->transform.getPosition() + glm::vec3(x, y, z));
+        //     temp.setRotation(obj->transform.getLocalRotation());
         //     transforms.push_back(temp.getTransform());
         // }
         // }
         // }
-        graphicsModule.drawMesh(obj->mesh, obj->materialID, obj->transform.getTransform(), obj->getInstanceID());
-        // graphicsModule.drawMeshInstanced(obj->mesh, obj->materialID, transforms);
-        if(obj->getInstanceID() == selectedObject)
-            graphicsModule.drawMeshOutline(obj->mesh, obj->transform.getTransform());
+        // graphicsModule.DrawMesh(obj->mesh, obj->materialID, transforms);
+        graphicsModule.DrawMesh(obj->mesh, *obj->material, obj->transform.getTransform(), obj->getInstanceID());
+        // if(obj->getInstanceID() == selectedObject)
+        //     graphicsModule.drawMeshOutline(obj->mesh, obj->transform.getTransform());
     }
 
 }

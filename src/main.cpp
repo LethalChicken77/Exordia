@@ -1,32 +1,27 @@
-#define WINDOWS_BUILD
-
 #include <iostream>
 #include <glm/glm.hpp>
 #include <GLFW/glfw3.h>
-#include <vulkan/vulkan.h>
 #include <memory>
+
+#include "close_handler.hpp"
 
 #include "modules.hpp"
 #include "utils/console.hpp"
 #include "engine.hpp"
 #include "utils/debug.hpp"
-#include "graphics/internal/window.hpp"
-#include "graphics/graphics.hpp"
+#include "graphics/window.hpp"
 #include "core/input.hpp"
 
 #define STB_IMAGE_IMPLEMENTATION
 #include "stb_image.h"
 
-#ifdef WINDOWS_BUILD
+#ifdef _WIN32
 #define GLFW_EXPOSE_NATIVE_WIN32
 #include <GLFW/glfw3native.h>
 #include <windows.h>
 #include <dwmapi.h>
 // #pragma comment(lib, "Dwmapi.lib")
 #endif
-
-const std::string APPLICATION_NAME = "Game";
-const std::string ENGINE_NAME = "VEngine";
 
 using namespace core;
 using namespace graphics;
@@ -71,11 +66,11 @@ void setWindowIcons(GLFWwindow* window)
     stbi_image_free(pixelsLarge);
 }
 
-#ifdef WINDOWS_BUILD
+#ifdef _WIN32
 void SetTitleBarColor(GLFWwindow* window, COLORREF titleBarColor, COLORREF borderColor) {
     HWND hwnd = glfwGetWin32Window(window);
     if (hwnd) {
-        std::cout << "Setting title color" << std::endl;
+        // std::cout << "Setting title color" << std::endl;
         // Use DwmSetWindowAttribute to set the title bar color
         const DWORD titleBarColorAttribute = DWMWA_CAPTION_COLOR;
         const DWORD borderColorAttribute = DWMWA_BORDER_COLOR;
@@ -87,17 +82,20 @@ void SetTitleBarColor(GLFWwindow* window, COLORREF titleBarColor, COLORREF borde
 
 int main() 
 {
-    graphicsModule.init(APPLICATION_NAME, ENGINE_NAME);
+    HandleSignals();
+    // graphicsModule.init(APPLICATION_NAME, ENGINE_NAME);
 
     // Set window icon
-    setWindowIcons(graphicsModule.getWindow()->getWindow());
+    setWindowIcons(graphicsModule.GetGLFWWindow());
+
+    // glfwMaximizeWindow(graphicsModule.GetGLFWWindow()); // TODO: Properly start maximized
     
-#ifdef WINDOWS_BUILD
+#ifdef _WIN32
     // Set title bar color
-    SetTitleBarColor(graphicsModule.getWindow()->getWindow(), RGB(0x19, 0x15, 0x14), RGB(0x19, 0x15, 0x14));
+    SetTitleBarColor(graphicsModule.GetGLFWWindow(), RGB(0x19, 0x15, 0x14), RGB(0x19, 0x15, 0x14));
 #endif
 
-    if(!graphicsModule.isOpen())
+    if(!graphicsModule.IsOpen())
     {
         Console::error("Failed to initialize graphics");
         return -1;
@@ -105,12 +103,10 @@ int main()
 
     Engine engine{};
 
-    // glm::vec3 test = {1, 2, 3};
-
     engine.run();
     
-    graphicsModule.waitForDevice();
-    graphicsModule.cleanup();
+    // graphicsModule.WaitForDevice();
+    // graphicsModule.cleanup();
 
     return 0;
 }

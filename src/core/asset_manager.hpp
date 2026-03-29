@@ -19,11 +19,11 @@ namespace core
         AssetManager& operator=(const AssetManager&) = delete;
 
         template<class T>
-        static T* Instantiate(const std::string &path)
+        static T* LoadAsset(const std::string &path)
         {
             static_assert(std::is_base_of<AssetData, T>::value, "Instantiated assets must derive from AssetData");
             // Check if file exists
-            if(!FileUtil::fileExists(path))
+            if(!FileUtil::FileExists(path))
             {
                 Console::warn("File not found: " + path, "Asset Manager");
             }
@@ -44,6 +44,8 @@ namespace core
             }
             assetData->UUID = newID;
             assets[newID] = assetData;
+
+            assetData->path = path;
             // assetData->LoadAsset();
 
             return obj;

@@ -12,6 +12,9 @@ namespace core
     class AssetData : public Object
     {
     public:
+        static constexpr const char* className = "Asset";
+        virtual const char* GetClassName() const { return className; }
+
         AssetData(const AssetData&) = delete;
         AssetData& operator=(const AssetData&) = delete;
         AssetData(AssetData&&) = delete;
@@ -20,11 +23,12 @@ namespace core
         id_t getUUID() const { return UUID; }
         const std::string &getPath() const { return path; }
 
-        void LoadData(); // Implement in children
+        void LoadData();
 
     protected:
         id_t UUID; // Unique file ID assigned by asset manager. Persistent across sessions
         std::string path; // Located based on file ID
+        std::string extension; // File extension, used to identify files with no header
         std::vector<char> data;
         using Object::Object;
         

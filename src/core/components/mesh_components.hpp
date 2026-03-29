@@ -1,12 +1,13 @@
 #include "core/mesh.hpp"
-#include "graphics/buffers/material.hpp"
+#include "core/assets/material.hpp"
 
 namespace core
 {
 struct MeshRenderer
 {
     MeshData mesh;
-    graphics::Material* material;
+    id_t materialID{};
+    // graphics::Material* material;
     // Cast shadows
 
 };

@@ -85,11 +85,15 @@
         "ranges": "cpp",
         "stack": "cpp"
     },
-    "cmake.generator": "Ninja",
-    "cmake.parallelJobs": 8,
+    // "cmake.generator": "Ninja",
+    "cmake.generator": "MinGW Makefiles",
+    "cmake.parallelJobs": 0,
     "cmake.configureOnOpen": true,
+    "cmake.buildInTerminal": true,
     "cmake.configureSettings": {
         "CMAKE_C_COMPILER": "C:/msys64/ucrt64/bin/clang.exe",
         "CMAKE_CXX_COMPILER": "C:/msys64/ucrt64/bin/clang++.exe"
-    }    
+    },
+    "C_Cpp.default.configurationProvider": "ms-vscode.cmake-tools",
+    "C_Cpp.default.compileCommands": "${workspaceFolder}/build/compile_commands.json"
 }

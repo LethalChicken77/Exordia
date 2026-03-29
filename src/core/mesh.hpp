@@ -11,10 +11,17 @@
 #include "object_manager.hpp"
 #include "utils/console.hpp"
 #include "utils/smart_reference.hpp"
+#include "graphics/api/handles.hpp"
 
 namespace core
 {
-    class MeshData : public Object
+    
+    struct MeshImportOptions
+    {
+        glm::vec3 importScale = glm::vec3(1);
+    };
+
+    class MeshData : public Object // TODO: Redesign to avoid inheritance
     {
     public:
         static constexpr const char* className = "Mesh Data";
@@ -22,13 +29,38 @@ namespace core
         
         struct Vertex
         {
-            glm::vec3 position{};
-            glm::vec3 normal{};
-            glm::vec4 tangent{};
-            glm::vec3 bitangent{};
-            glm::vec3 color{1.0f, 1.0f, 1.0f};
-            glm::vec2 texCoord{};
+            glm::vec3 position{}; // 12
+            glm::vec3 normal{}; // 12
+            glm::vec4 tangent{}; // 16
+            // glm::vec3 bitangent{}; // 12
+            glm::vec3 color{1.0f, 1.0f, 1.0f}; // 12
+            glm::vec2 texCoord{}; // 8
+            // 72
+        };
 
+        struct SmallVertex
+        {
+            glm::vec3 position{}; // 12
+            glm::i8vec2 normal{}; // 2
+            glm::i8vec4 tangent{}; // 4
+            glm::i8vec3 color{1.0f, 1.0f, 1.0f}; // 6
+            glm::vec2 texCoord{}; // 8
+            // 32
+        };
+
+        struct alignas(16) TinyVertex
+        {
+            glm::vec3 position{}; // 12
+            glm::i8vec2 normal{}; // 2
+            glm::i16vec2 texCoord{}; // 4 (float 16 data, not int)
+            // 18
+        };
+
+        struct alignas(16) MinimalVertex
+        {
+            glm::vec3 position{}; // 12
+            glm::i8vec2 normal{}; // 2
+            // 14
         };
 
         struct Triangle
@@ -38,6 +70,8 @@ namespace core
             uint32_t v2;
         };
 
+        // TODO: RAII, why not destroy and recreate the object if the vectors are reallocated anyway?
+
         void SetMesh(const std::vector<Vertex>& _vertices, const std::vector<uint32_t>& _indices);
         void SetMesh(const std::vector<Vertex>& _vertices, const std::vector<Triangle>& _indices);
         ~MeshData();
@@ -45,12 +79,14 @@ namespace core
         std::vector<Vertex> vertices{};
         std::vector<Triangle> triangles{};
 
+        graphics::MeshHandle graphicsHandle{};
+
     private:
         using Object::Object;
         void loadModelFromObj(const std::string& filename); // TODO: Asset importer
     };
 
-    class Mesh : public SmartRef<MeshData>
+    class Mesh : public SmartRef<MeshData> // TODO: Delete smartref because it is not smart and it is not useful
     {
         public:
             using SmartRef<MeshData>::SmartRef; // Inherit base constructor
@@ -78,7 +114,7 @@ namespace core
             static Mesh createSierpinskiPyramid(float edgeLength, int depth, const std::string& objectName = "Sierpinski Pyramid Mesh");
             static Mesh createGrid(int width, int length, glm::vec2 dimensions, const std::string& objectName = "Grid Mesh");
             static Mesh createSkybox(float size, const std::string& objectName = "Skybox Mesh");
-            static Mesh loadObj(const std::string& filename, const std::string& objectName = "Obj Mesh"); // TODO: replace with loadFromFile
+            static Mesh loadObj(const std::string& filename, const std::string& objectName = "Obj Mesh", MeshImportOptions importOptions = {}); // TODO: replace with loadFromFile
         private:
             void loadModelFromObj(const std::string& filename);
     };

@@ -1,19 +1,18 @@
 #pragma once
 #include <string>
 #include <vector>
-#include <vulkan/vulkan.h>
 #include <GLFW/glfw3.h>
 #include <memory>
 
 #include "modules.hpp"
-#include "graphics/internal/window.hpp"
 #include "graphics/graphics.hpp"
-#include "graphics/camera.hpp"
+#include "primitives/camera.hpp"
 #include "core/game_object.hpp"
 #include "utils/debug.hpp"
 #include "utils/random.hpp"
 #include "utils/console.hpp"
 #include "core/scene.hpp"
+#include "temp_data.hpp"
 
 namespace core
 {
@@ -32,13 +31,15 @@ public:
 
     void init();
     void close();
-    bool isOpen() const { return graphicsModule.getWindow()->isOpen(); }
+    bool isOpen() const { return graphicsModule.GetWindow().IsOpen(); }
 
     void run();
 
 private:
 
     void update(double deltaTime);
+
+    void drawPerformancePanel(float deltaTime, float smoothedDeltaTime);
 
     static void windowRefreshCallback(GLFWwindow *window);
 
@@ -47,7 +48,8 @@ private:
 
     Scene scene;
 
-    graphics::Camera camera;
+    Camera camera{};
+    Transform cameraTransform{};
 };
 
 } // namespace core

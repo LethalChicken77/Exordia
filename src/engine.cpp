@@ -6,10 +6,14 @@
 #include "engine.hpp"
 #include "modules.hpp"
 #include "core/input.hpp"
-#include "graphics/buffers/graphics_mesh.hpp"
+#include "graphics/resources/graphics_mesh.hpp"
+
+#include "graphics/api/resources/shader.hpp"
 
 #define GLM_FORCE_RADIANS
 #define GLM_FORCE_DEPTH_ZERO_TO_ONE
+#define GLM_FORCE_ALIGNED
+#define GLM_FORCE_INTRINSICS
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 #define IMGUI_DEFINE_MATH_OPERATORS
@@ -17,6 +21,9 @@
 #include "backends/imgui_impl_glfw.h"
 #include "backends/imgui_impl_vulkan.h"
 #include "utils/imgui_styles.hpp"
+#include "arena_allocator.hpp"
+#include "pool_allocator.hpp"
+#include "analysis/rolling_average.hpp"
 
 using namespace graphics;
 
@@ -30,117 +37,109 @@ namespace core
 
 Engine::Engine()
 {
+    gameData = std::make_unique<GameData>();
     init();
 }
 
 Engine::~Engine()
 {
+    gameData.reset();
     close();
 }
 
 void Engine::init()
 {
-    scene = Scene("Test");
-    scene->loadScene();
-}
+    gameData->skyboxMesh = Mesh::createSkybox(10);
+    graphicsModule.RegisterMesh(*gameData->skyboxMesh);
 
-void Engine::close()
-{
-    // graphicsModule.cleanup();
-}
+    ShaderAsset *testShader = AssetManager::LoadAsset<ShaderAsset>("internal/shaders/basicShader.slang");
+    ShaderAsset *pbrShader = AssetManager::LoadAsset<ShaderAsset>("internal/shaders/PBR.slang");
+    ShaderAsset *skyboxShader = AssetManager::LoadAsset<ShaderAsset>("internal/shaders/skybox.slang");
 
-void Engine::update(double deltaTime)
-{
-    glm::vec3 forward = camera.transform.forward();
-    forward.y = 0;
-    forward = glm::normalize(forward);
-    forward *= glm::sign(camera.transform.up().y);
-    glm::vec3 right = camera.transform.right();
-    float movementSpeed = 10.f;
-    if(core::Input::getKey(GLFW_KEY_A))
-    {
-        camera.transform.addPosition(-movementSpeed * (float)deltaTime * right);
-    }
-    if(core::Input::getKey(GLFW_KEY_D))
-    {
-        camera.transform.addPosition(movementSpeed * (float)deltaTime * right);
-    }
-    if(core::Input::getKey(GLFW_KEY_W))
-    {
-        camera.transform.addPosition(movementSpeed * (float)deltaTime * forward);
-    }
-    if(core::Input::getKey(GLFW_KEY_S))
-    {
-        camera.transform.addPosition(-movementSpeed * (float)deltaTime * forward);
-    }
+    testShader->LoadData();
+    pbrShader->LoadData();
+    skyboxShader->LoadData();
 
-    if(core::Input::getKey(GLFW_KEY_SPACE))
-    {
-        camera.transform.addPosition(glm::vec3(0, 10.f * deltaTime, 0));
-    }
-    if(core::Input::getKey(GLFW_KEY_LEFT_SHIFT))
-    {
-        camera.transform.addPosition(glm::vec3(0, -10.f * deltaTime, 0));
-    }
-
-    if(core::Input::getButtonDown(GLFW_MOUSE_BUTTON_LEFT) && !core::Input::getButton(GLFW_MOUSE_BUTTON_RIGHT))
-    {
-        glm::vec2 mousePos = core::Input::getMousePosition();
-        int mouseXPos = mousePos.x;
-        int mouseYPos = mousePos.y;
-        Console::debug(std::to_string(mouseXPos) + " " + std::to_string(mouseYPos));
-        Console::debug(std::to_string(graphicsModule.getClickedObjID(mouseXPos, mouseYPos)));
-        scene->selectedObject = graphicsModule.getClickedObjID(mouseXPos, mouseYPos);
-    }
-
-    if(core::Input::getButtonDown(GLFW_MOUSE_BUTTON_RIGHT))
-    {
-        glfwSetInputMode(graphicsModule.getWindow()->getWindow(), GLFW_CURSOR, GLFW_CURSOR_DISABLED);
-    }
-    if(core::Input::getButton(GLFW_MOUSE_BUTTON_RIGHT))
-    {
-        // std::cout << "Mouse position: " << core::Input::getMousePosition().x << ", " << core::Input::getMousePosition().y << std::endl;
-        glm::vec2 mouseDelta = -core::Input::getMouseDelta();
-        mouseDelta = glm::pow(glm::abs(mouseDelta), glm::vec2(1.1f)) * glm::vec2(glm::sign(mouseDelta.x), glm::sign(mouseDelta.y));
-        camera.transform.rotateYaw(-mouseDelta.x * 0.016f * 0.1f, false);
-        camera.transform.rotatePitch(-mouseDelta.y * 0.016f * 0.1f, true);
-    }
-    if(core::Input::getButtonUp(GLFW_MOUSE_BUTTON_RIGHT))
-    {
-        glfwSetInputMode(graphicsModule.getWindow()->getWindow(), GLFW_CURSOR, GLFW_CURSOR_NORMAL);
-    }
-
-    scene->update(deltaTime);
-}
+    // Shader shader = Shader(testShader, testShader);
+    // This is just to test memory pools, this will be replaced with a proper resource management system
+    Shader* shader = gameData->shaderPool.New(testShader, testShader);
+    Shader* sbShader = gameData->shaderPool.New(skyboxShader, skyboxShader);
+    Shader* pbr = gameData->shaderPool.New(pbrShader, pbrShader);
+    sbShader->properties.depthWrite = DepthWrite::DISABLED;
+    // Shader* pbr = shaderPool.New(pbrShader, pbrShader);
+    graphicsModule.RegisterShader(*shader);
+    graphicsModule.RegisterShader(*pbr);
+    graphicsModule.RegisterShader(*sbShader);
 
 
+    std::unique_ptr<TextureData> texa = TextureData::LoadFromFile("./internal/textures/worn_tile_floor/worn_tile_floor_diff_1k.jpg");
+    std::unique_ptr<TextureData> texr = TextureData::LoadFromFileEXR("./internal/textures/worn_tile_floor/worn_tile_floor_rough_1k.exr");
+    std::unique_ptr<TextureData> texm = TextureData::LoadFromFileEXR("./internal/textures/defaults/default_metal.exr");
+    std::unique_ptr<TextureData> texs = TextureData::LoadFromFileEXR("./internal/textures/defaults/default_spec.exr");
+    std::unique_ptr<TextureData> texn = TextureData::LoadFromFileEXR("./internal/textures/worn_tile_floor/worn_tile_floor_nor_gl_1k.exr");
 
-void Engine::run()
-{
-    // std::cout << "Configuring IMGUI" << std::endl;
-    IMGUI_CHECKVERSION();
-    ImGui::CreateContext();
-    ImGuiIO& imguiIO = ImGui::GetIO();
-    (void)imguiIO;
-    // Set style (optional)
-    // ImGui::StyleColorsDark();
-    ImGuiStyle& style = ImGui::GetStyle();
+    TextureHandle thA{};
+    TextureHandle thR{};
+    TextureHandle thM{};
+    TextureHandle thS{};
+    TextureHandle thN{};
 
-    // Set window rounding
-    // style.WindowRounding = 5.0f;
-    // style.FrameRounding = 3.0f;
-    // style.GrabRounding = 2.0f;
+    TextureData* texaP = gameData->textures.New(std::move(*texa));
+    TextureData* texrP = gameData->textures.New(std::move(*texr));
+    TextureData* texmP = gameData->textures.New(std::move(*texm));
+    TextureData* texsP = gameData->textures.New(std::move(*texs));
+    TextureData* texnP = gameData->textures.New(std::move(*texn));
 
-    // Adjust padding and spacing
-    // style.WindowPadding = ImVec2(10, 10);
-    // style.FramePadding = ImVec2(5, 5);
-    // style.ItemSpacing = ImVec2(8, 4);
+    if(texa != nullptr) thA = graphicsModule.RegisterTexture(*texaP);
+    if(texr != nullptr) thR = graphicsModule.RegisterTexture(*texrP);
+    if(texm != nullptr) thM = graphicsModule.RegisterTexture(*texmP);
+    if(texs != nullptr) thS = graphicsModule.RegisterTexture(*texsP);
+    if(texn != nullptr) thN = graphicsModule.RegisterTexture(*texnP);
 
-    // Modify colors
+    graphics::Material *yella = gameData->materials.New(Material(shader));
+    graphics::Material *blue = gameData->materials.New(Material(shader));
+    graphics::Material *pbrMat = gameData->materials.New(Material(pbr));
+    graphics::Material *skyboxMat = gameData->materials.New(Material(sbShader));
+    int64_t testVal = 69;
+    // mat.SetInt("test", testVal);
+    yella->SetVector("color", glm::vec4(1.f, 0.8f, 0.3f, 1.0f));
+    yella->SetFloat("roughness", 0.5f);
+    yella->SetFloat("metallic", 0.0f);
+    yella->name = "Yella";
 
-    ImGui_ImplGlfw_InitForVulkan(graphicsModule.getWindow()->getWindow(), true);
-    graphicsModule.graphicsInitImgui();
-    ImGui::GetIO().ConfigFlags |= ImGuiConfigFlags_DockingEnable;
+    blue->SetVector("color", glm::vec4(0.2f, 0.5f, 0.8f, 1.0f));
+    blue->SetFloat("roughness", 0.7f);
+    blue->SetFloat("metallic", 0.0f);
+    blue->name = "Blue";
+
+    // pbrMat->SetVector("color", glm::vec4(0.1f, 0.5f, 0.1f, 1.0f));
+    pbrMat->SetVector("color", glm::vec4(1.f, 1.f, 1.f, 1.f));
+    pbrMat->SetFloat("normalMapStrength", 1.f);
+    // gameData->materials[2].SetFloat("roughness", 0.8f);
+    // gameData->materials[2].SetFloat("metallic", 0.0f);
+    pbrMat->SetTexture("albedoMap", thA);
+    pbrMat->SetTexture("roughnessMap", thR);
+    pbrMat->SetTexture("metallicMap", thM);
+    // pbrMat->SetTexture("specularMap", thS);
+    pbrMat->SetTexture("normalMap", thN);
+    pbrMat->name = "PBR Mat";
+
+    gameData->skyboxMaterial = skyboxMat;
+    skyboxMat->name = "Skybox";
+    // mat2.SetVector("color", glm::vec4(1));
+    // mat2.SetFloat("normalMapStrength", 1.0f);
+    // mat2.SetTexture("albedoMap", );
+    // mat2.SetTexture("roughnessMap", );
+    // mat2.SetTexture("metallicMap", );
+    // mat2.SetTexture("normalMap", );
+
+    graphicsModule.RegisterMaterial(*yella);
+    graphicsModule.RegisterMaterial(*blue);
+    graphicsModule.RegisterMaterial(*pbrMat);
+    graphicsModule.RegisterMaterial(*skyboxMat);
+
+    graphicsModule.GraphicsInitImgui();
+    // ImGui::GetIO().ConfigFlags |= ImGuiConfigFlags_DockingEnable;
 
 
     Input::initializeKeys();
@@ -154,85 +153,196 @@ void Engine::run()
     //     {0.01f, 100.0f, 20.0f},
     //     true
     // );
-    camera.transform.setPosition(glm::vec3(0.0f, 2.0f, -5.0f));
-    camera.transform.setPosition(glm::vec3(glm::radians(20.0f), 0.0f, 0.0f));
+    cameraTransform.setPosition(glm::vec3(0.0f, 2.0f, -5.0f));
+    cameraTransform.setPosition(glm::vec3(glm::radians(20.0f), 0.0f, 0.0f));
+
+    scene = Scene("Test");
+    scene->loadScene();
+}
+
+void Engine::close()
+{
+    // graphicsModule.cleanup();
+}
+
+void Engine::update(double deltaTime)
+{
+    glm::vec3 forward = cameraTransform.forward();
+    forward.y = 0;
+    forward = glm::normalize(forward);
+    forward *= glm::sign(cameraTransform.up().y);
+    glm::vec3 right = cameraTransform.right();
+    float movementSpeed = 10.f;
+    if(core::Input::getKey(GLFW_KEY_A))
+    {
+        cameraTransform.addPosition(-movementSpeed * (float)deltaTime * right);
+    }
+    if(core::Input::getKey(GLFW_KEY_D))
+    {
+        cameraTransform.addPosition(movementSpeed * (float)deltaTime * right);
+    }
+    if(core::Input::getKey(GLFW_KEY_W))
+    {
+        cameraTransform.addPosition(movementSpeed * (float)deltaTime * forward);
+    }
+    if(core::Input::getKey(GLFW_KEY_S))
+    {
+        cameraTransform.addPosition(-movementSpeed * (float)deltaTime * forward);
+    }
+
+    if(core::Input::getKey(GLFW_KEY_SPACE))
+    {
+        cameraTransform.addPosition(glm::vec3(0, 10.f * deltaTime, 0));
+    }
+    if(core::Input::getKey(GLFW_KEY_LEFT_SHIFT))
+    {
+        cameraTransform.addPosition(glm::vec3(0, -10.f * deltaTime, 0));
+    }
+
+    // TODO: Reimplement object selection
+    // if(core::Input::getButtonDown(GLFW_MOUSE_BUTTON_LEFT) && !core::Input::getButton(GLFW_MOUSE_BUTTON_RIGHT))
+    // {
+    //     glm::vec2 mousePos = core::Input::getMousePosition();
+    //     int mouseXPos = mousePos.x;
+    //     int mouseYPos = mousePos.y;
+    //     Console::debug(std::to_string(mouseXPos) + " " + std::to_string(mouseYPos));
+    //     Console::debug(std::to_string(graphicsModule.getClickedObjID(mouseXPos, mouseYPos)));
+    //     scene->selectedObject = graphicsModule.getClickedObjID(mouseXPos, mouseYPos);
+    // }
+
+    if(core::Input::getButtonDown(GLFW_MOUSE_BUTTON_RIGHT))
+    {
+        glfwSetInputMode(graphicsModule.GetGLFWWindow(), GLFW_CURSOR, GLFW_CURSOR_DISABLED);
+    }
+    if(core::Input::getButton(GLFW_MOUSE_BUTTON_RIGHT))
+    {
+        // std::cout << "Mouse position: " << core::Input::getMousePosition().x << ", " << core::Input::getMousePosition().y << std::endl;
+        glm::vec2 mouseDelta = -core::Input::getMouseDelta();
+        mouseDelta = glm::pow(glm::abs(mouseDelta), glm::vec2(1.1f)) * glm::vec2(glm::sign(mouseDelta.x), glm::sign(mouseDelta.y));
+        cameraTransform.rotateYaw(-mouseDelta.x * 0.016f * 0.1f, false);
+        cameraTransform.rotatePitch(-mouseDelta.y * 0.016f * 0.1f, true);
+    }
+    if(core::Input::getButtonUp(GLFW_MOUSE_BUTTON_RIGHT))
+    {
+        glfwSetInputMode(graphicsModule.GetGLFWWindow(), GLFW_CURSOR, GLFW_CURSOR_NORMAL);
+    }
+
+    scene->update(deltaTime);
+}
+
+void Engine::run()
+{
     // camera.transform.parent = &scene->getGameObjects()[0]->transform;
 
-    graphicsModule.setCamera(&camera);
+    // graphicsModule.SetCamera(&camera);
 
     VkDescriptorSet viewPortDS = nullptr;
 
+    analysis::RollingAverage<float> averageFrameTime{120};
     std::cout << "Entering main loop" << std::endl;
     double time = 0.0f;
     double deltaTime = 0.0f;
     // Main loop
-    while (graphicsModule.isOpen()) {
+    while (graphicsModule.IsOpen()) {
         // Poll for and process events
         glfwPollEvents();
         
-        if(core::Input::getKeyDown(GLFW_KEY_R))
-        {
-            graphicsModule.reloadShaders();
-        }
+        // TODO: Reimplement
+        // if(core::Input::getKeyDown(GLFW_KEY_R))
+        // {
+        //     graphicsModule.ReloadShaders();
+        // }
 
 
         ImGui_ImplVulkan_NewFrame();
         ImGui_ImplGlfw_NewFrame();
         ImGui::NewFrame();
 
-        ImGui::DockSpaceOverViewport(0, ImGui::GetMainViewport(), ImGuiDockNodeFlags_PassthruCentralNode);
+        // ImGui::DockSpaceOverViewport(0, ImGui::GetMainViewport(), ImGuiDockNodeFlags_PassthruCentralNode);
 
-        ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0,0));
-        ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(0,0));
-        ImGui::Begin("Viewport", nullptr, ImGuiWindowFlags_NoDecoration);
-        ImVec2 size = ImGui::GetContentRegionAvail();
-        graphicsModule.viewportSize = VkExtent2D{(uint32_t)size.x, (uint32_t)size.y};
-        graphicsModule.updateExtent();
-        viewPortDS = graphicsModule.getViewportDescriptorSet();
-        if(viewPortDS != nullptr)
-        {
-            ImGui::Image((void*)reinterpret_cast<uintptr_t>(viewPortDS), size);
-        }
-        ImGui::End();
-        ImGui::PopStyleVar(2);
+        // ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0,0));
+        // ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(0,0));
+        // ImGui::Begin("Viewport", nullptr, ImGuiWindowFlags_NoDecoration);
+        // ImVec2 size = ImGui::GetContentRegionAvail();
+        // graphicsModule.viewportSize = VkExtent2D{(uint32_t)size.x, (uint32_t)size.y};
+        // graphicsModule.updateExtent();
+        // viewPortDS = graphicsModule.getViewportDescriptorSet();
+        // if(viewPortDS != nullptr)
+        // {
+        //     ImGui::Image((void*)reinterpret_cast<uintptr_t>(viewPortDS), size);
+        // }
+        // ImGui::End();
+        // ImGui::PopStyleVar(2);
 
-        Console::drawImGui();
-        ObjectManager::drawImGui();
+        // Console::drawImGui();
+        // ObjectManager::drawImGui();
+        drawPerformancePanel(deltaTime, averageFrameTime.GetAverage());
+        averageFrameTime.PushValue(deltaTime);
 
-        ImGui::Begin("Material Properties");
+        // ImGui::Begin("Material Properties");
 
-        for(Material &mat : Shared::materials)
-        {
-            mat.drawImGui();
-        }
+        // for(Material &mat : Shared::materials)
+        // {
+        //     mat.drawImGui();
+        // }
         
-        ImGui::End();
+        // ImGui::End();
 
         bool imguiHovered = ImGui::IsWindowHovered(ImGuiHoveredFlags_AnyWindow);
         ImGui::Render();
         // Input
-        Input::processInput(graphicsModule.getWindow()->getWindow());
+        Input::processInput(graphicsModule.GetGLFWWindow());
         
         if(core::Input::getKeyDown(GLFW_KEY_ESCAPE))
         {
             break;
         }
 
-        update(deltaTime);
-
-        graphicsModule.drawSkybox();
-        scene->drawScene();
-        // Render here
-        graphicsModule.drawFrame();
-
-
         // Update Time
         double oldTime = time;
         time = glfwGetTime();
         deltaTime = time - oldTime;
+        
+        update(deltaTime);
+
+        Transform skyboxTransform{};
+        skyboxTransform.setPosition(cameraTransform.getPosition());
+        graphicsModule.DrawMesh(gameData->skyboxMesh, *gameData->skyboxMaterial, skyboxTransform.getTransform(), -1); // Draw skybox
+        scene->drawScene();
+        // Render here
+        camera.setAspectRatio(graphicsModule.GetAspectRatio());
+        camera.SetTransform(cameraTransform.getTransform());
+        graphicsModule.SetCamera(camera);
+        graphicsModule.DrawFrame();
+
+
         // std::cout << "Delta time: " << deltaTime << std::endl;
     }
     close();
+}
+
+void Engine::drawPerformancePanel(float deltaTime, float smoothedDeltaTime)
+{
+    ImGuiViewport* vp = ImGui::GetMainViewport();
+    ImGui::SetNextWindowPos(
+        ImVec2(vp->WorkPos.x + vp->WorkSize.x, vp->WorkPos.y),
+        ImGuiCond_Always,
+        ImVec2(1.0f, 0.0f) // pivot: top-right
+    );
+
+    ImGui::SetNextWindowSize(ImVec2(0, 0), ImGuiCond_Once);
+    ImGuiWindowFlags flags =
+        ImGuiWindowFlags_NoTitleBar |
+        ImGuiWindowFlags_NoResize |
+        ImGuiWindowFlags_NoMove;
+    ImGui::Begin("Performance", nullptr, flags);
+
+    float fps = 1/smoothedDeltaTime;
+    ImGui::Text("%.1f FPS\n%.2f ms", fps, smoothedDeltaTime * 1000);
+    float rawfps = 1/deltaTime;
+    ImGui::Text("%.1f FPS (raw)\n%.2f ms (raw)      ", rawfps, deltaTime * 1000);
+
+    ImGui::End();
 }
 
 } // namespace core

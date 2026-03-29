@@ -29,7 +29,7 @@ VOut vsMain(VertexData input, InstanceData instance)
     float3x3 normalMatrix = transpose(inverse(float3x3(model)));
     output.Normal = normalize(mul(normalMatrix, input.Normal));
     output.Tangent = float4(normalize(mul(normalMatrix, input.Tangent.xyz)), input.Tangent.w);
-    output.Bitangent = normalize(mul(normalMatrix, input.Bitangent));
+    output.Bitangent = normalize(mul(normalMatrix, cross(input.Normal.xyz, input.Tangent.xyz)));
     output.Color = input.Color;
     output.UV = input.UV;
 
@@ -38,7 +38,7 @@ VOut vsMain(VertexData input, InstanceData instance)
 
 // Entry point
 [shader("fragment")]
-float4 fsMain(VOut input)
+float4 fsMain(FIn input)
 {
     float3 normal = normalize(input.Normal);
     float3 tangent = normalize(input.Tangent.xyz);
@@ -62,7 +62,7 @@ float4 fsMain(VOut input)
     normalMapSample = normalize(normalMapSample);
     normal = normalize(
         normalMapSample.x * tangent + 
-        normalMapSample.y * -bitangent * input.Tangent.w + 
+        normalMapSample.y * bitangent * input.Tangent.w + 
         normalMapSample.z * normal);
 
     float3 reflectDir = reflect(viewDir, normal);
@@ -91,7 +91,8 @@ float4 fsMain(VOut input)
         outColor += pbrBRDF(albedo, roughness, metallic, specular, lightColor, normal, lightDir, viewDir);
     }
     outColor += pbrAmbient(albedo, roughness, metallic, specular, ambientColor, ambientColor, normal, viewDir);
-    // float3 outColor = PhongBRDF(albedo, 80, lightColor, ambientColor, normal, lightDir, viewDir);
+    // outColor = PhongBRDF(albedo, 80, lightColor, ambientColor, normal, lightDir, viewDir);
 
     return float4(outColor, 1.0);
+    // return float4(normalMap.Sample(UV).xyz, 1.0);
 }

@@ -21,6 +21,8 @@ VOut vsMain(VertexData vertex, InstanceData instance)
     // model = float4x4(1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1);
     output.FragPosition = mul(cameraData.viewProj, mul(model, float4(vertex.Position, 1.0)));
     output.Position = mul(model, float4(vertex.Position, 1.0)).xyz;
+    // output.FragPosition = float4(vertex.Position, 1.0);
+    // output.Position = vertex.Position;
 
     float3x3 normalMatrix = transpose(inverse(float3x3(model)));
     output.Normal = normalize(mul(normalMatrix, vertex.Normal));
@@ -32,9 +34,9 @@ VOut vsMain(VertexData vertex, InstanceData instance)
 
 // Entry point
 [shader("fragment")]
-float4 fsMain(VOut input)
+float4 fsMain(FIn input)
 {
-    float3 normal = normalize(input.Normal);
+    float3 normal = normalize(input.Normal) * (input.isFrontFace ? 1 : -1);
     // float3 lightDir = normalize(float3(0.5, 0.4, 1));
     float3 cameraPos = cameraData.view[3].xyz;
     float3 viewDir = normalize(input.Position.xyz - cameraPos);
@@ -48,6 +50,12 @@ float4 fsMain(VOut input)
     for (int i = 0; i < globalData.numLights; i++)
     {
         Light currentLight = globalData.lights[i];
+        // Light currentLight = {
+        //     float3(1,1,1),
+        //     LightType.DIRECTIONAL,
+        //     float3(1,1,1),
+        //     4
+        // };
         float3 lightDir = float3(0);
         float attenuation = 1;
         if (currentLight.type == LightType.DIRECTIONAL)
@@ -63,8 +71,10 @@ float4 fsMain(VOut input)
 
         float3 lightColor = currentLight.color * currentLight.intensity * attenuation;
         outColor += pbrBRDF(albedo, materialInfo.roughness, materialInfo.metallic, F0, lightColor, normal, lightDir, viewDir);
+        // outColor += PhongBRDF(albedo, 80, lightColor * 0.25, float3(0,0,0), normal, lightDir, viewDir);
     }
     outColor += pbrAmbient(albedo, materialInfo.roughness, materialInfo.metallic, F0, ambientColor, ambientColor, normal, viewDir);
+    // outColor += ambientColor * 0.1;
     // float3 outColor = PhongBRDF(albedo, 80, lightColor, ambientColor, normal, lightDir, viewDir);
 
     // outColor = OklabToLinear(outColor);
@@ -74,4 +84,5 @@ float4 fsMain(VOut input)
     // outColor *= 0.5;
     // outColor = ACESFilmCurve(outColor);
     return float4(outColor, 1.0);
+    // return float4(normal, 1.0);
 }

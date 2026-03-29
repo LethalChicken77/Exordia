@@ -1,6 +1,5 @@
 #pragma once
-#include "asset.hpp"
-#include "graphics/texture.hpp"
+#include "core/asset.hpp"
 
 namespace core
 {
@@ -21,7 +20,5 @@ namespace core
     private:
         TextureAsset(id_t newID) : AssetData(newID) {}
         friend std::unique_ptr<TextureAsset> Object::Instantiate<TextureAsset>(std::string);
-
-        std::unique_ptr<graphics::Texture> texture;
     };
 }
