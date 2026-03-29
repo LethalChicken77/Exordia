@@ -10,12 +10,6 @@ struct SwapchainSettings
     /// @brief Allow the use of Mailbox present mode if available
     bool allowMailboxPresentMode = true;
     VkPresentModeKHR overridePresentMode = VK_PRESENT_MODE_MAX_ENUM_KHR; // Force a specific present mode if not MAX_ENUM. Mostly for testing.
-
-    const static SwapchainSettings& GetDefaultSettings()
-    {
-        static SwapchainSettings defaultSettings{};
-        return defaultSettings;
-    }
 };
 
 class Swapchain
@@ -23,7 +17,7 @@ class Swapchain
 public:
     static constexpr int MAX_FRAMES_IN_FLIGHT = 2;
 
-    Swapchain(internal::Device &device, Window &window, SwapchainSettings settings = SwapchainSettings::GetDefaultSettings(), VkSwapchainKHR oldSwapchain = VK_NULL_HANDLE);
+    Swapchain(internal::Device &device, Window &window, SwapchainSettings settings = SwapchainSettings{}, VkSwapchainKHR oldSwapchain = VK_NULL_HANDLE);
     ~Swapchain();
 
     Swapchain(const Swapchain&) = delete;

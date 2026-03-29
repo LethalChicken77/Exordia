@@ -39,7 +39,7 @@ private:
 
     void update(double deltaTime);
 
-    void drawPerformancePanel(float deltaTime);
+    void drawPerformancePanel(float deltaTime, float smoothedDeltaTime);
 
     static void windowRefreshCallback(GLFWwindow *window);
 

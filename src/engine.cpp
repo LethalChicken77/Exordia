@@ -23,8 +23,7 @@
 #include "utils/imgui_styles.hpp"
 #include "arena_allocator.hpp"
 #include "pool_allocator.hpp"
-
-#include "boids.hpp"
+#include "analysis/rolling_average.hpp"
 
 using namespace graphics;
 
@@ -233,13 +232,13 @@ void Engine::update(double deltaTime)
 
 void Engine::run()
 {
-    BoidsSimulation boids{};
     // camera.transform.parent = &scene->getGameObjects()[0]->transform;
 
     // graphicsModule.SetCamera(&camera);
 
     VkDescriptorSet viewPortDS = nullptr;
 
+    analysis::RollingAverage<float> averageFrameTime{120};
     std::cout << "Entering main loop" << std::endl;
     double time = 0.0f;
     double deltaTime = 0.0f;
@@ -275,10 +274,10 @@ void Engine::run()
         // ImGui::End();
         // ImGui::PopStyleVar(2);
 
-        boids.DrawImGui();
-        Console::drawImGui();
-        ObjectManager::drawImGui();
-        drawPerformancePanel(deltaTime);
+        // Console::drawImGui();
+        // ObjectManager::drawImGui();
+        drawPerformancePanel(deltaTime, averageFrameTime.GetAverage());
+        averageFrameTime.PushValue(deltaTime);
 
         // ImGui::Begin("Material Properties");
 
@@ -305,13 +304,11 @@ void Engine::run()
         deltaTime = time - oldTime;
         
         update(deltaTime);
-        boids.Update(deltaTime);
 
         Transform skyboxTransform{};
         skyboxTransform.setPosition(cameraTransform.getPosition());
         graphicsModule.DrawMesh(gameData->skyboxMesh, *gameData->skyboxMaterial, skyboxTransform.getTransform(), -1); // Draw skybox
-        // scene->drawScene();
-        boids.Draw();
+        scene->drawScene();
         // Render here
         camera.setAspectRatio(graphicsModule.GetAspectRatio());
         camera.SetTransform(cameraTransform.getTransform());
@@ -324,7 +321,7 @@ void Engine::run()
     close();
 }
 
-void Engine::drawPerformancePanel(float deltaTime)
+void Engine::drawPerformancePanel(float deltaTime, float smoothedDeltaTime)
 {
     ImGuiViewport* vp = ImGui::GetMainViewport();
     ImGui::SetNextWindowPos(
@@ -340,8 +337,10 @@ void Engine::drawPerformancePanel(float deltaTime)
         ImGuiWindowFlags_NoMove;
     ImGui::Begin("Performance", nullptr, flags);
 
-    float fps = 1/deltaTime;
-    ImGui::Text("%.1f FPS      \n%.0f ms", fps, deltaTime * 1000);
+    float fps = 1/smoothedDeltaTime;
+    ImGui::Text("%.1f FPS\n%.2f ms", fps, smoothedDeltaTime * 1000);
+    float rawfps = 1/deltaTime;
+    ImGui::Text("%.1f FPS (raw)\n%.2f ms (raw)      ", rawfps, deltaTime * 1000);
 
     ImGui::End();
 }

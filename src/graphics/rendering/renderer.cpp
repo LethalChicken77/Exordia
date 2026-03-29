@@ -181,7 +181,7 @@ void Renderer::RecreateSwapchain()
         swapchain = std::make_unique<Swapchain>(
             graphicsData->GetBackend().GetDevice(),
             graphicsData->GetWindow(),
-            SwapchainSettings::GetDefaultSettings()
+            SwapchainSettings{}
         );
     }
     else
@@ -191,7 +191,7 @@ void Renderer::RecreateSwapchain()
         swapchain = std::make_unique<Swapchain>(
             graphicsData->GetBackend().GetDevice(),
             graphicsData->GetWindow(),
-            SwapchainSettings::GetDefaultSettings(),
+            SwapchainSettings{},
             oldSwapchain->GetSwapchain()
         );
 
