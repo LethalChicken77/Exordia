@@ -151,6 +151,7 @@ void BoidsSimulation::updateVel(glm::vec3& pos, glm::vec3& vel, glm::vec3& other
     if(distance < 0.000001f)
         return;
     glm::vec3 dir = delta / distance;
+    if(distance == 0) dir = glm::vec3(0,0,1);
     float cosAngle = glm::dot(glm::normalize(vel), dir);
     if(distance < nearRepelRadius)
     {
