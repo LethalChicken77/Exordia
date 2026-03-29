@@ -16,13 +16,14 @@ class GraphicsMaterial
 {
 public:
     static const uint32_t MATERIAL_BUFFER_BINDING = 0;
+    ShaderHandle shaderHandle;
+    std::string name;
     GraphicsMaterial(const Material &base, const GraphicsPipeline &pipeline, const TextureRegistry& textureRegistry, DescriptorPool &pool);
 
     void UpdateMaterial(const Material &base);
 
     [[nodiscard]] VkDescriptorSet GetDescriptorSet() const { return descriptorSet; }
     
-    ShaderHandle shaderHandle;
 private:
     internal::Device &device;
     const DescriptorSetLayout *layout;

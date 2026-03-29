@@ -2,6 +2,8 @@
 #include <random>
 #include <bit>
 
+#include "glm/glm.hpp"
+
 class Random
 {
     public:
@@ -42,6 +44,30 @@ class Random
         {
             std::random_device rd;
             return getRandomFloat(min, max, rd());
+        }
+
+        static inline float GaussianFloat(float stdev = 1, float mean = 0)
+        {
+            std::random_device rd;
+            return GaussianFloat(stdev, mean, rd());
+        }
+
+        static inline float GaussianFloat(float stdev, float mean, uint32_t seed)
+        {
+            rng.seed(seed);
+            std::normal_distribution<float> distribution(mean, stdev);
+            return distribution(rng);
+        }
+
+        static inline glm::vec3 OnUnitSphere()
+        {
+            glm::vec3 result = { GaussianFloat(), GaussianFloat(), GaussianFloat() };
+            return glm::normalize(result);
+        }
+
+        static inline glm::vec3 InsideUnitSphere()
+        {
+            return OnUnitSphere() * glm::pow(getRandom01(), 0.3333333333f);
         }
 
         // MurmurHash3-like function for better hash distribution

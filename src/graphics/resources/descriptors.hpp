@@ -109,8 +109,8 @@ private:
     const DescriptorSetLayout &setLayout;
     const DescriptorPool &pool;
     std::vector<VkWriteDescriptorSet> writes{};
-    std::vector<VkDescriptorBufferInfo> bufferInfos{};
-    std::vector<VkDescriptorImageInfo> imageInfos{};
+    std::vector<VkDescriptorBufferInfo> bufferInfos{100}; // If you exceed 100 bindings there's no hope for you
+    std::vector<VkDescriptorImageInfo> imageInfos{100};
 };
 // TODO: Bring back descriptor writer
 } // namespace graphics

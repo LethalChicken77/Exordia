@@ -39,6 +39,8 @@ private:
 
     void update(double deltaTime);
 
+    void drawPerformancePanel(float deltaTime);
+
     static void windowRefreshCallback(GLFWwindow *window);
 
     VkInstance instance;

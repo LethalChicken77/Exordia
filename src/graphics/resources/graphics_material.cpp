@@ -7,7 +7,8 @@ namespace graphics
 
 GraphicsMaterial::GraphicsMaterial(const Material &base, const GraphicsPipeline &pipeline, const TextureRegistry& textureRegistry, DescriptorPool &pool) 
     : device(pool.GetDevice()),
-    layout(&pipeline.GetDescriptorSetLayout())
+    layout(&pipeline.GetDescriptorSetLayout()),
+    name(base.name)
 {
     DescriptorWriter writer = DescriptorWriter(pipeline.GetDescriptorSetLayout(), pool);
 
@@ -34,7 +35,7 @@ GraphicsMaterial::GraphicsMaterial(const Material &base, const GraphicsPipeline 
     for(const Material::TextureBinding &binding : base.GetTextureBindings())
     {
         Texture *tex = textureRegistry.Get(binding.handle);
-        Console::debugf("Texture binding: {}", binding.handle.index);
+        Console::debugf("Texture binding: {}", binding.binding);
         if(tex == nullptr)
         {
             Console::warnf("Invalid texture handle for binding {}", binding.binding, "GraphicsMaterial");

@@ -400,7 +400,7 @@ Mesh Mesh::createSkybox(float size, const std::string& objectName)
     return mesh;
 }
 
-Mesh Mesh::loadObj(const std::string& filename, const std::string& objectName)
+Mesh Mesh::loadObj(const std::string& filename, const std::string& objectName, MeshImportOptions importOptions)
 {
     tinyobj::attrib_t attrib;
     std::vector<tinyobj::shape_t> shapes;
@@ -489,6 +489,7 @@ Mesh Mesh::loadObj(const std::string& filename, const std::string& objectName)
                     }
 
                     // Add to vertices and update map
+                    v.position *= importOptions.importScale;
                     vertices.push_back(v);
                     uint32_t newIndex = static_cast<uint32_t>(vertices.size() - 1);
                     vertexMap[key] = newIndex;

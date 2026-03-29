@@ -15,6 +15,12 @@
 
 namespace core
 {
+    
+    struct MeshImportOptions
+    {
+        glm::vec3 importScale = glm::vec3(1);
+    };
+
     class MeshData : public Object // TODO: Redesign to avoid inheritance
     {
     public:
@@ -108,7 +114,7 @@ namespace core
             static Mesh createSierpinskiPyramid(float edgeLength, int depth, const std::string& objectName = "Sierpinski Pyramid Mesh");
             static Mesh createGrid(int width, int length, glm::vec2 dimensions, const std::string& objectName = "Grid Mesh");
             static Mesh createSkybox(float size, const std::string& objectName = "Skybox Mesh");
-            static Mesh loadObj(const std::string& filename, const std::string& objectName = "Obj Mesh"); // TODO: replace with loadFromFile
+            static Mesh loadObj(const std::string& filename, const std::string& objectName = "Obj Mesh", MeshImportOptions importOptions = {}); // TODO: replace with loadFromFile
         private:
             void loadModelFromObj(const std::string& filename);
     };

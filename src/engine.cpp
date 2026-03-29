@@ -12,6 +12,8 @@
 
 #define GLM_FORCE_RADIANS
 #define GLM_FORCE_DEPTH_ZERO_TO_ONE
+#define GLM_FORCE_ALIGNED
+#define GLM_FORCE_INTRINSICS
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 #define IMGUI_DEFINE_MATH_OPERATORS
@@ -21,6 +23,8 @@
 #include "utils/imgui_styles.hpp"
 #include "arena_allocator.hpp"
 #include "pool_allocator.hpp"
+
+#include "boids.hpp"
 
 using namespace graphics;
 
@@ -100,12 +104,14 @@ void Engine::init()
     int64_t testVal = 69;
     // mat.SetInt("test", testVal);
     yella->SetVector("color", glm::vec4(1.f, 0.8f, 0.3f, 1.0f));
-    yella->SetFloat("roughness", 0.4f);
+    yella->SetFloat("roughness", 0.5f);
     yella->SetFloat("metallic", 0.0f);
+    yella->name = "Yella";
 
     blue->SetVector("color", glm::vec4(0.2f, 0.5f, 0.8f, 1.0f));
-    blue->SetFloat("roughness", 0.2f);
-    blue->SetFloat("metallic", 1.0f);
+    blue->SetFloat("roughness", 0.7f);
+    blue->SetFloat("metallic", 0.0f);
+    blue->name = "Blue";
 
     // pbrMat->SetVector("color", glm::vec4(0.1f, 0.5f, 0.1f, 1.0f));
     pbrMat->SetVector("color", glm::vec4(1.f, 1.f, 1.f, 1.f));
@@ -115,10 +121,12 @@ void Engine::init()
     pbrMat->SetTexture("albedoMap", thA);
     pbrMat->SetTexture("roughnessMap", thR);
     pbrMat->SetTexture("metallicMap", thM);
-    pbrMat->SetTexture("specularMap", thS);
+    // pbrMat->SetTexture("specularMap", thS);
     pbrMat->SetTexture("normalMap", thN);
+    pbrMat->name = "PBR Mat";
 
     gameData->skyboxMaterial = skyboxMat;
+    skyboxMat->name = "Skybox";
     // mat2.SetVector("color", glm::vec4(1));
     // mat2.SetFloat("normalMapStrength", 1.0f);
     // mat2.SetTexture("albedoMap", );
@@ -225,7 +233,7 @@ void Engine::update(double deltaTime)
 
 void Engine::run()
 {
-    
+    BoidsSimulation boids{};
     // camera.transform.parent = &scene->getGameObjects()[0]->transform;
 
     // graphicsModule.SetCamera(&camera);
@@ -267,8 +275,10 @@ void Engine::run()
         // ImGui::End();
         // ImGui::PopStyleVar(2);
 
+        boids.DrawImGui();
         Console::drawImGui();
         ObjectManager::drawImGui();
+        drawPerformancePanel(deltaTime);
 
         // ImGui::Begin("Material Properties");
 
@@ -295,11 +305,13 @@ void Engine::run()
         deltaTime = time - oldTime;
         
         update(deltaTime);
+        boids.Update(deltaTime);
 
         Transform skyboxTransform{};
         skyboxTransform.setPosition(cameraTransform.getPosition());
         graphicsModule.DrawMesh(gameData->skyboxMesh, *gameData->skyboxMaterial, skyboxTransform.getTransform(), -1); // Draw skybox
-        scene->drawScene();
+        // scene->drawScene();
+        boids.Draw();
         // Render here
         camera.setAspectRatio(graphicsModule.GetAspectRatio());
         camera.SetTransform(cameraTransform.getTransform());
@@ -310,6 +322,28 @@ void Engine::run()
         // std::cout << "Delta time: " << deltaTime << std::endl;
     }
     close();
+}
+
+void Engine::drawPerformancePanel(float deltaTime)
+{
+    ImGuiViewport* vp = ImGui::GetMainViewport();
+    ImGui::SetNextWindowPos(
+        ImVec2(vp->WorkPos.x + vp->WorkSize.x, vp->WorkPos.y),
+        ImGuiCond_Always,
+        ImVec2(1.0f, 0.0f) // pivot: top-right
+    );
+
+    ImGui::SetNextWindowSize(ImVec2(0, 0), ImGuiCond_Once);
+    ImGuiWindowFlags flags =
+        ImGuiWindowFlags_NoTitleBar |
+        ImGuiWindowFlags_NoResize |
+        ImGuiWindowFlags_NoMove;
+    ImGui::Begin("Performance", nullptr, flags);
+
+    float fps = 1/deltaTime;
+    ImGui::Text("%.1f FPS      \n%.0f ms", fps, deltaTime * 1000);
+
+    ImGui::End();
 }
 
 } // namespace core

@@ -42,8 +42,10 @@ if(CMAKE_BUILD_TYPE STREQUAL "Debug")
 elseif(CMAKE_BUILD_TYPE STREQUAL "Release")
     add_compile_options(
         -O3
+        -march=native
         # -flto # Link Time Optimization, disable for faster compile
         -ffast-math
+        -fopenmp-simd
         # -Wall
         # -Wextra # More warnings
         # -Wpedantic
@@ -115,6 +117,17 @@ file(GLOB_RECURSE LIB_SOURCES
     "lib/spirv-reflect/spirv_reflect.cpp"
 )
 
+# OpenMP setup 
+set(OpenMP_C_FLAGS "-fopenmp")
+set(OpenMP_CXX_FLAGS "-fopenmp")
+set(OpenMP_C_LIB_NAMES "omp")
+set(OpenMP_CXX_LIB_NAMES "omp")
+set(OpenMP_omp_LIBRARY omp)
+find_package(OpenMP)
+if(OpenMP_CXX_FOUND)
+    set(LIBRARIES ${LIBRARIES} OpenMP::OpenMP_CXX)
+endif()
+
 # Add executable
 add_executable(GameEngine 
     ${SOURCES} 
@@ -137,6 +150,7 @@ target_include_directories(GameEngine PRIVATE "${VULKAN_SDK}/Include")
 target_include_directories(GameEngine PRIVATE "${VULKAN_SDK}/Include/Volk")
 target_include_directories(GameEngine PRIVATE "${VULKAN_SDK}/Include/vulkan") # Needed for vulkan.hpp
 target_include_directories(GameEngine PRIVATE SYSTEM "${VULKAN_SDK}/Include/slang")
+target_include_directories(OpenMP::OpenMP_CXX INTERFACE C:/msys64/clang64/include)
 # target_include_directories(GameEngine PRIVATE "${Vulkan_INCLUDE_DIRS}/vma")
 
 if(CMAKE_BUILD_TYPE STREQUAL "Debug")
@@ -174,4 +188,5 @@ target_link_libraries(GameEngine PRIVATE
     # "${VULKAN_SDK}/Lib/volk.lib"                     # Link Volk
     "${VULKAN_SDK}/Lib/slang.lib"
     gdi32 user32 shell32 Dwmapi
+    OpenMP::OpenMP_CXX INTERFACE omp
 )

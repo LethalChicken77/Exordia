@@ -17,6 +17,10 @@ public:
     };
 
 public:
+    MaterialHandle graphicsHandle;
+    ShaderHandle shaderHandle;
+    std::string name;
+
     Material(const Shader *shader);
 
     
@@ -81,9 +85,6 @@ public:
 
     void SetTexture(const std::string &name, TextureHandle handle);
     void SetTexture(const std::string &name, const TextureData& texture);
-
-    MaterialHandle graphicsHandle;
-    ShaderHandle shaderHandle;
 private:
     // const Shader* shader;
     const ShaderLayout* materialLayout = nullptr;

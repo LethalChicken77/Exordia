@@ -204,6 +204,7 @@ void Swapchain::createSwapchain(VkSwapchainKHR oldSwapchain)
     vkGetSwapchainImagesKHR(device.Get(), swapchain, &imageCount, swapchainImages.data());
 
     swapchainImageFormat = surfaceFormat.format;
+    // swapchainImageFormat = VK_FORMAT_B8G8R8A8_UNORM;
     swapchainExtent = extent;
 }
 
