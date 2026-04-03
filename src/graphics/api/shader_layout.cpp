@@ -1,6 +1,9 @@
 #include "shader_layout.hpp"
 #include "spirv_reflect.h"
 #include "utils/console.hpp"
+#include "graphics/backend/vulkan_include.h"
+#include <unordered_map>
+#include <regex>
 
 namespace graphics
 {
@@ -98,6 +101,58 @@ inline ShaderParameter CreateVectorFloatParameter(const SpvReflectBlockVariable 
         td->traits.numeric.scalar.width / 8,
         member.size,
         1,
+        false
+    );
+}
+
+inline ShaderParameter CreateMatrixIntParameter(const SpvReflectBlockVariable &member, std::string parentName = "")
+{    
+    DataType type;
+    const SpvReflectTypeDescription *td = member.type_description;
+    if(td->traits.numeric.vector.component_count == 2)
+        if(td->traits.numeric.scalar.signedness)
+            type = DataType::IVec2;
+        else
+            type = DataType::UVec2;
+    else if(td->traits.numeric.vector.component_count == 3)
+        if(td->traits.numeric.scalar.signedness)
+            type = DataType::IVec3;
+        else
+            type = DataType::UVec3;
+    else
+        if(td->traits.numeric.scalar.signedness)
+            type = DataType::IVec4;
+        else
+            type = DataType::UVec4;
+    return ShaderParameter(
+        parentName + member.name,
+        member.absolute_offset,
+        type,
+        td->traits.numeric.scalar.width / 8,
+        member.size,
+        1,
+        false
+    );
+}
+
+inline ShaderParameter CreateMatrixFloatParameter(const SpvReflectBlockVariable &member, std::string parentName = "")
+{    
+    DataType type;
+    const SpvReflectTypeDescription *td = member.type_description;
+    if(td->traits.numeric.matrix.row_count == 2)
+        type = DataType::Vec2;
+    else if(td->traits.numeric.matrix.row_count == 3)
+        type = DataType::Vec3;
+    else
+        type = DataType::Vec4;
+
+    return ShaderParameter(
+        parentName + member.name,
+        member.absolute_offset,
+        type,
+        td->traits.numeric.scalar.width / 8,
+        member.size,
+        td->traits.numeric.matrix.column_count,
         false
     );
 }
@@ -273,6 +328,13 @@ void ParseMember(const SpvReflectBlockVariable &member, std::vector<ShaderParame
         else if(td->type_flags & SPV_REFLECT_TYPE_FLAG_FLOAT)
             parameters->emplace_back(CreateVectorFloatParameter(member, parentName));        
     }
+    else if(op == SpvOpTypeMatrix)
+    {
+        if(td->type_flags & SPV_REFLECT_TYPE_FLAG_INT)
+            parameters->emplace_back(CreateMatrixIntParameter(member, parentName));
+        else if(td->type_flags & SPV_REFLECT_TYPE_FLAG_FLOAT)
+            parameters->emplace_back(CreateMatrixFloatParameter(member, parentName));        
+    }
     else
     {
         Console::logf("Unhandled op type: {}", (uint32_t)op, "BufferLayout");
@@ -299,6 +361,93 @@ BufferLayout::BufferLayout(const SpvReflectBlockVariable* block)
         parameterIndex.insert_or_assign(param.name, &param);
         Console::log(GetParameterString(param), "BufferLayout");
     }
+}
+
+VertexLayout::VertexLayout(const std::vector<uint32_t>& vertSpirv)
+{
+    spv_reflect::ShaderModule smodule(vertSpirv);
+    
+    uint32_t inputCount = 0;
+    SpvReflectResult result = smodule.EnumerateInputVariables(&inputCount, nullptr);
+    if(result != SPV_REFLECT_RESULT_SUCCESS)
+    {
+        Console::error(std::format("Failed to enumerate input variables: {}", (uint32_t)result), "ShaderAsset");
+        return;
+    }
+    std::vector<SpvReflectInterfaceVariable*> inputVars{inputCount};
+    result = smodule.EnumerateInputVariables(&inputCount, inputVars.data());
+
+    for(uint32_t i = 0; i < inputVars.size(); i++)
+    {
+        Console::logf("P: {}", (void*)inputVars[i]);
+        if(inputVars[i]->name)
+            Console::log(std::string(inputVars[i]->name));
+        if(inputVars[i]->semantic)
+            Console::log(std::string(inputVars[i]->semantic));
+        
+    }
+}
+
+using AT = VertexLayout::AttributeType;
+using AL = VertexLayout::AttributeLayout;
+const std::unordered_map<VertexLayout::Attribute, VkFormat, VertexLayout::Attribute::Hash> vertexFormatTable
+{
+    // Position
+    {{AT::Position, AL::Standard, 2}, VK_FORMAT_R32G32_SFLOAT},
+    {{AT::Position, AL::Standard, 3}, VK_FORMAT_R32G32B32_SFLOAT},
+    {{AT::Position, AL::Standard, 4}, VK_FORMAT_R32G32B32A32_SFLOAT},
+
+    // Normal/Bitangent
+    {{AT::Normal, AL::Standard, 3}, VK_FORMAT_R32G32B32_SFLOAT},
+    {{AT::Normal, AL::Half, 3}, VK_FORMAT_R16G16B16_SFLOAT},
+    {{AT::Normal, AL::Octahedral, 2}, VK_FORMAT_R8G8_SNORM},
+    {{AT::Bitangent, AL::Standard, 3}, VK_FORMAT_R32G32B32_SFLOAT},
+    {{AT::Bitangent, AL::Half, 3}, VK_FORMAT_R16G16B16_SFLOAT},
+    {{AT::Bitangent, AL::Octahedral, 2}, VK_FORMAT_R8G8_SNORM},
+
+    // Tangent
+    {{AT::Tangent, AL::Standard, 4}, VK_FORMAT_R32G32B32A32_SFLOAT},
+    {{AT::Tangent, AL::Half, 4}, VK_FORMAT_R16G16B16A16_SFLOAT},
+    {{AT::Tangent, AL::Octahedral, 3}, VK_FORMAT_R8G8B8_SNORM},
+
+    // Color
+    {{AT::Color, AL::Standard, 3}, VK_FORMAT_R32G32B32_SFLOAT},
+    {{AT::Color, AL::Standard, 4}, VK_FORMAT_R32G32B32A32_SFLOAT},
+    {{AT::Color, AL::Half, 3}, VK_FORMAT_R16G16B16_SFLOAT},
+    {{AT::Color, AL::Half, 4}, VK_FORMAT_R16G16B16A16_SFLOAT},
+    {{AT::Color, AL::UInt8, 3}, VK_FORMAT_R8G8B8_UNORM},
+    {{AT::Color, AL::UInt8, 4}, VK_FORMAT_R8G8B8A8_UNORM},
+
+    // UV
+    {{AT::UV, AL::Standard, 2}, VK_FORMAT_R32G32_SFLOAT},
+    {{AT::UV, AL::Half, 2}, VK_FORMAT_R16G16_SFLOAT},
+
+    // Other
+    {{AT::Other, AL::Standard, 1}, VK_FORMAT_R32_SFLOAT},
+    {{AT::Other, AL::Half, 1}, VK_FORMAT_R16_SFLOAT},
+    {{AT::Other, AL::UInt8, 1}, VK_FORMAT_R8_UNORM},
+
+    {{AT::Other, AL::Standard, 2}, VK_FORMAT_R32G32_SFLOAT},
+    {{AT::Other, AL::Half, 2}, VK_FORMAT_R16G16_SFLOAT},
+    {{AT::Other, AL::UInt8, 2}, VK_FORMAT_R8G8_UNORM},
+    {{AT::Other, AL::Octahedral, 2}, VK_FORMAT_R8G8_SNORM},
+
+    {{AT::Other, AL::Standard, 3}, VK_FORMAT_R32G32B32_SFLOAT},
+    {{AT::Other, AL::Half, 3}, VK_FORMAT_R16G16B16_SFLOAT},
+    {{AT::Other, AL::UInt8, 3}, VK_FORMAT_R8G8B8_UNORM},
+
+    {{AT::Other, AL::Standard, 4}, VK_FORMAT_R32G32B32A32_SFLOAT},
+    {{AT::Other, AL::Half, 4}, VK_FORMAT_R16G16B16A16_SFLOAT},
+    {{AT::Other, AL::UInt8, 4}, VK_FORMAT_R8G8B8A8_UNORM},
+};
+
+uint32_t VertexLayout::Attribute::GetFormat() const
+{
+    if(vertexFormatTable.contains(*this))
+    {
+        return vertexFormatTable.at(*this);
+    }
+    return VK_FORMAT_UNDEFINED;
 }
 
 std::string GetParameterString(ShaderParameter param)
@@ -337,7 +486,7 @@ ShaderLayout::ShaderLayout(const std::vector<uint32_t> spirv)
         Console::error(std::format("Failed to retrieve descriptor bindings: {}", (uint32_t)result), "ShaderAsset");
         return;
     }
-    bool foundMatInfo = false;
+
     std::unordered_map<uint32_t, DescriptorSetInfo*> setMap{};
     for(SpvReflectDescriptorBinding* binding : bindings)
     {
@@ -408,6 +557,7 @@ ShaderLayout::ShaderLayout(const std::vector<uint32_t> spirv)
 
         currentInfo->bindings.push_back(bindingInfo);
     }
+
 }
 
 void ShaderLayout::generateBufferInfo(const SpvReflectDescriptorBinding *binding, BindingInfo* info)

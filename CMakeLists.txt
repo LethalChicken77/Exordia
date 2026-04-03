@@ -61,7 +61,7 @@ set(CMAKE_AUTORCC OFF)
 
 # Vulkan + Volk
 # Use the environment variable that the SDK always sets
-set(VULKAN_SDK "$ENV{VULKAN_SDK}")                     # e.g. C:/VulkanSDK/1.4.309.0
+set(VULKAN_SDK "$ENV{VULKAN_SDK}")
 cmake_path(SET VULKAN_SDK NORMALIZE "${VULKAN_SDK}")
 message(STATUS "Vulkan SDK Path: ${VULKAN_SDK}")
 # Set GLFW Include Directory

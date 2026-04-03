@@ -81,6 +81,7 @@ float4 fsMain(FIn input)
     // outColor = pow(outColor, 2.0);
     // outColor = ACEScgToLinear(outColor);
     // outColor = LinearToSRGB(outColor); // Gamma correction
+    // outColor = SRGBToLinear(input.Color); // Gamma correction
     // outColor *= 0.5;
     // outColor = ACESFilmCurve(outColor);
     return float4(outColor, 1.0);

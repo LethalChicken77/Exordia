@@ -12,6 +12,11 @@ struct GHandle
     uint32_t generation = 0; // UAF protection
 
     bool IsValid() const { return index != ~0u; }
+
+    bool operator==(const GHandle& other) const
+    {
+        return other.index == index && other.generation == generation;
+    }
 };
 
 // Defined in a CPP to prevent outside usage

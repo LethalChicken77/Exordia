@@ -3,6 +3,20 @@
 namespace graphics
 {
 
+void TextureRegistry::Init()
+{
+    std::unique_ptr<TextureData> debugTexture = TextureData::LoadFromFile("./internal/debug/missing_texture.png");
+    debugTexture->properties.magFilter = TextureFilterMode::Nearest;
+    debugTexture->properties.minFilter = TextureFilterMode::Nearest;
+    if(debugTexture == nullptr)
+    {
+        throw std::runtime_error("Failed to load error texture!");
+    }
+    Register(*debugTexture);
+
+    debugTextureHandle = debugTexture->graphicsHandle;
+}
+
 /// @brief Create graphics mesh data for a given mesh
 /// @param texture 
 /// @return Handle for new mesh, invalid on failure
@@ -46,5 +60,21 @@ bool TextureRegistry::Update(TextureData &texture)
 
     return true;
 }
+
+/// @brief Get a pointer to a stored resource
+/// @param handle The handle of the resource to retrieve
+/// @return Pointer to the resource. nullptr if invalid.
+Texture* TextureRegistry::Get(TextureHandle handle) const 
+{
+    if(!IsValid(handle) && handle == debugTextureHandle)
+    {
+        return nullptr;
+    }
+    else if(!IsValid(handle))
+    {
+        return Get(debugTextureHandle);
+    }
+    return entries[handle.index].value.get();
+};
 
 } // namespace graphics

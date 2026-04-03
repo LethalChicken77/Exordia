@@ -10,7 +10,8 @@
 namespace graphics
 {
 
-extern const std::unordered_map<ImageFormat, VkFormat, ImageFormatHash> imageFormatToVkFormat;
+const std::unordered_map<ImageFormat, VkFormat, ImageFormat::Hash>& ImageFormatToVkFormat();
+const std::unordered_map<VkFormat, ImageFormat>& VkFormatToImageFormat();
 
 struct ImageProperties
 {
@@ -94,6 +95,8 @@ public:
     void TransitionImageLayout(VkImageLayout newLayout, VkCommandBuffer commandBuffer);
     void TransitionImageLayout(VkImageLayout oldLayout, VkImageLayout newLayout);
     void TransitionImageLayout(VkImageLayout oldLayout, VkImageLayout newLayout, VkCommandBuffer commandBuffer);
+    static void TransitionVkImageLayout(internal::Device& device, VkImage& image, VkImageLayout oldLayout, VkImageLayout newLayout, VkImageSubresourceRange subresourceRange);
+    static void TransitionVkImageLayout(VkImage& image, VkImageLayout oldLayout, VkImageLayout newLayout, VkCommandBuffer commandBuffer, VkImageSubresourceRange subresourceRange);
     /// @brief Reset to default image layout
     inline void ResetImageLayout() { TransitionImageLayout(defaultLayout); }
     /// @brief Reset to default image layout with command buffer

@@ -6,7 +6,7 @@ namespace graphics
 
 std::string ImageFormat::ToString() const
 {
-    return std::format("ImageFormat{{SRGB: {}\tChannel Count: {}\tChannel Size: {}\tChannel Order: {}}}",
+    return std::format("ImageFormat{{SRGB: {} \tChannel Count: {} \tChannel Size: {} \tData Type: {} \tChannel Order: {}}}",
         isSRGB, channelCount, channelSize, (uint8_t)dataType, (uint8_t)channelOrder);
 }
 

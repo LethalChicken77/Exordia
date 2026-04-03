@@ -67,31 +67,31 @@ struct Swizzle
 
 enum class TextureDataType : uint8_t
 {
-    UInt,
-    SInt,
-    UNorm,
-    SNorm,
-    Float,
+    UInt = 0,
+    SInt = 1,
+    UNorm = 2,
+    SNorm = 3,
+    Float = 4,
 
-    Packed_B10G11R11_UFloat,
-    Packed_A2R10G10B10_UNorm,
+    Packed_B10G11R11_UFloat = 5,
+    Packed_A2R10G10B10_UNorm = 6,
 
-    D16_UNorm,
-    D24_UNorm,
-    D32_SFloat,
-    D16_UNorm_S8_UInt,
-    D24_UNorm_S8_UInt,
-    D32_SFloat_S8_UInt,
-    S8_UInt,
+    D16_UNorm = 7,
+    D24_UNorm = 8,
+    D32_SFloat = 9,
+    D16_UNorm_S8_UInt = 10,
+    D24_UNorm_S8_UInt = 11,
+    D32_SFloat_S8_UInt = 12,
+    S8_UInt = 13,
 
-    Invalid
+    Invalid = 14
 };
 
 enum class ChannelOrder : uint8_t
 {
-    RGBA,
-    BGRA,
-    ABGR
+    RGBA = 0,
+    BGRA = 1,
+    ABGR = 2
 };
 
 /// @brief Defines an image format as a set of properties.
@@ -117,20 +117,19 @@ struct ImageFormat
             && dataType == other.dataType
             && channelOrder == other.channelOrder;
     }
-};
 
-struct ImageFormatHash
-{
-    std::size_t operator()(const ImageFormat& fmt) const
+    struct Hash
     {
-        std::size_t h = 0;
-        h |= (uint8_t)fmt.isSRGB; // 1 bit (1) - bool value
-        h |= ((uint8_t)fmt.channelCount) << 1; // 3 bits (4) - values up to and including 4
-        h |= ((uint8_t)fmt.channelSize) << 4; // 5 bits (9) - values up to and including 16
-        h |= ((uint8_t)fmt.dataType) << 9; // 8 bits (17) - 14 values but expandible
-        h |= ((uint8_t)fmt.channelOrder) << 17; // 2 bits (19) - 3 values
-        return h;
-    }
+        size_t operator()(const ImageFormat& f) const noexcept
+        {
+            size_t h = std::hash<bool>()(f.isSRGB);
+            h ^= std::hash<uint32_t>()(f.channelCount) + 0x9e3779b9 + (h<<6) + (h>>2);
+            h ^= std::hash<uint32_t>()(f.channelSize) + 0x9e3779b9 + (h<<6) + (h>>2);
+            h ^= std::hash<int>()(static_cast<int>(f.dataType)) + 0x9e3779b9 + (h<<6) + (h>>2);
+            h ^= std::hash<int>()(static_cast<int>(f.channelOrder)) + 0x9e3779b9 + (h<<6) + (h>>2);
+            return h;
+        }
+    };
 };
 
 struct TextureConfig

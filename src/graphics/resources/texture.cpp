@@ -8,8 +8,8 @@ ImageProperties GetImageProperties(const TextureData &texture)
 {
     const TextureConfig& config = texture.properties;
     ImageProperties props{};
-    if(imageFormatToVkFormat.contains(config.format))
-        props.format = imageFormatToVkFormat.at(config.format);
+    if(ImageFormatToVkFormat().contains(config.format))
+        props.format = ImageFormatToVkFormat().at(config.format);
     else
     {
         Console::error("Unsupported format", "Texture");

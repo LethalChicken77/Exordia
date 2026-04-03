@@ -9,6 +9,7 @@ namespace graphics
 class TextureRegistry : public GraphicsRegistry<Texture, TextureHandle>
 {
 public:
+    void Init();
     TextureHandle Register(TextureData &texture);
     bool Update(TextureData &texture);
     using GraphicsRegistry<Texture, TextureHandle>::Deregister;
@@ -16,6 +17,10 @@ public:
     {
         return Deregister(texture.graphicsHandle);
     }
+
+    Texture* Get(TextureHandle handle) const;
+private:
+    TextureHandle debugTextureHandle;
 };
 
 } // namespace graphics

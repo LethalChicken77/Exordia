@@ -3,6 +3,7 @@
 #include <limits>
 #include <format>
 
+#include "graphics/resources/image.hpp"
 #include "utils/console.hpp"
 #include "utils/debug.hpp"
 
@@ -248,6 +249,7 @@ void Swapchain::createDepthImages()
     depthImageAllocationInfos.resize(swapchainImages.size());
     depthImageViews.resize(swapchainImages.size());
 
+    VkCommandBuffer commandBuffer = device.BeginSingleTimeCommands();
     for (uint32_t i = 0; i < depthImages.size(); i++) 
     {
         VkImageCreateInfo imageInfo{};
@@ -289,7 +291,14 @@ void Swapchain::createDepthImages()
         {
             throw std::runtime_error("Failed to create depth image view: " + Debug::VkResultToString(result));
         }
+        Image::TransitionVkImageLayout(
+            depthImages[i], 
+            VK_IMAGE_LAYOUT_UNDEFINED, 
+            VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL,
+            commandBuffer,
+            viewInfo.subresourceRange);
     }
+    device.EndSingleTimeCommands(commandBuffer);
 }
 
 void Swapchain::createSyncObjects()

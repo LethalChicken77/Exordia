@@ -23,6 +23,7 @@ namespace graphics
         graphicsData->backend.init(appName, engName, graphicsData->window);
         graphicsData->renderer.init();
         graphicsData->pipelineRegistry.init();
+        graphicsData->textureRegistry.Init();
         
         // testImage = std::make_unique<Image>(
         //     graphicsData->GetBackend().GetDevice(),

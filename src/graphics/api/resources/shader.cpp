@@ -19,6 +19,7 @@ void Shader::Compile()
     vertSpirv = vertexShaderAsset->CompileSlang("vertexShader", "vsMain", SLANG_STAGE_VERTEX);
     fragSpirv = fragmentShaderAsset->CompileSlang("fragmentShader", "fsMain", SLANG_STAGE_FRAGMENT);
 
+    vertLayout = VertexLayout(vertSpirv);
     layout = ShaderLayout(fragSpirv);
 }
 

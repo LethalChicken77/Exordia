@@ -259,11 +259,11 @@ size_t getFormatSize(VkFormat format)
 void Image::SetData(const TextureData &data)
 {
     format = data.properties.format;
-    if(!imageFormatToVkFormat.contains(format))
+    if(!ImageFormatToVkFormat().contains(format))
     {
         throw std::runtime_error("Unsupported format: " + format.ToString());
     }
-    properties.format = imageFormatToVkFormat.at(data.properties.format);
+    properties.format = ImageFormatToVkFormat().at(data.properties.format);
     
     uint32_t pixelCount = width * height;
     uint32_t pixelSize = format.PixelSize();
@@ -404,18 +404,34 @@ void Image::TransitionImageLayout(VkImageLayout oldLayout, VkImageLayout newLayo
 /// @param commandBuffer Command buffer to use for the transition
 void Image::TransitionImageLayout(Image& image, VkImageLayout oldLayout, VkImageLayout newLayout, VkCommandBuffer commandBuffer)
 {
+    VkImageSubresourceRange subresourceRange{};
+    subresourceRange.aspectMask = image.properties.imageSubResourceRange.aspectMask;
+    subresourceRange.baseMipLevel = 0;
+    subresourceRange.levelCount = 1;
+    subresourceRange.baseArrayLayer = 0;
+    subresourceRange.layerCount = 1;
+    TransitionVkImageLayout(image.image, oldLayout, newLayout, commandBuffer, subresourceRange);
+
+    image.currentLayout = newLayout;
+}
+
+void Image::TransitionVkImageLayout(internal::Device& device, VkImage& image, VkImageLayout oldLayout, VkImageLayout newLayout, VkImageSubresourceRange subresourceRange)
+{
+    VkCommandBuffer commandBuffer = device.BeginSingleTimeCommands(); // Begin recording a command buffer
+    TransitionVkImageLayout(image, oldLayout, newLayout, commandBuffer, subresourceRange);
+    device.EndSingleTimeCommands(commandBuffer); // Submit and free the command buffer
+}
+
+void Image::TransitionVkImageLayout(VkImage& image, VkImageLayout oldLayout, VkImageLayout newLayout, VkCommandBuffer commandBuffer, VkImageSubresourceRange subresourceRange)
+{
     VkImageMemoryBarrier barrier{};
     barrier.sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER;
     barrier.oldLayout = oldLayout;
     barrier.newLayout = newLayout;
     barrier.srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
     barrier.dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
-    barrier.image = image.image;
-    barrier.subresourceRange.aspectMask = image.properties.imageSubResourceRange.aspectMask;
-    barrier.subresourceRange.baseMipLevel = 0;
-    barrier.subresourceRange.levelCount = 1;
-    barrier.subresourceRange.baseArrayLayer = 0;
-    barrier.subresourceRange.layerCount = 1;
+    barrier.image = image;
+    barrier.subresourceRange = subresourceRange;
 
     VkPipelineStageFlags sourceStage;
     VkPipelineStageFlags destinationStage;
@@ -686,265 +702,272 @@ void Image::TransitionImageLayout(Image& image, VkImageLayout oldLayout, VkImage
         0, nullptr,
         1, &barrier
     );
-
-    image.currentLayout = newLayout;
 }
 
 // struct ImageFormat
 // {
-//     bool isSRGB = true;
-//     uint8_t channelCount = 4;
-//     uint8_t channelSize = 1;
-//     TextureDataType datatype = TextureDataType::UInt;
+    // bool isSRGB = false;
+    // uint8_t channelCount = 4;
+    // uint8_t channelSize = 1;
+    // TextureDataType dataType = TextureDataType::UInt;
+    // ChannelOrder channelOrder = ChannelOrder::RGBA;
 // };
 using DT = TextureDataType;
 using CO = ChannelOrder;
 
-const std::unordered_map<ImageFormat, VkFormat, ImageFormatHash> imageFormatToVkFormat{
-    // 8 bit formats
-    {{false, 1, 1, DT::UInt,  CO::RGBA}, VK_FORMAT_R8_UINT},
-    {{false, 1, 1, DT::SInt,  CO::RGBA}, VK_FORMAT_R8_SINT},
-    {{false, 1, 1, DT::UNorm, CO::RGBA}, VK_FORMAT_R8_UNORM},
-    {{false, 1, 1, DT::SNorm, CO::RGBA}, VK_FORMAT_R8_SNORM},
-    {{true,  1, 1, DT::UInt,  CO::RGBA}, VK_FORMAT_R8_SRGB},
-    {{true,  1, 1, DT::SInt,  CO::RGBA}, VK_FORMAT_R8_SRGB},
-    {{true,  1, 1, DT::UNorm, CO::RGBA}, VK_FORMAT_R8_SRGB},
-    {{true,  1, 1, DT::SNorm, CO::RGBA}, VK_FORMAT_R8_SRGB},
-    
-    {{false, 2, 1, DT::UInt,  CO::RGBA}, VK_FORMAT_R8G8_UINT},
-    {{false, 2, 1, DT::SInt,  CO::RGBA}, VK_FORMAT_R8G8_SINT},
-    {{false, 2, 1, DT::UNorm, CO::RGBA}, VK_FORMAT_R8G8_UNORM},
-    {{false, 2, 1, DT::SNorm, CO::RGBA}, VK_FORMAT_R8G8_SNORM},
-    {{true,  2, 1, DT::UInt,  CO::RGBA}, VK_FORMAT_R8G8_SRGB},
-    {{true,  2, 1, DT::SInt,  CO::RGBA}, VK_FORMAT_R8G8_SRGB},
-    {{true,  2, 1, DT::UNorm, CO::RGBA}, VK_FORMAT_R8G8_SRGB},
-    {{true,  2, 1, DT::SNorm, CO::RGBA}, VK_FORMAT_R8G8_SRGB},
+const std::unordered_map<ImageFormat, VkFormat, ImageFormat::Hash>& ImageFormatToVkFormat()
+{
+    static std::unordered_map<ImageFormat, VkFormat, ImageFormat::Hash> if2vf{
+        // 8 bit formats
+        {{false, 1, 1, DT::UInt,  CO::RGBA}, VK_FORMAT_R8_UINT},
+        {{false, 1, 1, DT::SInt,  CO::RGBA}, VK_FORMAT_R8_SINT},
+        {{false, 1, 1, DT::UNorm, CO::RGBA}, VK_FORMAT_R8_UNORM},
+        {{false, 1, 1, DT::SNorm, CO::RGBA}, VK_FORMAT_R8_SNORM},
+        {{true,  1, 1, DT::UInt,  CO::RGBA}, VK_FORMAT_R8_SRGB},
+        {{true,  1, 1, DT::SInt,  CO::RGBA}, VK_FORMAT_R8_SRGB},
+        {{true,  1, 1, DT::UNorm, CO::RGBA}, VK_FORMAT_R8_SRGB},
+        {{true,  1, 1, DT::SNorm, CO::RGBA}, VK_FORMAT_R8_SRGB},
+        
+        {{false, 2, 1, DT::UInt,  CO::RGBA}, VK_FORMAT_R8G8_UINT},
+        {{false, 2, 1, DT::SInt,  CO::RGBA}, VK_FORMAT_R8G8_SINT},
+        {{false, 2, 1, DT::UNorm, CO::RGBA}, VK_FORMAT_R8G8_UNORM},
+        {{false, 2, 1, DT::SNorm, CO::RGBA}, VK_FORMAT_R8G8_SNORM},
+        {{true,  2, 1, DT::UInt,  CO::RGBA}, VK_FORMAT_R8G8_SRGB},
+        {{true,  2, 1, DT::SInt,  CO::RGBA}, VK_FORMAT_R8G8_SRGB},
+        {{true,  2, 1, DT::UNorm, CO::RGBA}, VK_FORMAT_R8G8_SRGB},
+        {{true,  2, 1, DT::SNorm, CO::RGBA}, VK_FORMAT_R8G8_SRGB},
 
-    {{false, 3, 1, DT::UInt,  CO::RGBA}, VK_FORMAT_R8G8B8_UINT},
-    {{false, 3, 1, DT::SInt,  CO::RGBA}, VK_FORMAT_R8G8B8_SINT},
-    {{false, 3, 1, DT::UNorm, CO::RGBA}, VK_FORMAT_R8G8B8_UNORM},
-    {{false, 3, 1, DT::SNorm, CO::RGBA}, VK_FORMAT_R8G8B8_SNORM},
-    {{true,  3, 1, DT::UInt,  CO::RGBA}, VK_FORMAT_R8G8B8_SRGB},
-    {{true,  3, 1, DT::SInt,  CO::RGBA}, VK_FORMAT_R8G8B8_SRGB},
-    {{true,  3, 1, DT::UNorm, CO::RGBA}, VK_FORMAT_R8G8B8_SRGB},
-    {{true,  3, 1, DT::SNorm, CO::RGBA}, VK_FORMAT_R8G8B8_SRGB},
-    {{false, 3, 1, DT::UInt,  CO::BGRA}, VK_FORMAT_B8G8R8_UINT},
-    {{false, 3, 1, DT::SInt,  CO::BGRA}, VK_FORMAT_B8G8R8_SINT},
-    {{false, 3, 1, DT::UNorm, CO::BGRA}, VK_FORMAT_B8G8R8_UNORM},
-    {{false, 3, 1, DT::SNorm, CO::BGRA}, VK_FORMAT_B8G8R8_SNORM},
-    {{true,  3, 1, DT::UInt,  CO::BGRA}, VK_FORMAT_B8G8R8_SRGB},
-    {{true,  3, 1, DT::SInt,  CO::BGRA}, VK_FORMAT_B8G8R8_SRGB},
-    {{true,  3, 1, DT::UNorm, CO::BGRA}, VK_FORMAT_B8G8R8_SRGB},
-    {{true,  3, 1, DT::SNorm, CO::BGRA}, VK_FORMAT_B8G8R8_SRGB},
+        {{false, 3, 1, DT::UInt,  CO::RGBA}, VK_FORMAT_R8G8B8_UINT},
+        {{false, 3, 1, DT::SInt,  CO::RGBA}, VK_FORMAT_R8G8B8_SINT},
+        {{false, 3, 1, DT::UNorm, CO::RGBA}, VK_FORMAT_R8G8B8_UNORM},
+        {{false, 3, 1, DT::SNorm, CO::RGBA}, VK_FORMAT_R8G8B8_SNORM},
+        {{true,  3, 1, DT::UInt,  CO::RGBA}, VK_FORMAT_R8G8B8_SRGB},
+        {{true,  3, 1, DT::SInt,  CO::RGBA}, VK_FORMAT_R8G8B8_SRGB},
+        {{true,  3, 1, DT::UNorm, CO::RGBA}, VK_FORMAT_R8G8B8_SRGB},
+        {{true,  3, 1, DT::SNorm, CO::RGBA}, VK_FORMAT_R8G8B8_SRGB},
+        {{false, 3, 1, DT::UInt,  CO::BGRA}, VK_FORMAT_B8G8R8_UINT},
+        {{false, 3, 1, DT::SInt,  CO::BGRA}, VK_FORMAT_B8G8R8_SINT},
+        {{false, 3, 1, DT::UNorm, CO::BGRA}, VK_FORMAT_B8G8R8_UNORM},
+        {{false, 3, 1, DT::SNorm, CO::BGRA}, VK_FORMAT_B8G8R8_SNORM},
+        {{true,  3, 1, DT::UInt,  CO::BGRA}, VK_FORMAT_B8G8R8_SRGB},
+        {{true,  3, 1, DT::SInt,  CO::BGRA}, VK_FORMAT_B8G8R8_SRGB},
+        {{true,  3, 1, DT::UNorm, CO::BGRA}, VK_FORMAT_B8G8R8_SRGB},
+        {{true,  3, 1, DT::SNorm, CO::BGRA}, VK_FORMAT_B8G8R8_SRGB},
 
-    {{false, 4, 1, DT::UInt,  CO::RGBA}, VK_FORMAT_R8G8B8A8_UINT},
-    {{false, 4, 1, DT::SInt,  CO::RGBA}, VK_FORMAT_R8G8B8A8_SINT},
-    {{false, 4, 1, DT::UNorm, CO::RGBA}, VK_FORMAT_R8G8B8A8_UNORM},
-    {{false, 4, 1, DT::SNorm, CO::RGBA}, VK_FORMAT_R8G8B8A8_SNORM},
-    {{true,  4, 1, DT::UInt,  CO::RGBA}, VK_FORMAT_R8G8B8A8_SRGB},
-    {{true,  4, 1, DT::SInt,  CO::RGBA}, VK_FORMAT_R8G8B8A8_SRGB},
-    {{true,  4, 1, DT::UNorm, CO::RGBA}, VK_FORMAT_R8G8B8A8_SRGB},
-    {{true,  4, 1, DT::SNorm, CO::RGBA}, VK_FORMAT_R8G8B8A8_SRGB},
-    {{false, 4, 1, DT::UInt,  CO::BGRA}, VK_FORMAT_B8G8R8A8_UINT},
-    {{false, 4, 1, DT::SInt,  CO::BGRA}, VK_FORMAT_B8G8R8A8_SINT},
-    {{false, 4, 1, DT::UNorm, CO::BGRA}, VK_FORMAT_B8G8R8A8_UNORM},
-    {{false, 4, 1, DT::SNorm, CO::BGRA}, VK_FORMAT_B8G8R8A8_SNORM},
-    {{true,  4, 1, DT::UInt,  CO::BGRA}, VK_FORMAT_B8G8R8A8_SRGB},
-    {{true,  4, 1, DT::SInt,  CO::BGRA}, VK_FORMAT_B8G8R8A8_SRGB},
-    {{true,  4, 1, DT::UNorm, CO::BGRA}, VK_FORMAT_B8G8R8A8_SRGB},
-    {{true,  4, 1, DT::SNorm, CO::BGRA}, VK_FORMAT_B8G8R8A8_SRGB},
-    {{false, 4, 1, DT::UInt,  CO::ABGR}, VK_FORMAT_A8B8G8R8_UINT_PACK32},
-    {{false, 4, 1, DT::SInt,  CO::ABGR}, VK_FORMAT_A8B8G8R8_SINT_PACK32},
-    {{false, 4, 1, DT::UNorm, CO::ABGR}, VK_FORMAT_A8B8G8R8_UNORM_PACK32},
-    {{false, 4, 1, DT::SNorm, CO::ABGR}, VK_FORMAT_A8B8G8R8_SNORM_PACK32},
-    {{true,  4, 1, DT::UInt,  CO::ABGR}, VK_FORMAT_A8B8G8R8_SRGB_PACK32},
-    {{true,  4, 1, DT::SInt,  CO::ABGR}, VK_FORMAT_A8B8G8R8_SRGB_PACK32},
-    {{true,  4, 1, DT::UNorm, CO::ABGR}, VK_FORMAT_A8B8G8R8_SRGB_PACK32},
-    {{true,  4, 1, DT::SNorm, CO::ABGR}, VK_FORMAT_A8B8G8R8_SRGB_PACK32},
-    // 16 bit formats
-    {{false, 1, 2, DT::UInt,  CO::RGBA}, VK_FORMAT_R16_UINT},
-    {{false, 1, 2, DT::SInt,  CO::RGBA}, VK_FORMAT_R16_SINT},
-    {{false, 1, 2, DT::UNorm, CO::RGBA}, VK_FORMAT_R16_UNORM},
-    {{false, 1, 2, DT::SNorm, CO::RGBA}, VK_FORMAT_R16_SNORM},
-    {{false, 1, 2, DT::Float, CO::RGBA}, VK_FORMAT_R16_SFLOAT},
+        {{false, 4, 1, DT::UInt,  CO::RGBA}, VK_FORMAT_R8G8B8A8_UINT},
+        {{false, 4, 1, DT::SInt,  CO::RGBA}, VK_FORMAT_R8G8B8A8_SINT},
+        {{false, 4, 1, DT::UNorm, CO::RGBA}, VK_FORMAT_R8G8B8A8_UNORM},
+        {{false, 4, 1, DT::SNorm, CO::RGBA}, VK_FORMAT_R8G8B8A8_SNORM},
+        {{true,  4, 1, DT::UInt,  CO::RGBA}, VK_FORMAT_R8G8B8A8_SRGB},
+        {{true,  4, 1, DT::SInt,  CO::RGBA}, VK_FORMAT_R8G8B8A8_SRGB},
+        {{true,  4, 1, DT::UNorm, CO::RGBA}, VK_FORMAT_R8G8B8A8_SRGB},
+        {{true,  4, 1, DT::SNorm, CO::RGBA}, VK_FORMAT_R8G8B8A8_SRGB},
+        {{false, 4, 1, DT::UInt,  CO::BGRA}, VK_FORMAT_B8G8R8A8_UINT},
+        {{false, 4, 1, DT::SInt,  CO::BGRA}, VK_FORMAT_B8G8R8A8_SINT},
+        {{false, 4, 1, DT::UNorm, CO::BGRA}, VK_FORMAT_B8G8R8A8_UNORM},
+        {{false, 4, 1, DT::SNorm, CO::BGRA}, VK_FORMAT_B8G8R8A8_SNORM},
+        {{true,  4, 1, DT::UInt,  CO::BGRA}, VK_FORMAT_B8G8R8A8_SRGB},
+        {{true,  4, 1, DT::SInt,  CO::BGRA}, VK_FORMAT_B8G8R8A8_SRGB},
+        {{true,  4, 1, DT::UNorm, CO::BGRA}, VK_FORMAT_B8G8R8A8_SRGB},
+        {{true,  4, 1, DT::SNorm, CO::BGRA}, VK_FORMAT_B8G8R8A8_SRGB},
+        {{false, 4, 1, DT::UInt,  CO::ABGR}, VK_FORMAT_A8B8G8R8_UINT_PACK32},
+        {{false, 4, 1, DT::SInt,  CO::ABGR}, VK_FORMAT_A8B8G8R8_SINT_PACK32},
+        {{false, 4, 1, DT::UNorm, CO::ABGR}, VK_FORMAT_A8B8G8R8_UNORM_PACK32},
+        {{false, 4, 1, DT::SNorm, CO::ABGR}, VK_FORMAT_A8B8G8R8_SNORM_PACK32},
+        {{true,  4, 1, DT::UInt,  CO::ABGR}, VK_FORMAT_A8B8G8R8_SRGB_PACK32},
+        {{true,  4, 1, DT::SInt,  CO::ABGR}, VK_FORMAT_A8B8G8R8_SRGB_PACK32},
+        {{true,  4, 1, DT::UNorm, CO::ABGR}, VK_FORMAT_A8B8G8R8_SRGB_PACK32},
+        {{true,  4, 1, DT::SNorm, CO::ABGR}, VK_FORMAT_A8B8G8R8_SRGB_PACK32},
+        // 16 bit formats
+        {{false, 1, 2, DT::UInt,  CO::RGBA}, VK_FORMAT_R16_UINT},
+        {{false, 1, 2, DT::SInt,  CO::RGBA}, VK_FORMAT_R16_SINT},
+        {{false, 1, 2, DT::UNorm, CO::RGBA}, VK_FORMAT_R16_UNORM},
+        {{false, 1, 2, DT::SNorm, CO::RGBA}, VK_FORMAT_R16_SNORM},
+        {{false, 1, 2, DT::Float, CO::RGBA}, VK_FORMAT_R16_SFLOAT},
 
-    {{false, 2, 2, DT::UInt,  CO::RGBA}, VK_FORMAT_R16G16_UINT},
-    {{false, 2, 2, DT::SInt,  CO::RGBA}, VK_FORMAT_R16G16_SINT},
-    {{false, 2, 2, DT::UNorm, CO::RGBA}, VK_FORMAT_R16G16_UNORM},
-    {{false, 2, 2, DT::SNorm, CO::RGBA}, VK_FORMAT_R16G16_SNORM},
-    {{false, 2, 2, DT::Float, CO::RGBA}, VK_FORMAT_R16G16_SFLOAT},
-    
-    {{false, 3, 2, DT::UInt,  CO::RGBA}, VK_FORMAT_R16G16B16_UINT},
-    {{false, 3, 2, DT::SInt,  CO::RGBA}, VK_FORMAT_R16G16B16_SINT},
-    {{false, 3, 2, DT::UNorm, CO::RGBA}, VK_FORMAT_R16G16B16_UNORM},
-    {{false, 3, 2, DT::SNorm, CO::RGBA}, VK_FORMAT_R16G16B16_SNORM},
-    {{false, 3, 2, DT::Float, CO::RGBA}, VK_FORMAT_R16G16B16_SFLOAT},
-    
-    {{false, 4, 2, DT::UInt,  CO::RGBA}, VK_FORMAT_R16G16B16A16_UINT},
-    {{false, 4, 2, DT::SInt,  CO::RGBA}, VK_FORMAT_R16G16B16A16_SINT},
-    {{false, 4, 2, DT::UNorm, CO::RGBA}, VK_FORMAT_R16G16B16A16_UNORM},
-    {{false, 4, 2, DT::SNorm, CO::RGBA}, VK_FORMAT_R16G16B16A16_SNORM},
-    {{false, 4, 2, DT::Float, CO::RGBA}, VK_FORMAT_R16G16B16A16_SFLOAT},
-    // 32 bit formats
-    {{false, 1, 4, DT::UInt,  CO::RGBA}, VK_FORMAT_R32_UINT},
-    {{false, 1, 4, DT::SInt,  CO::RGBA}, VK_FORMAT_R32_SINT},
-    {{false, 1, 4, DT::Float, CO::RGBA}, VK_FORMAT_R32_SFLOAT},
+        {{false, 2, 2, DT::UInt,  CO::RGBA}, VK_FORMAT_R16G16_UINT},
+        {{false, 2, 2, DT::SInt,  CO::RGBA}, VK_FORMAT_R16G16_SINT},
+        {{false, 2, 2, DT::UNorm, CO::RGBA}, VK_FORMAT_R16G16_UNORM},
+        {{false, 2, 2, DT::SNorm, CO::RGBA}, VK_FORMAT_R16G16_SNORM},
+        {{false, 2, 2, DT::Float, CO::RGBA}, VK_FORMAT_R16G16_SFLOAT},
+        
+        {{false, 3, 2, DT::UInt,  CO::RGBA}, VK_FORMAT_R16G16B16_UINT},
+        {{false, 3, 2, DT::SInt,  CO::RGBA}, VK_FORMAT_R16G16B16_SINT},
+        {{false, 3, 2, DT::UNorm, CO::RGBA}, VK_FORMAT_R16G16B16_UNORM},
+        {{false, 3, 2, DT::SNorm, CO::RGBA}, VK_FORMAT_R16G16B16_SNORM},
+        {{false, 3, 2, DT::Float, CO::RGBA}, VK_FORMAT_R16G16B16_SFLOAT},
+        
+        {{false, 4, 2, DT::UInt,  CO::RGBA}, VK_FORMAT_R16G16B16A16_UINT},
+        {{false, 4, 2, DT::SInt,  CO::RGBA}, VK_FORMAT_R16G16B16A16_SINT},
+        {{false, 4, 2, DT::UNorm, CO::RGBA}, VK_FORMAT_R16G16B16A16_UNORM},
+        {{false, 4, 2, DT::SNorm, CO::RGBA}, VK_FORMAT_R16G16B16A16_SNORM},
+        {{false, 4, 2, DT::Float, CO::RGBA}, VK_FORMAT_R16G16B16A16_SFLOAT},
+        // 32 bit formats
+        {{false, 1, 4, DT::UInt,  CO::RGBA}, VK_FORMAT_R32_UINT},
+        {{false, 1, 4, DT::SInt,  CO::RGBA}, VK_FORMAT_R32_SINT},
+        {{false, 1, 4, DT::Float, CO::RGBA}, VK_FORMAT_R32_SFLOAT},
 
-    {{false, 2, 4, DT::UInt,  CO::RGBA}, VK_FORMAT_R32G32_UINT},
-    {{false, 2, 4, DT::SInt,  CO::RGBA}, VK_FORMAT_R32G32_SINT},
-    {{false, 2, 4, DT::Float, CO::RGBA}, VK_FORMAT_R32G32_SFLOAT},
-    
-    {{false, 3, 4, DT::UInt,  CO::RGBA}, VK_FORMAT_R32G32B32_UINT},
-    {{false, 3, 4, DT::SInt,  CO::RGBA}, VK_FORMAT_R32G32B32_SINT},
-    {{false, 3, 4, DT::Float, CO::RGBA}, VK_FORMAT_R32G32B32_SFLOAT},
-    
-    {{false, 4, 4, DT::UInt,  CO::RGBA}, VK_FORMAT_R32G32B32A32_UINT},
-    {{false, 4, 4, DT::SInt,  CO::RGBA}, VK_FORMAT_R32G32B32A32_SINT},
-    {{false, 4, 4, DT::Float, CO::RGBA}, VK_FORMAT_R32G32B32A32_SFLOAT},
-    // 64 bit formats
-    {{false, 1, 8, DT::UInt,  CO::RGBA}, VK_FORMAT_R64_UINT},
-    {{false, 1, 8, DT::SInt,  CO::RGBA}, VK_FORMAT_R64_SINT},
-    {{false, 1, 8, DT::Float, CO::RGBA}, VK_FORMAT_R64_SFLOAT},
+        {{false, 2, 4, DT::UInt,  CO::RGBA}, VK_FORMAT_R32G32_UINT},
+        {{false, 2, 4, DT::SInt,  CO::RGBA}, VK_FORMAT_R32G32_SINT},
+        {{false, 2, 4, DT::Float, CO::RGBA}, VK_FORMAT_R32G32_SFLOAT},
+        
+        {{false, 3, 4, DT::UInt,  CO::RGBA}, VK_FORMAT_R32G32B32_UINT},
+        {{false, 3, 4, DT::SInt,  CO::RGBA}, VK_FORMAT_R32G32B32_SINT},
+        {{false, 3, 4, DT::Float, CO::RGBA}, VK_FORMAT_R32G32B32_SFLOAT},
+        
+        {{false, 4, 4, DT::UInt,  CO::RGBA}, VK_FORMAT_R32G32B32A32_UINT},
+        {{false, 4, 4, DT::SInt,  CO::RGBA}, VK_FORMAT_R32G32B32A32_SINT},
+        {{false, 4, 4, DT::Float, CO::RGBA}, VK_FORMAT_R32G32B32A32_SFLOAT},
+        // 64 bit formats
+        {{false, 1, 8, DT::UInt,  CO::RGBA}, VK_FORMAT_R64_UINT},
+        {{false, 1, 8, DT::SInt,  CO::RGBA}, VK_FORMAT_R64_SINT},
+        {{false, 1, 8, DT::Float, CO::RGBA}, VK_FORMAT_R64_SFLOAT},
 
-    {{false, 2, 8, DT::UInt,  CO::RGBA}, VK_FORMAT_R64G64_UINT},
-    {{false, 2, 8, DT::SInt,  CO::RGBA}, VK_FORMAT_R64G64_SINT},
-    {{false, 2, 8, DT::Float, CO::RGBA}, VK_FORMAT_R64G64_SFLOAT},
-    
-    {{false, 3, 8, DT::UInt,  CO::RGBA}, VK_FORMAT_R64G64B64_UINT},
-    {{false, 3, 8, DT::SInt,  CO::RGBA}, VK_FORMAT_R64G64B64_SINT},
-    {{false, 3, 8, DT::Float, CO::RGBA}, VK_FORMAT_R64G64B64_SFLOAT},
-    
-    {{false, 4, 8, DT::UInt,  CO::RGBA}, VK_FORMAT_R64G64B64A64_UINT},
-    {{false, 4, 8, DT::SInt,  CO::RGBA}, VK_FORMAT_R64G64B64A64_SINT},
-    {{false, 4, 8, DT::Float, CO::RGBA}, VK_FORMAT_R64G64B64A64_SFLOAT},
+        {{false, 2, 8, DT::UInt,  CO::RGBA}, VK_FORMAT_R64G64_UINT},
+        {{false, 2, 8, DT::SInt,  CO::RGBA}, VK_FORMAT_R64G64_SINT},
+        {{false, 2, 8, DT::Float, CO::RGBA}, VK_FORMAT_R64G64_SFLOAT},
+        
+        {{false, 3, 8, DT::UInt,  CO::RGBA}, VK_FORMAT_R64G64B64_UINT},
+        {{false, 3, 8, DT::SInt,  CO::RGBA}, VK_FORMAT_R64G64B64_SINT},
+        {{false, 3, 8, DT::Float, CO::RGBA}, VK_FORMAT_R64G64B64_SFLOAT},
+        
+        {{false, 4, 8, DT::UInt,  CO::RGBA}, VK_FORMAT_R64G64B64A64_UINT},
+        {{false, 4, 8, DT::SInt,  CO::RGBA}, VK_FORMAT_R64G64B64A64_SINT},
+        {{false, 4, 8, DT::Float, CO::RGBA}, VK_FORMAT_R64G64B64A64_SFLOAT},
 
-    // Packed formats
-    {{false, 1, 4, DT::Packed_B10G11R11_UFloat,  CO::RGBA}, VK_FORMAT_B10G11R11_UFLOAT_PACK32},
-    {{false, 1, 4, DT::Packed_B10G11R11_UFloat,  CO::BGRA}, VK_FORMAT_B10G11R11_UFLOAT_PACK32}, // In case user explicitly sets channel order
-    {{false, 1, 4, DT::Packed_A2R10G10B10_UNorm, CO::RGBA}, VK_FORMAT_A2R10G10B10_UNORM_PACK32},
-    
-    // Depth formats
-    {{false, 1, 2, DT::D16_UNorm,          CO::RGBA}, VK_FORMAT_D16_UNORM},
-    {{false, 1, 4, DT::D24_UNorm,          CO::RGBA}, VK_FORMAT_X8_D24_UNORM_PACK32},
-    {{false, 1, 4, DT::D32_SFloat,         CO::RGBA}, VK_FORMAT_D32_SFLOAT},
-    {{false, 1, 4, DT::D16_UNorm_S8_UInt,  CO::RGBA}, VK_FORMAT_D16_UNORM_S8_UINT},
-    {{false, 1, 4, DT::D24_UNorm,          CO::RGBA}, VK_FORMAT_D24_UNORM_S8_UINT},
-    {{false, 1, 4, DT::D32_SFloat_S8_UInt, CO::RGBA}, VK_FORMAT_D32_SFLOAT_S8_UINT},
-    {{false, 1, 4, DT::S8_UInt,            CO::RGBA}, VK_FORMAT_S8_UINT},
+        // Packed formats
+        {{false, 1, 4, DT::Packed_B10G11R11_UFloat,  CO::RGBA}, VK_FORMAT_B10G11R11_UFLOAT_PACK32},
+        {{false, 1, 4, DT::Packed_B10G11R11_UFloat,  CO::BGRA}, VK_FORMAT_B10G11R11_UFLOAT_PACK32}, // In case user explicitly sets channel order
+        {{false, 1, 4, DT::Packed_A2R10G10B10_UNorm, CO::RGBA}, VK_FORMAT_A2R10G10B10_UNORM_PACK32},
+        
+        // Depth formats
+        {{false, 1, 2, DT::D16_UNorm,          CO::RGBA}, VK_FORMAT_D16_UNORM},
+        {{false, 1, 4, DT::D24_UNorm,          CO::RGBA}, VK_FORMAT_X8_D24_UNORM_PACK32},
+        {{false, 1, 4, DT::D32_SFloat,         CO::RGBA}, VK_FORMAT_D32_SFLOAT},
+        {{false, 1, 4, DT::D16_UNorm_S8_UInt,  CO::RGBA}, VK_FORMAT_D16_UNORM_S8_UINT},
+        {{false, 1, 4, DT::D24_UNorm,          CO::RGBA}, VK_FORMAT_D24_UNORM_S8_UINT},
+        {{false, 1, 4, DT::D32_SFloat_S8_UInt, CO::RGBA}, VK_FORMAT_D32_SFLOAT_S8_UINT},
+        {{false, 1, 4, DT::S8_UInt,            CO::RGBA}, VK_FORMAT_S8_UINT},
 
-};
+    };
+    return if2vf;
+}
 
-const std::unordered_map<VkFormat, ImageFormat> vkFormatToImageFormat{
-    // 8 bit formats
-    {VK_FORMAT_R8_UINT,  {false, 1, 1, DT::UInt,  CO::RGBA}},
-    {VK_FORMAT_R8_SINT,  {false, 1, 1, DT::SInt,  CO::RGBA}},
-    {VK_FORMAT_R8_UNORM, {false, 1, 1, DT::UNorm, CO::RGBA}},
-    {VK_FORMAT_R8_SNORM, {false, 1, 1, DT::SNorm, CO::RGBA}},
-    {VK_FORMAT_R8_SRGB,  {true,  1, 1, DT::UNorm, CO::RGBA}},
-    
-    {VK_FORMAT_R8G8_UINT,  {false, 2, 1, DT::UInt,  CO::RGBA}},
-    {VK_FORMAT_R8G8_SINT,  {false, 2, 1, DT::SInt,  CO::RGBA}},
-    {VK_FORMAT_R8G8_UNORM, {false, 2, 1, DT::UNorm, CO::RGBA}},
-    {VK_FORMAT_R8G8_SNORM, {false, 2, 1, DT::SNorm, CO::RGBA}},
-    {VK_FORMAT_R8G8_SRGB,  {true,  2, 1, DT::UNorm, CO::RGBA}},
+const std::unordered_map<VkFormat, ImageFormat>& VkFormatToImageFormat()
+{
+    static std::unordered_map<VkFormat, ImageFormat> vf2if{
+        // 8 bit formats
+        {VK_FORMAT_R8_UINT,  {false, 1, 1, DT::UInt,  CO::RGBA}},
+        {VK_FORMAT_R8_SINT,  {false, 1, 1, DT::SInt,  CO::RGBA}},
+        {VK_FORMAT_R8_UNORM, {false, 1, 1, DT::UNorm, CO::RGBA}},
+        {VK_FORMAT_R8_SNORM, {false, 1, 1, DT::SNorm, CO::RGBA}},
+        {VK_FORMAT_R8_SRGB,  {true,  1, 1, DT::UNorm, CO::RGBA}},
+        
+        {VK_FORMAT_R8G8_UINT,  {false, 2, 1, DT::UInt,  CO::RGBA}},
+        {VK_FORMAT_R8G8_SINT,  {false, 2, 1, DT::SInt,  CO::RGBA}},
+        {VK_FORMAT_R8G8_UNORM, {false, 2, 1, DT::UNorm, CO::RGBA}},
+        {VK_FORMAT_R8G8_SNORM, {false, 2, 1, DT::SNorm, CO::RGBA}},
+        {VK_FORMAT_R8G8_SRGB,  {true,  2, 1, DT::UNorm, CO::RGBA}},
 
-    {VK_FORMAT_R8G8B8_UINT,  {false, 3, 1, DT::UInt,  CO::RGBA}},
-    {VK_FORMAT_R8G8B8_SINT,  {false, 3, 1, DT::SInt,  CO::RGBA}},
-    {VK_FORMAT_R8G8B8_UNORM, {false, 3, 1, DT::UNorm, CO::RGBA}},
-    {VK_FORMAT_R8G8B8_SNORM, {false, 3, 1, DT::SNorm, CO::RGBA}},
-    {VK_FORMAT_R8G8B8_SRGB,  {true,  3, 1, DT::UNorm, CO::RGBA}},
-    {VK_FORMAT_B8G8R8_UINT,  {false, 3, 1, DT::UInt,  CO::BGRA}},
-    {VK_FORMAT_B8G8R8_SINT,  {false, 3, 1, DT::SInt,  CO::BGRA}},
-    {VK_FORMAT_B8G8R8_UNORM, {false, 3, 1, DT::UNorm, CO::BGRA}},
-    {VK_FORMAT_B8G8R8_SNORM, {false, 3, 1, DT::SNorm, CO::BGRA}},
-    {VK_FORMAT_B8G8R8_SRGB,  {true,  3, 1, DT::UNorm, CO::BGRA}},
+        {VK_FORMAT_R8G8B8_UINT,  {false, 3, 1, DT::UInt,  CO::RGBA}},
+        {VK_FORMAT_R8G8B8_SINT,  {false, 3, 1, DT::SInt,  CO::RGBA}},
+        {VK_FORMAT_R8G8B8_UNORM, {false, 3, 1, DT::UNorm, CO::RGBA}},
+        {VK_FORMAT_R8G8B8_SNORM, {false, 3, 1, DT::SNorm, CO::RGBA}},
+        {VK_FORMAT_R8G8B8_SRGB,  {true,  3, 1, DT::UNorm, CO::RGBA}},
+        {VK_FORMAT_B8G8R8_UINT,  {false, 3, 1, DT::UInt,  CO::BGRA}},
+        {VK_FORMAT_B8G8R8_SINT,  {false, 3, 1, DT::SInt,  CO::BGRA}},
+        {VK_FORMAT_B8G8R8_UNORM, {false, 3, 1, DT::UNorm, CO::BGRA}},
+        {VK_FORMAT_B8G8R8_SNORM, {false, 3, 1, DT::SNorm, CO::BGRA}},
+        {VK_FORMAT_B8G8R8_SRGB,  {true,  3, 1, DT::UNorm, CO::BGRA}},
 
-    {VK_FORMAT_R8G8B8A8_UINT,  {false, 4, 1, DT::UInt,  CO::RGBA}},
-    {VK_FORMAT_R8G8B8A8_SINT,  {false, 4, 1, DT::SInt,  CO::RGBA}},
-    {VK_FORMAT_R8G8B8A8_UNORM, {false, 4, 1, DT::UNorm, CO::RGBA}},
-    {VK_FORMAT_R8G8B8A8_SNORM, {false, 4, 1, DT::SNorm, CO::RGBA}},
-    {VK_FORMAT_R8G8B8A8_SRGB,  {true,  4, 1, DT::UNorm, CO::RGBA}},
-    {VK_FORMAT_B8G8R8A8_UINT,  {false, 4, 1, DT::UInt,  CO::BGRA}},
-    {VK_FORMAT_B8G8R8A8_SINT,  {false, 4, 1, DT::SInt,  CO::BGRA}},
-    {VK_FORMAT_B8G8R8A8_UNORM, {false, 4, 1, DT::UNorm, CO::BGRA}},
-    {VK_FORMAT_B8G8R8A8_SNORM, {false, 4, 1, DT::SNorm, CO::BGRA}},
-    {VK_FORMAT_B8G8R8A8_SRGB,  {true,  4, 1, DT::UNorm, CO::BGRA}},
-    {VK_FORMAT_A8B8G8R8_UINT_PACK32,  {false, 4, 1, DT::UInt,  CO::ABGR}},
-    {VK_FORMAT_A8B8G8R8_SINT_PACK32,  {false, 4, 1, DT::SInt,  CO::ABGR}},
-    {VK_FORMAT_A8B8G8R8_UNORM_PACK32, {false, 4, 1, DT::UNorm, CO::ABGR}},
-    {VK_FORMAT_A8B8G8R8_SNORM_PACK32, {false, 4, 1, DT::SNorm, CO::ABGR}},
-    {VK_FORMAT_A8B8G8R8_SRGB_PACK32,  {true,  4, 1, DT::UNorm, CO::ABGR}},
-    // 16 bit formats
-    {VK_FORMAT_R16_UINT,   {false, 1, 2, DT::UInt,  CO::RGBA}},
-    {VK_FORMAT_R16_SINT,   {false, 1, 2, DT::SInt,  CO::RGBA}},
-    {VK_FORMAT_R16_UNORM,  {false, 1, 2, DT::UNorm, CO::RGBA}},
-    {VK_FORMAT_R16_SNORM,  {false, 1, 2, DT::SNorm, CO::RGBA}},
-    {VK_FORMAT_R16_SFLOAT, {false, 1, 2, DT::Float, CO::RGBA}},
+        {VK_FORMAT_R8G8B8A8_UINT,  {false, 4, 1, DT::UInt,  CO::RGBA}},
+        {VK_FORMAT_R8G8B8A8_SINT,  {false, 4, 1, DT::SInt,  CO::RGBA}},
+        {VK_FORMAT_R8G8B8A8_UNORM, {false, 4, 1, DT::UNorm, CO::RGBA}},
+        {VK_FORMAT_R8G8B8A8_SNORM, {false, 4, 1, DT::SNorm, CO::RGBA}},
+        {VK_FORMAT_R8G8B8A8_SRGB,  {true,  4, 1, DT::UNorm, CO::RGBA}},
+        {VK_FORMAT_B8G8R8A8_UINT,  {false, 4, 1, DT::UInt,  CO::BGRA}},
+        {VK_FORMAT_B8G8R8A8_SINT,  {false, 4, 1, DT::SInt,  CO::BGRA}},
+        {VK_FORMAT_B8G8R8A8_UNORM, {false, 4, 1, DT::UNorm, CO::BGRA}},
+        {VK_FORMAT_B8G8R8A8_SNORM, {false, 4, 1, DT::SNorm, CO::BGRA}},
+        {VK_FORMAT_B8G8R8A8_SRGB,  {true,  4, 1, DT::UNorm, CO::BGRA}},
+        {VK_FORMAT_A8B8G8R8_UINT_PACK32,  {false, 4, 1, DT::UInt,  CO::ABGR}},
+        {VK_FORMAT_A8B8G8R8_SINT_PACK32,  {false, 4, 1, DT::SInt,  CO::ABGR}},
+        {VK_FORMAT_A8B8G8R8_UNORM_PACK32, {false, 4, 1, DT::UNorm, CO::ABGR}},
+        {VK_FORMAT_A8B8G8R8_SNORM_PACK32, {false, 4, 1, DT::SNorm, CO::ABGR}},
+        {VK_FORMAT_A8B8G8R8_SRGB_PACK32,  {true,  4, 1, DT::UNorm, CO::ABGR}},
+        // 16 bit formats
+        {VK_FORMAT_R16_UINT,   {false, 1, 2, DT::UInt,  CO::RGBA}},
+        {VK_FORMAT_R16_SINT,   {false, 1, 2, DT::SInt,  CO::RGBA}},
+        {VK_FORMAT_R16_UNORM,  {false, 1, 2, DT::UNorm, CO::RGBA}},
+        {VK_FORMAT_R16_SNORM,  {false, 1, 2, DT::SNorm, CO::RGBA}},
+        {VK_FORMAT_R16_SFLOAT, {false, 1, 2, DT::Float, CO::RGBA}},
 
-    {VK_FORMAT_R16G16_UINT,   {false, 2, 2, DT::UInt,  CO::RGBA}},
-    {VK_FORMAT_R16G16_SINT,   {false, 2, 2, DT::SInt,  CO::RGBA}},
-    {VK_FORMAT_R16G16_UNORM,  {false, 2, 2, DT::UNorm, CO::RGBA}},
-    {VK_FORMAT_R16G16_SNORM,  {false, 2, 2, DT::SNorm, CO::RGBA}},
-    {VK_FORMAT_R16G16_SFLOAT, {false, 2, 2, DT::Float, CO::RGBA}},
-    
-    {VK_FORMAT_R16G16B16_UINT,   {false, 3, 2, DT::UInt,  CO::RGBA}},
-    {VK_FORMAT_R16G16B16_SINT,   {false, 3, 2, DT::SInt,  CO::RGBA}},
-    {VK_FORMAT_R16G16B16_UNORM,  {false, 3, 2, DT::UNorm, CO::RGBA}},
-    {VK_FORMAT_R16G16B16_SNORM,  {false, 3, 2, DT::SNorm, CO::RGBA}},
-    {VK_FORMAT_R16G16B16_SFLOAT, {false, 3, 2, DT::Float, CO::RGBA}},
-    
-    {VK_FORMAT_R16G16B16A16_UINT,   {false, 4, 2, DT::UInt,  CO::RGBA}},
-    {VK_FORMAT_R16G16B16A16_SINT,   {false, 4, 2, DT::SInt,  CO::RGBA}},
-    {VK_FORMAT_R16G16B16A16_UNORM,  {false, 4, 2, DT::UNorm, CO::RGBA}},
-    {VK_FORMAT_R16G16B16A16_SNORM , {false, 4, 2, DT::SNorm, CO::RGBA}},
-    {VK_FORMAT_R16G16B16A16_SFLOAT, {false, 4, 2, DT::Float, CO::RGBA}},
-    // 32 bit formats
-    {VK_FORMAT_R32_UINT,   {false, 1, 4, DT::UInt,  CO::RGBA}},
-    {VK_FORMAT_R32_SINT,   {false, 1, 4, DT::SInt,  CO::RGBA}},
-    {VK_FORMAT_R32_SFLOAT, {false, 1, 4, DT::Float, CO::RGBA}},
+        {VK_FORMAT_R16G16_UINT,   {false, 2, 2, DT::UInt,  CO::RGBA}},
+        {VK_FORMAT_R16G16_SINT,   {false, 2, 2, DT::SInt,  CO::RGBA}},
+        {VK_FORMAT_R16G16_UNORM,  {false, 2, 2, DT::UNorm, CO::RGBA}},
+        {VK_FORMAT_R16G16_SNORM,  {false, 2, 2, DT::SNorm, CO::RGBA}},
+        {VK_FORMAT_R16G16_SFLOAT, {false, 2, 2, DT::Float, CO::RGBA}},
+        
+        {VK_FORMAT_R16G16B16_UINT,   {false, 3, 2, DT::UInt,  CO::RGBA}},
+        {VK_FORMAT_R16G16B16_SINT,   {false, 3, 2, DT::SInt,  CO::RGBA}},
+        {VK_FORMAT_R16G16B16_UNORM,  {false, 3, 2, DT::UNorm, CO::RGBA}},
+        {VK_FORMAT_R16G16B16_SNORM,  {false, 3, 2, DT::SNorm, CO::RGBA}},
+        {VK_FORMAT_R16G16B16_SFLOAT, {false, 3, 2, DT::Float, CO::RGBA}},
+        
+        {VK_FORMAT_R16G16B16A16_UINT,   {false, 4, 2, DT::UInt,  CO::RGBA}},
+        {VK_FORMAT_R16G16B16A16_SINT,   {false, 4, 2, DT::SInt,  CO::RGBA}},
+        {VK_FORMAT_R16G16B16A16_UNORM,  {false, 4, 2, DT::UNorm, CO::RGBA}},
+        {VK_FORMAT_R16G16B16A16_SNORM , {false, 4, 2, DT::SNorm, CO::RGBA}},
+        {VK_FORMAT_R16G16B16A16_SFLOAT, {false, 4, 2, DT::Float, CO::RGBA}},
+        // 32 bit formats
+        {VK_FORMAT_R32_UINT,   {false, 1, 4, DT::UInt,  CO::RGBA}},
+        {VK_FORMAT_R32_SINT,   {false, 1, 4, DT::SInt,  CO::RGBA}},
+        {VK_FORMAT_R32_SFLOAT, {false, 1, 4, DT::Float, CO::RGBA}},
 
-    {VK_FORMAT_R32G32_UINT,   {false, 2, 4, DT::UInt,  CO::RGBA}},
-    {VK_FORMAT_R32G32_SINT,   {false, 2, 4, DT::SInt,  CO::RGBA}},
-    {VK_FORMAT_R32G32_SFLOAT, {false, 2, 4, DT::Float, CO::RGBA}},
-    
-    {VK_FORMAT_R32G32B32_UINT,   {false, 3, 4, DT::UInt,  CO::RGBA}},
-    {VK_FORMAT_R32G32B32_SINT,   {false, 3, 4, DT::SInt,  CO::RGBA}},
-    {VK_FORMAT_R32G32B32_SFLOAT, {false, 3, 4, DT::Float, CO::RGBA}},
-    
-    {VK_FORMAT_R32G32B32A32_UINT,   {false, 4, 4, DT::UInt,  CO::RGBA}},
-    {VK_FORMAT_R32G32B32A32_SINT,   {false, 4, 4, DT::SInt,  CO::RGBA}},
-    {VK_FORMAT_R32G32B32A32_SFLOAT, {false, 4, 4, DT::Float, CO::RGBA}},
-    // 64 bit formats
-    {VK_FORMAT_R64_UINT,   {false, 1, 8, DT::UInt,  CO::RGBA}},
-    {VK_FORMAT_R64_SINT,   {false, 1, 8, DT::SInt,  CO::RGBA}},
-    {VK_FORMAT_R64_SFLOAT, {false, 1, 8, DT::Float, CO::RGBA}},
+        {VK_FORMAT_R32G32_UINT,   {false, 2, 4, DT::UInt,  CO::RGBA}},
+        {VK_FORMAT_R32G32_SINT,   {false, 2, 4, DT::SInt,  CO::RGBA}},
+        {VK_FORMAT_R32G32_SFLOAT, {false, 2, 4, DT::Float, CO::RGBA}},
+        
+        {VK_FORMAT_R32G32B32_UINT,   {false, 3, 4, DT::UInt,  CO::RGBA}},
+        {VK_FORMAT_R32G32B32_SINT,   {false, 3, 4, DT::SInt,  CO::RGBA}},
+        {VK_FORMAT_R32G32B32_SFLOAT, {false, 3, 4, DT::Float, CO::RGBA}},
+        
+        {VK_FORMAT_R32G32B32A32_UINT,   {false, 4, 4, DT::UInt,  CO::RGBA}},
+        {VK_FORMAT_R32G32B32A32_SINT,   {false, 4, 4, DT::SInt,  CO::RGBA}},
+        {VK_FORMAT_R32G32B32A32_SFLOAT, {false, 4, 4, DT::Float, CO::RGBA}},
+        // 64 bit formats
+        {VK_FORMAT_R64_UINT,   {false, 1, 8, DT::UInt,  CO::RGBA}},
+        {VK_FORMAT_R64_SINT,   {false, 1, 8, DT::SInt,  CO::RGBA}},
+        {VK_FORMAT_R64_SFLOAT, {false, 1, 8, DT::Float, CO::RGBA}},
 
-    {VK_FORMAT_R64G64_UINT,   {false, 2, 8, DT::UInt,  CO::RGBA}},
-    {VK_FORMAT_R64G64_SINT,   {false, 2, 8, DT::SInt,  CO::RGBA}},
-    {VK_FORMAT_R64G64_SFLOAT, {false, 2, 8, DT::Float, CO::RGBA}},
-    
-    {VK_FORMAT_R64G64B64_UINT,   {false, 3, 8, DT::UInt,  CO::RGBA}},
-    {VK_FORMAT_R64G64B64_SINT,   {false, 3, 8, DT::SInt,  CO::RGBA}},
-    {VK_FORMAT_R64G64B64_SFLOAT, {false, 3, 8, DT::Float, CO::RGBA}},
-    
-    {VK_FORMAT_R64G64B64A64_UINT,   {false, 4, 8, DT::UInt,  CO::RGBA}},
-    {VK_FORMAT_R64G64B64A64_SINT,   {false, 4, 8, DT::SInt,  CO::RGBA}},
-    {VK_FORMAT_R64G64B64A64_SFLOAT, {false, 4, 8, DT::Float, CO::RGBA}},
+        {VK_FORMAT_R64G64_UINT,   {false, 2, 8, DT::UInt,  CO::RGBA}},
+        {VK_FORMAT_R64G64_SINT,   {false, 2, 8, DT::SInt,  CO::RGBA}},
+        {VK_FORMAT_R64G64_SFLOAT, {false, 2, 8, DT::Float, CO::RGBA}},
+        
+        {VK_FORMAT_R64G64B64_UINT,   {false, 3, 8, DT::UInt,  CO::RGBA}},
+        {VK_FORMAT_R64G64B64_SINT,   {false, 3, 8, DT::SInt,  CO::RGBA}},
+        {VK_FORMAT_R64G64B64_SFLOAT, {false, 3, 8, DT::Float, CO::RGBA}},
+        
+        {VK_FORMAT_R64G64B64A64_UINT,   {false, 4, 8, DT::UInt,  CO::RGBA}},
+        {VK_FORMAT_R64G64B64A64_SINT,   {false, 4, 8, DT::SInt,  CO::RGBA}},
+        {VK_FORMAT_R64G64B64A64_SFLOAT, {false, 4, 8, DT::Float, CO::RGBA}},
 
-    // Packed formats
-    {VK_FORMAT_B10G11R11_UFLOAT_PACK32,  {false, 1, 4, DT::Packed_B10G11R11_UFloat,  CO::RGBA}},
-    {VK_FORMAT_B10G11R11_UFLOAT_PACK32,  {false, 1, 4, DT::Packed_B10G11R11_UFloat,  CO::BGRA}}, // In case user explicitly sets channel order
-    {VK_FORMAT_A2R10G10B10_UNORM_PACK32, {false, 1, 4, DT::Packed_A2R10G10B10_UNorm, CO::RGBA}},
-    
-    // Depth formats
-    {VK_FORMAT_D16_UNORM,           {false, 1, 2, DT::D16_UNorm,          CO::RGBA}},
-    {VK_FORMAT_X8_D24_UNORM_PACK32, {false, 1, 4, DT::D24_UNorm,          CO::RGBA}},
-    {VK_FORMAT_D32_SFLOAT,          {false, 1, 4, DT::D32_SFloat,         CO::RGBA}},
-    {VK_FORMAT_D16_UNORM_S8_UINT,   {false, 1, 4, DT::D16_UNorm_S8_UInt,  CO::RGBA}},
-    {VK_FORMAT_D24_UNORM_S8_UINT,   {false, 1, 4, DT::D24_UNorm,          CO::RGBA}},
-    {VK_FORMAT_D32_SFLOAT_S8_UINT,  {false, 1, 4, DT::D32_SFloat_S8_UInt, CO::RGBA}},
-    {VK_FORMAT_S8_UINT,             {false, 1, 4, DT::S8_UInt,            CO::RGBA}},
+        // Packed formats
+        {VK_FORMAT_B10G11R11_UFLOAT_PACK32,  {false, 1, 4, DT::Packed_B10G11R11_UFloat,  CO::RGBA}},
+        {VK_FORMAT_B10G11R11_UFLOAT_PACK32,  {false, 1, 4, DT::Packed_B10G11R11_UFloat,  CO::BGRA}}, // In case user explicitly sets channel order
+        {VK_FORMAT_A2R10G10B10_UNORM_PACK32, {false, 1, 4, DT::Packed_A2R10G10B10_UNorm, CO::RGBA}},
+        
+        // Depth formats
+        {VK_FORMAT_D16_UNORM,           {false, 1, 2, DT::D16_UNorm,          CO::RGBA}},
+        {VK_FORMAT_X8_D24_UNORM_PACK32, {false, 1, 4, DT::D24_UNorm,          CO::RGBA}},
+        {VK_FORMAT_D32_SFLOAT,          {false, 1, 4, DT::D32_SFloat,         CO::RGBA}},
+        {VK_FORMAT_D16_UNORM_S8_UINT,   {false, 1, 4, DT::D16_UNorm_S8_UInt,  CO::RGBA}},
+        {VK_FORMAT_D24_UNORM_S8_UINT,   {false, 1, 4, DT::D24_UNorm,          CO::RGBA}},
+        {VK_FORMAT_D32_SFLOAT_S8_UINT,  {false, 1, 4, DT::D32_SFloat_S8_UInt, CO::RGBA}},
+        {VK_FORMAT_S8_UINT,             {false, 1, 4, DT::S8_UInt,            CO::RGBA}},
 
-};
+    };
+    return vf2if;
+}
 
 }

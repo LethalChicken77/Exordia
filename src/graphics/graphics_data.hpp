@@ -89,8 +89,8 @@ public:
     VkDescriptorSet globalDescriptorSet = VK_NULL_HANDLE;
     std::vector<VkDescriptorSet> cameraDescriptorSets{};
     // Global pool
-    // Push constants
     // Default textures, shaders, materials
+
 private:
     // PipelineManager pipelineManager{backend.GetDevice()};
 

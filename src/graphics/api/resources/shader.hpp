@@ -44,6 +44,7 @@ private:
     std::vector<uint32_t> vertSpirv{};
     std::vector<uint32_t> fragSpirv{};
     ShaderLayout layout{};
+    VertexLayout vertLayout{};
 
     void compileFrag();
     void compileVert();
