@@ -1,5 +1,7 @@
 #pragma once
 #include <string_view>
+#include <slang.h>
+#include <slang-com-ptr.h>
 #include "resources/shader.hpp"
 
 namespace graphics
@@ -8,6 +10,11 @@ namespace graphics
 class ShaderCompile
 {
 public:
+    static inline std::vector<slang::CompilerOptionEntry> options{ 
+        { slang::CompilerOptionName::GLSLForceScalarLayout, slang::CompilerOptionValue{slang::CompilerOptionValueKind::Int, 1}},
+        { slang::CompilerOptionName::VulkanUseGLLayout, slang::CompilerOptionValue{slang::CompilerOptionValueKind::Int, 0}},
+        { slang::CompilerOptionName::PreserveParameters, slang::CompilerOptionValue{slang::CompilerOptionValueKind::Int, 1}}
+    };
 
     /// @brief Compile Slang source code to SPIR-V.
     /// @param path Path to the shader file. Only used for debug strings.
@@ -37,10 +44,10 @@ public:
         VertexLayout* vertLayout)
     {
         const std::span<const char> data = shaderAsset.getData();
-        const std::string_view dataView = std::string_view(data.data(), data.size());
+        const std::string dataString = std::string(data.data(), data.size()); // TODO: Remove copy to string (Needed for null termination in string view)
         return CompileSlang(
             shaderAsset.getPath(), 
-            dataView,
+            dataString,
             moduleName,
             entryPointName,
             slangStage,
@@ -52,9 +59,14 @@ public:
     // TODO: Support GLSL
 
 private:
-    void slangReflect(ShaderLayout* layout, VertexLayout vertLayout);
-    void slangReflectLayout(slang::ProgramLayout& reflect, ShaderLayout* layout);
-    void slangReflectVertex(slang::ProgramLayout& reflect, VertexLayout vertLayout);
+    static inline bool s_initialized = false;
+    static inline Slang::ComPtr<slang::IGlobalSession> s_globalSession{};
+    static inline SlangProfileID s_spirvProfile;
+
+    static void init();
+    static void slangReflect(ShaderLayout* layout, VertexLayout vertLayout);
+    static void slangReflectLayout(slang::ProgramLayout& reflect, ShaderLayout* layout);
+    static void slangReflectVertex(slang::ProgramLayout& reflect, VertexLayout vertLayout);
 };
     
 };

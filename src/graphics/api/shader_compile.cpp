@@ -1,11 +1,40 @@
 #include "shader_compile.hpp"
-#include <slang-com-ptr.h>
-#include <slang.h>
 #include "console.hpp"
 #include "debug.hpp"
 
 namespace graphics
 {
+
+void ShaderCompile::init()
+{
+    if(s_initialized) return;
+    SlangGlobalSessionDesc globalDesc = {};
+    if (SLANG_FAILED(createGlobalSession(&globalDesc, s_globalSession.writeRef())))
+        throw std::runtime_error("Slang: failed to create global session");
+
+    // Select profiles
+    s_spirvProfile = s_globalSession->findProfile("sm_6_8");
+    if (!s_spirvProfile)
+        s_spirvProfile = s_globalSession->findProfile("sm_6_7");
+    if (!s_spirvProfile)
+        s_spirvProfile = s_globalSession->findProfile("sm_6_6");
+    if (!s_spirvProfile)
+        s_spirvProfile = s_globalSession->findProfile("sm_6_5");
+    if (!s_spirvProfile)
+        s_spirvProfile = s_globalSession->findProfile("sm_6_4");
+    if (!s_spirvProfile)
+        s_spirvProfile = s_globalSession->findProfile("sm_6_3");
+    if (!s_spirvProfile)
+        s_spirvProfile = s_globalSession->findProfile("sm_6_2");
+    if (!s_spirvProfile)
+        s_spirvProfile = s_globalSession->findProfile("sm_6_1");
+    if (!s_spirvProfile)
+        s_spirvProfile = s_globalSession->findProfile("sm_6_0");
+    if (!s_spirvProfile)
+        s_spirvProfile = s_globalSession->findProfile("sm_5_1");
+    if(!s_spirvProfile)
+        throw std::runtime_error("[Error] [ShaderCompile] No suitable Slang profile found.");
+}
 
 std::vector<uint32_t> ShaderCompile::CompileSlang(
         const std::string_view path,
@@ -18,29 +47,18 @@ std::vector<uint32_t> ShaderCompile::CompileSlang(
 {
     Console::logf("Compiling shader {} as {} shader", path, Debug::SlangStageToString((uint32_t)slangStage), "ShaderAsset");
 
-    // TODO: Maybe keep global session alive
-    Slang::ComPtr<slang::IGlobalSession> globalSession;
-    SlangGlobalSessionDesc globalDesc = {};
-    if (SLANG_FAILED(createGlobalSession(&globalDesc, globalSession.writeRef())))
-        throw std::runtime_error("Slang: failed to create global session");
-
-    std::vector<slang::CompilerOptionEntry> options{};
-    // TODO: Only enable if scalar block layout extension is available
-    options.push_back({ slang::CompilerOptionName::GLSLForceScalarLayout, slang::CompilerOptionValue{slang::CompilerOptionValueKind::Int, 1} });
-    options.push_back({ slang::CompilerOptionName::VulkanUseGLLayout, slang::CompilerOptionValue{slang::CompilerOptionValueKind::Int, 0} });
-    options.push_back({ slang::CompilerOptionName::PreserveParameters, slang::CompilerOptionValue{slang::CompilerOptionValueKind::Int, 1} });
-    // options.push_back({ slang::CompilerOptionName::VulkanEmitReflection, slang::CompilerOptionValue{slang::CompilerOptionValueKind::Int, 1} });
+    init();
 
     slang::SessionDesc sessionDesc = {};
     // const char* paths[] = { "C:/VulkanSDK/1.4.309.0/Include/slang" }; // adjust as needed
-    const char* paths[] = { "./internal/shaders", "./assets/shaders" }; // Set search paths
+    const char* paths[] = { "./internal/shaders", "./assets" }; // Set search paths
     sessionDesc.searchPaths = paths;
     sessionDesc.searchPathCount = 2;
     sessionDesc.compilerOptionEntryCount = options.size(); 
     sessionDesc.compilerOptionEntries = options.data();
 
     Slang::ComPtr<slang::ISession> session;
-    if (SLANG_FAILED(globalSession->createSession(sessionDesc, session.writeRef())))
+    if (SLANG_FAILED(s_globalSession->createSession(sessionDesc, session.writeRef())))
         throw std::runtime_error("Slang: failed to create session");
 
     Slang::ComPtr<slang::ICompileRequest> request;
@@ -49,10 +67,7 @@ std::vector<uint32_t> ShaderCompile::CompileSlang(
 
     request->addCodeGenTarget(SLANG_SPIRV);
 
-    SlangProfileID spirvProfile = globalSession->findProfile("sm_6_8");
-    if (!spirvProfile)
-        throw std::runtime_error("Slang: sm_6_8 profile not available");
-    request->setTargetProfile(0, spirvProfile);
+    request->setTargetProfile(0, s_spirvProfile);
 
     int tuIndex = request->addTranslationUnit(SLANG_SOURCE_LANGUAGE_SLANG, moduleName.data());
     if (tuIndex < 0) throw std::runtime_error("Slang: addTranslationUnit failed");

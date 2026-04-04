@@ -22,7 +22,7 @@ public:
     ShaderAsset(ShaderAsset&&) = delete;
     ShaderAsset& operator=(ShaderAsset&&) = delete;
 
-    std::vector<uint32_t> CompileSlang(const std::string_view moduleName, const std::string_view entryPointName, SlangStage slangStage) const;
+    std::vector<uint32_t> CompileSlang(const std::string_view moduleName, const std::string_view entryPointName, SlangStage slangStage) const; // TODO: Remove entirely
 private:
     ShaderAsset(id_t newID) : AssetData(newID) {}
     friend class ObjectManager;
