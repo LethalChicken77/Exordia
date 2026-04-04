@@ -185,6 +185,7 @@ public:
 
 private:
     std::vector<Attribute> vertexAttributes;
+    std::unordered_map<std::string, uint32_t> vertexIndex{};
 };
 
 

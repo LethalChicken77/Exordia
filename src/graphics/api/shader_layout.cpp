@@ -377,72 +377,79 @@ VertexLayout::VertexLayout(const std::vector<uint32_t>& vertSpirv)
     std::vector<SpvReflectInterfaceVariable*> inputVars{inputCount};
     result = smodule.EnumerateInputVariables(&inputCount, inputVars.data());
 
+    std::regex rx{"vertex\\.(.+)$"};
+    // std::regex rx{".*\\.(.+)$"};
+    std::smatch match;
     for(uint32_t i = 0; i < inputVars.size(); i++)
     {
-        Console::logf("P: {}", (void*)inputVars[i]);
-        if(inputVars[i]->name)
-            Console::log(std::string(inputVars[i]->name));
-        if(inputVars[i]->semantic)
-            Console::log(std::string(inputVars[i]->semantic));
-        
+        if(!inputVars[i]->name) continue;
+        std::string str = inputVars[i]->name;
+        if(std::regex_match(str, match, rx))
+        {
+            Console::log(match[1].str());
+            SpvReflectTypeDescription* td = inputVars[i]->type_description;
+            Attribute a{};
+            a.componentCount = td->traits.numeric.vector.component_count;
+        }
+        Console::logf("{}", inputVars[i]->type_description->traits.numeric.vector.component_count);
     }
 }
 
 using AT = VertexLayout::AttributeType;
 using AL = VertexLayout::AttributeLayout;
-const std::unordered_map<VertexLayout::Attribute, VkFormat, VertexLayout::Attribute::Hash> vertexFormatTable
-{
-    // Position
-    {{AT::Position, AL::Standard, 2}, VK_FORMAT_R32G32_SFLOAT},
-    {{AT::Position, AL::Standard, 3}, VK_FORMAT_R32G32B32_SFLOAT},
-    {{AT::Position, AL::Standard, 4}, VK_FORMAT_R32G32B32A32_SFLOAT},
-
-    // Normal/Bitangent
-    {{AT::Normal, AL::Standard, 3}, VK_FORMAT_R32G32B32_SFLOAT},
-    {{AT::Normal, AL::Half, 3}, VK_FORMAT_R16G16B16_SFLOAT},
-    {{AT::Normal, AL::Octahedral, 2}, VK_FORMAT_R8G8_SNORM},
-    {{AT::Bitangent, AL::Standard, 3}, VK_FORMAT_R32G32B32_SFLOAT},
-    {{AT::Bitangent, AL::Half, 3}, VK_FORMAT_R16G16B16_SFLOAT},
-    {{AT::Bitangent, AL::Octahedral, 2}, VK_FORMAT_R8G8_SNORM},
-
-    // Tangent
-    {{AT::Tangent, AL::Standard, 4}, VK_FORMAT_R32G32B32A32_SFLOAT},
-    {{AT::Tangent, AL::Half, 4}, VK_FORMAT_R16G16B16A16_SFLOAT},
-    {{AT::Tangent, AL::Octahedral, 3}, VK_FORMAT_R8G8B8_SNORM},
-
-    // Color
-    {{AT::Color, AL::Standard, 3}, VK_FORMAT_R32G32B32_SFLOAT},
-    {{AT::Color, AL::Standard, 4}, VK_FORMAT_R32G32B32A32_SFLOAT},
-    {{AT::Color, AL::Half, 3}, VK_FORMAT_R16G16B16_SFLOAT},
-    {{AT::Color, AL::Half, 4}, VK_FORMAT_R16G16B16A16_SFLOAT},
-    {{AT::Color, AL::UInt8, 3}, VK_FORMAT_R8G8B8_UNORM},
-    {{AT::Color, AL::UInt8, 4}, VK_FORMAT_R8G8B8A8_UNORM},
-
-    // UV
-    {{AT::UV, AL::Standard, 2}, VK_FORMAT_R32G32_SFLOAT},
-    {{AT::UV, AL::Half, 2}, VK_FORMAT_R16G16_SFLOAT},
-
-    // Other
-    {{AT::Other, AL::Standard, 1}, VK_FORMAT_R32_SFLOAT},
-    {{AT::Other, AL::Half, 1}, VK_FORMAT_R16_SFLOAT},
-    {{AT::Other, AL::UInt8, 1}, VK_FORMAT_R8_UNORM},
-
-    {{AT::Other, AL::Standard, 2}, VK_FORMAT_R32G32_SFLOAT},
-    {{AT::Other, AL::Half, 2}, VK_FORMAT_R16G16_SFLOAT},
-    {{AT::Other, AL::UInt8, 2}, VK_FORMAT_R8G8_UNORM},
-    {{AT::Other, AL::Octahedral, 2}, VK_FORMAT_R8G8_SNORM},
-
-    {{AT::Other, AL::Standard, 3}, VK_FORMAT_R32G32B32_SFLOAT},
-    {{AT::Other, AL::Half, 3}, VK_FORMAT_R16G16B16_SFLOAT},
-    {{AT::Other, AL::UInt8, 3}, VK_FORMAT_R8G8B8_UNORM},
-
-    {{AT::Other, AL::Standard, 4}, VK_FORMAT_R32G32B32A32_SFLOAT},
-    {{AT::Other, AL::Half, 4}, VK_FORMAT_R16G16B16A16_SFLOAT},
-    {{AT::Other, AL::UInt8, 4}, VK_FORMAT_R8G8B8A8_UNORM},
-};
 
 uint32_t VertexLayout::Attribute::GetFormat() const
 {
+    static const std::unordered_map<VertexLayout::Attribute, VkFormat, VertexLayout::Attribute::Hash> vertexFormatTable
+    {
+        // Position
+        {{AT::Position, AL::Standard, 2}, VK_FORMAT_R32G32_SFLOAT},
+        {{AT::Position, AL::Standard, 3}, VK_FORMAT_R32G32B32_SFLOAT},
+        {{AT::Position, AL::Standard, 4}, VK_FORMAT_R32G32B32A32_SFLOAT},
+
+        // Normal/Bitangent
+        {{AT::Normal, AL::Standard, 3}, VK_FORMAT_R32G32B32_SFLOAT},
+        {{AT::Normal, AL::Half, 3}, VK_FORMAT_R16G16B16_SFLOAT},
+        {{AT::Normal, AL::Octahedral, 2}, VK_FORMAT_R8G8_SNORM},
+        {{AT::Bitangent, AL::Standard, 3}, VK_FORMAT_R32G32B32_SFLOAT},
+        {{AT::Bitangent, AL::Half, 3}, VK_FORMAT_R16G16B16_SFLOAT},
+        {{AT::Bitangent, AL::Octahedral, 2}, VK_FORMAT_R8G8_SNORM},
+
+        // Tangent
+        {{AT::Tangent, AL::Standard, 4}, VK_FORMAT_R32G32B32A32_SFLOAT},
+        {{AT::Tangent, AL::Half, 4}, VK_FORMAT_R16G16B16A16_SFLOAT},
+        {{AT::Tangent, AL::Octahedral, 3}, VK_FORMAT_R8G8B8_SNORM},
+
+        // Color
+        {{AT::Color, AL::Standard, 3}, VK_FORMAT_R32G32B32_SFLOAT},
+        {{AT::Color, AL::Standard, 4}, VK_FORMAT_R32G32B32A32_SFLOAT},
+        {{AT::Color, AL::Half, 3}, VK_FORMAT_R16G16B16_SFLOAT},
+        {{AT::Color, AL::Half, 4}, VK_FORMAT_R16G16B16A16_SFLOAT},
+        {{AT::Color, AL::UInt8, 3}, VK_FORMAT_R8G8B8_UNORM},
+        {{AT::Color, AL::UInt8, 4}, VK_FORMAT_R8G8B8A8_UNORM},
+
+        // UV
+        {{AT::UV, AL::Standard, 2}, VK_FORMAT_R32G32_SFLOAT},
+        {{AT::UV, AL::Half, 2}, VK_FORMAT_R16G16_SFLOAT},
+
+        // Other
+        {{AT::Other, AL::Standard, 1}, VK_FORMAT_R32_SFLOAT},
+        {{AT::Other, AL::Half, 1}, VK_FORMAT_R16_SFLOAT},
+        {{AT::Other, AL::UInt8, 1}, VK_FORMAT_R8_UNORM},
+
+        {{AT::Other, AL::Standard, 2}, VK_FORMAT_R32G32_SFLOAT},
+        {{AT::Other, AL::Half, 2}, VK_FORMAT_R16G16_SFLOAT},
+        {{AT::Other, AL::UInt8, 2}, VK_FORMAT_R8G8_UNORM},
+        {{AT::Other, AL::Octahedral, 2}, VK_FORMAT_R8G8_SNORM},
+
+        {{AT::Other, AL::Standard, 3}, VK_FORMAT_R32G32B32_SFLOAT},
+        {{AT::Other, AL::Half, 3}, VK_FORMAT_R16G16B16_SFLOAT},
+        {{AT::Other, AL::UInt8, 3}, VK_FORMAT_R8G8B8_UNORM},
+
+        {{AT::Other, AL::Standard, 4}, VK_FORMAT_R32G32B32A32_SFLOAT},
+        {{AT::Other, AL::Half, 4}, VK_FORMAT_R16G16B16A16_SFLOAT},
+        {{AT::Other, AL::UInt8, 4}, VK_FORMAT_R8G8B8A8_UNORM},
+    };
     if(vertexFormatTable.contains(*this))
     {
         return vertexFormatTable.at(*this);

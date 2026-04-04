@@ -1,5 +1,6 @@
 #pragma once
 #include <string>
+#include <span>
 #include <memory>
 
 #include "object.hpp"
@@ -22,6 +23,7 @@ namespace core
 
         id_t getUUID() const { return UUID; }
         const std::string &getPath() const { return path; }
+        const std::span<const char> getData() const { return std::span<const char>(data.data(), data.size()); }
 
         void LoadData();
 

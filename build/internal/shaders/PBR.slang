@@ -19,19 +19,19 @@ struct MaterialInfo
 [[vk::binding(6, 2)]] Sampler2D skyboxTexture; // SRGB (Temporary)
 
 [shader("vertex")]
-VOut vsMain(VertexData input, InstanceData instance)
+VOut vsMain(VertexData vertex, InstanceData instance)
 {
     VOut output;
     float4x4 model = transpose(float4x4(instance.Model0, instance.Model1, instance.Model2, instance.Model3));
-    output.FragPosition = mul(cameraData.viewProj, mul(model, float4(input.Position, 1.0)));
-    output.Position = mul(model, float4(input.Position, 1.0)).xyz;
+    output.FragPosition = mul(cameraData.viewProj, mul(model, float4(vertex.Position, 1.0)));
+    output.Position = mul(model, float4(vertex.Position, 1.0)).xyz;
 
     float3x3 normalMatrix = transpose(inverse(float3x3(model)));
-    output.Normal = normalize(mul(normalMatrix, input.Normal));
-    output.Tangent = float4(normalize(mul(normalMatrix, input.Tangent.xyz)), input.Tangent.w);
-    output.Bitangent = normalize(mul(normalMatrix, cross(input.Normal.xyz, input.Tangent.xyz)));
-    output.Color = input.Color;
-    output.UV = input.UV;
+    output.Normal = normalize(mul(normalMatrix, vertex.Normal));
+    output.Tangent = float4(normalize(mul(normalMatrix, vertex.Tangent.xyz)), vertex.Tangent.w);
+    output.Bitangent = normalize(mul(normalMatrix, cross(vertex.Normal.xyz, vertex.Tangent.xyz)));
+    output.Color = vertex.Color;
+    output.UV = vertex.UV;
 
     return output;
 }

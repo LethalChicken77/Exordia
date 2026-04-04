@@ -90,7 +90,7 @@ void Engine::init()
     TextureData* texsP = gameData->textures.New(std::move(*texs));
     TextureData* texnP = gameData->textures.New(std::move(*texn));
 
-    // if(texa != nullptr) thA = graphicsModule.RegisterTexture(*texaP);
+    if(texa != nullptr) thA = graphicsModule.RegisterTexture(*texaP);
     if(texr != nullptr) thR = graphicsModule.RegisterTexture(*texrP);
     if(texm != nullptr) thM = graphicsModule.RegisterTexture(*texmP);
     if(texs != nullptr) thS = graphicsModule.RegisterTexture(*texsP);
