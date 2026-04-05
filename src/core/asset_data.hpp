@@ -22,8 +22,9 @@ namespace core
         AssetData& operator=(AssetData&&) = delete;
 
         id_t getUUID() const { return UUID; }
-        const std::string &getPath() const { return path; }
-        const std::span<const char> getData() const { return std::span<const char>(data.data(), data.size()); }
+        const std::string &GetPath() const { return path; }
+        const std::span<const char> GetData() const { return std::span<const char>(data.data(), data.size()); }
+        const std::string GetDataString() const { return std::string(data.data(), data.size()); }
 
         void LoadData();
 

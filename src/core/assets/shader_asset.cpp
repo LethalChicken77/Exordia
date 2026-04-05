@@ -7,9 +7,9 @@
 namespace core
 {
 
-std::vector<uint32_t> ShaderAsset::CompileSlang(const std::string_view moduleName, const std::string_view entryPointName, SlangStage slangStage) const
+std::vector<uint32_t> ShaderAsset::CompileSlang(const std::string_view entryPointName, SlangStage slangStage) const
 {
-    return graphics::ShaderCompile::CompileSlang(*this, moduleName, entryPointName, slangStage, nullptr, nullptr);
+    return graphics::ShaderCompile::CompileSlang(*this, entryPointName, slangStage, nullptr, nullptr);
 }
 
 }; // namespace core
