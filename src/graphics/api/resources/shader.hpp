@@ -3,6 +3,7 @@
 #include <slang.h>
 #include "graphics/api/shader_config.hpp"
 #include "graphics/api/shader_layout.hpp"
+#include "graphics/api/vertex_layout.hpp"
 #include "graphics/api/handles.hpp"
 #include "core/assets/shader_asset.hpp"
 

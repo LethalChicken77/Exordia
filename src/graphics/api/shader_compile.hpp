@@ -17,7 +17,7 @@ public:
     };
     static inline std::vector<const char*> searchPaths{
         VULKAN_SDK "/Bin/slang-standard-module-2026.1",
-        "./internal/shaders", 
+        "./internal/shaders",
         "./assets"
     };
 
@@ -27,7 +27,7 @@ public:
     /// @param moduleName 
     /// @param entryPointName 
     /// @param slangStage 
-    /// @param layout Shader layout generated from code. Returns uniform buffers, textures, and samplers used by the shader.
+    /// @param globalLayout Shader layout generated from code. Returns uniform buffers, textures, and samplers used by the shader.
     /// @param vertLayout Vertex layout generated from code. Only use on vertex shaders.
     /// @return SPIR-V code
     /// @note Also handles HLSL, with some minor caveats.
@@ -36,14 +36,14 @@ public:
         const std::string_view source,
         const std::string_view entryPointName,
         SlangStage slangStage,
-        ShaderLayout* layout,
+        ShaderLayout* globalLayout,
         VertexLayout* vertLayout);
     
     inline static std::vector<uint32_t> CompileSlang(
         const ShaderAsset& shaderAsset,
         const std::string_view entryPointName,
         SlangStage slangStage,
-        ShaderLayout* layout,
+        ShaderLayout* globalLayout,
         VertexLayout* vertLayout)
     {
         const std::span<const char> data = shaderAsset.GetData();
@@ -53,7 +53,7 @@ public:
             dataString,
             entryPointName,
             slangStage,
-            layout,
+            globalLayout,
             vertLayout
         );
     }
@@ -63,7 +63,7 @@ public:
     /// @param source Raw source text, passed as a string.
     /// @param vertexDest Location to put the resulting vertex SPIR-V.
     /// @param fragmentDest Location to put the resulting fragment SPIR-V.
-    /// @param layout Shader layout generated from code. Returns uniform buffers, textures, and samplers used by the shader.
+    /// @param globalLayout Shader layout generated from code. Returns uniform buffers, textures, and samplers used by the shader.
     /// @param vertLayout Vertex layout generated from code. Only use on vertex shaders.
     /// @return True on success, false on failure. Throws on unhandled error.
     /// @note For separate shaders, use CompileSlang. 
@@ -72,7 +72,7 @@ public:
         const std::string_view source,
         std::vector<uint32_t>* vertexDest,
         std::vector<uint32_t>* fragmentDest,
-        ShaderLayout* layout,
+        ShaderLayout* globalLayout,
         VertexLayout* vertLayout);
 
     // TODO: Support GLSL
@@ -83,9 +83,6 @@ private:
     static inline SlangProfileID s_spirvProfile;
 
     static void init();
-    static void slangReflect(ShaderLayout* layout, VertexLayout vertLayout);
-    static void slangReflectLayout(slang::ProgramLayout& reflect, ShaderLayout* layout);
-    static void slangReflectVertex(slang::ProgramLayout& reflect, VertexLayout vertLayout);
     static Slang::ComPtr<slang::ISession> createSlangSession();
     static std::string createModuleName(const std::string_view path);
     static void getSpirvInPlace(Slang::ComPtr<slang::ICompileRequest> request, int entryPointIndex, std::vector<uint32_t>* dest);

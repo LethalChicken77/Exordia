@@ -2,6 +2,7 @@
 #include "shader_compile.hpp"
 #include "console.hpp"
 #include "debug.hpp"
+#include "graphics/resources/processing/shader_reflection.hpp"
 
 namespace graphics
 {
@@ -42,7 +43,7 @@ std::vector<uint32_t> ShaderCompile::CompileSlang(
         const std::string_view source,
         const std::string_view entryPointName,
         SlangStage slangStage,
-        ShaderLayout* layout,
+        ShaderLayout* globalLayout,
         VertexLayout* vertLayout)
 {
     Console::logf("Compiling shader {} as {} shader", path, Debug::SlangStageToString((uint32_t)slangStage), "ShaderAsset");
@@ -96,7 +97,7 @@ bool ShaderCompile::CompileSlangCombined(
         const std::string_view source,
         std::vector<uint32_t>* vertexDest,
         std::vector<uint32_t>* fragmentDest,
-        ShaderLayout* layout,
+        ShaderLayout* globalLayout,
         VertexLayout* vertLayout)
 {
     Console::logf("Compiling combined shader {}", path, "ShaderCompile");
@@ -141,6 +142,11 @@ bool ShaderCompile::CompileSlangCombined(
     getSpirvInPlace(request, vertEP, vertexDest);
     getSpirvInPlace(request, fragEP, fragmentDest);
 
+    // Early return if no reflection is needed
+    // if(vertexDest == nullptr && fragmentDest == nullptr) return true;
+
+    SlangReflect::GenerateLayouts(request, vertEP, fragEP, globalLayout, vertLayout);
+
     return true;
 }
 
@@ -150,7 +156,7 @@ Slang::ComPtr<slang::ISession> ShaderCompile::createSlangSession()
     sessionDesc.searchPaths = searchPaths.data();
     sessionDesc.searchPathCount = searchPaths.size();
     sessionDesc.compilerOptionEntries = options.data();
-    sessionDesc.compilerOptionEntryCount = options.size(); 
+    sessionDesc.compilerOptionEntryCount = options.size();
     Slang::ComPtr<slang::ISession> session;
     if (SLANG_FAILED(s_globalSession->createSession(sessionDesc, session.writeRef())))
         throw std::runtime_error("Slang: failed to create session");

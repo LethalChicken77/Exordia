@@ -187,7 +187,7 @@ std::vector<VkVertexInputAttributeDescription> GraphicsMesh::getVertexAttributeD
     currentOffset++;
 
     // Instance attributes
-    for(int i = 0; i < 4; i++)
+    for(int i = 0; i < 4; i++) // Transformation matrix
     {
         attributeDescriptions[i + currentOffset].binding = 1;
         attributeDescriptions[i + currentOffset].location = i + currentOffset;

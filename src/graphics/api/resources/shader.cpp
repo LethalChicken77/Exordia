@@ -17,6 +17,7 @@ Shader::Shader(const ShaderAsset* vertAsset, const ShaderAsset* fragAsset)
 
 void Shader::Compile()
 {
+    vertLayout = VertexLayout();
     if(vertexShaderAsset == fragmentShaderAsset) // usually true
     {
         ShaderCompile::CompileSlangCombined(
@@ -25,7 +26,7 @@ void Shader::Compile()
             &vertSpirv,
             &fragSpirv,
             nullptr,
-            nullptr);
+            &vertLayout);
     }
     else
     {
@@ -33,7 +34,7 @@ void Shader::Compile()
         fragSpirv = fragmentShaderAsset->CompileSlang("fsMain", SLANG_STAGE_FRAGMENT);
     }
 
-    vertLayout = VertexLayout(vertSpirv); // TODO: Replace with slang reflection
+    // vertLayout = VertexLayout(vertSpirv); // TODO: Replace with slang reflection
     layout = ShaderLayout(fragSpirv);
 }
 

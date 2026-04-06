@@ -15,7 +15,8 @@ struct MaterialInfo
 VOut vsMain(VertexData vertex, InstanceData instance)
 {
     VOut output;
-    float4x4 model = transpose(float4x4(instance.Model0, instance.Model1, instance.Model2, instance.Model3));
+    // float4x4 model = transpose(float4x4(instance.Model0, instance.Model1, instance.Model2, instance.Model3));
+    float4x4 model = transpose(instance.Model);
     output.FragPosition = mul(cameraData.viewProj, mul(model, float4(vertex.Position, 1.0)));
     output.Position = vertex.Position;
 

@@ -131,7 +131,7 @@ struct PipelineConfigInfo
     }
 };
 
-class GraphicsPipeline // TODO: Look into merging with ComputePipeline
+class GraphicsPipeline // TODO: Rewrite entirely. Maybe merge with compute pipeline.
 {
 public:
     GraphicsPipeline(internal::Device &device, id_t id, const Shader &shader, VkPipelineCache cache);

@@ -9,10 +9,11 @@ struct VertexData
 
 struct InstanceData
 {
-    float4 Model0 : LOCATION6;
-    float4 Model1 : LOCATION7;
-    float4 Model2 : LOCATION8;
-    float4 Model3 : LOCATION9;
+    // float4 Model0 : LOCATION6;
+    // float4 Model1 : LOCATION7;
+    // float4 Model2 : LOCATION8;
+    // float4 Model3 : LOCATION9;
+    float4x4 Model : MODEL;
 };
 
 struct VOut
