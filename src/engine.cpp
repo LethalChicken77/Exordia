@@ -152,10 +152,7 @@ void Engine::init()
     Input::initializeKeys();
 
 
-    camera = Camera(
-        {0.01f, 1000.0f, 90.0f},
-        false
-    );
+    camera = Camera();
     // camera = Camera(
     //     {0.01f, 100.0f, 20.0f},
     //     true

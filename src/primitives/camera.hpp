@@ -7,10 +7,22 @@
 
 struct CameraProperties
 {
-    float near;
-    float far;
+    /// @brief Distance in world units to the near clipping plane.
+    float near = 0.01f;
+    /// @brief Distance in world units to the far clipping plane.
+    float far = 1000.f; 
     // float whereverYouAre;
-    float vfov;
+    
+    /// @brief Vertical field of view.
+    ///
+    /// Perspective mode: Represents the vertical FoV angle in degrees.
+    ///
+    /// Orthographic mode: Represents the vertical height in world units.
+    float vFov = 80.f;
+    /// @brief Determines whether this is a perspective or orthographic camera.
+    bool orthographic = false;
+    /// @brief Whether to flip the near and far planes. Used for reversed depth buffers.
+    bool reversedDepth = true;
 };
 
 class Camera
@@ -18,12 +30,12 @@ class Camera
 public:
     
     Camera();
-    Camera(const CameraProperties properties, const bool orthographic = false);
+    Camera(const CameraProperties properties);
 
     // Camera(const Camera&) = delete;
     // Camera& operator=(const Camera&) = delete;
 
-    void setProperties(const CameraProperties properties, const bool orthographic = false);
+    void setProperties(const CameraProperties properties);
     void setNear(const float near);
     void setFar(const float far);
     void setVfov(const float vfov);
@@ -41,7 +53,6 @@ private:
     glm::mat4 projection;
     glm::mat4 view;
 
-    bool isOrthographic;
     CameraProperties properties;
     float aspectRatio = 1; // Horizontal / Vertical
 

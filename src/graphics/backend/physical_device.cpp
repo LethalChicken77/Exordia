@@ -6,7 +6,8 @@
 #include "graphics/backend/vulkan_include.h"
 
 #include "backend_data.hpp"
-#include "utils/console.hpp"
+#include "console.hpp"
+#include "debug.hpp"
 
 namespace graphics::internal
 {
@@ -127,11 +128,8 @@ PhysicalDevice::SwapchainSupportDetails PhysicalDevice::querySwapChainSupport(vk
 
     details.formats = physicalDevice.getSurfaceFormatsKHR(*surface);
 
-    uint32_t presentModeCount;
-    physicalDevice.getSurfacePresentModesKHR(*surface, &presentModeCount, nullptr);
-
     std::vector<vk::PresentModeKHR> tempModes = physicalDevice.getSurfacePresentModesKHR(*surface);
-    for (uint32_t i = 0; i < presentModeCount; i++) 
+    for (uint32_t i = 0; i < tempModes.size(); i++) 
     {
         details.presentModes.insert(tempModes[i]);
     }

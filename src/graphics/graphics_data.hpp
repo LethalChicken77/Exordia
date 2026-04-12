@@ -66,6 +66,8 @@ public:
     inline const VkPhysicalDeviceProperties2 &GetDeviceProperties() const { return backend.GetPhysicalDevice().GetProperties(); }
     Window &GetWindow() { return window; }
     GLFWwindow *GetGLFWWindow() { return window.GetWindow(); }
+    
+    const bool REVERSED_DEPTH = true;
 
     GlobalUbo globalUboData{};
     CameraUbo cameraUboData{};

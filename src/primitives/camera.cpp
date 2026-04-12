@@ -6,15 +6,14 @@ Camera::Camera()
     setProperties(properties);
 }
 
-Camera::Camera(const CameraProperties properties, const bool _orthographic)
+Camera::Camera(const CameraProperties properties)
 {
-    setProperties(properties, _orthographic);
+    setProperties(properties);
 }
 
-void Camera::setProperties(const CameraProperties properties, const bool _orthographic)
+void Camera::setProperties(const CameraProperties properties)
 {
     this->properties = properties;
-    this->isOrthographic = _orthographic;
     updateCamera();
 }
 
@@ -32,7 +31,7 @@ void Camera::setFar(const float far)
 
 void Camera::setVfov(const float vfov)
 {
-    properties.vfov = vfov;
+    properties.vFov = vfov;
     updateCamera();
 }
 
@@ -45,9 +44,11 @@ void Camera::setAspectRatio(const float _aspectRatio)
 
 void Camera::updateCamera()
 {
-    if(isOrthographic)
+    float near = properties.reversedDepth ? properties.far : properties.near;
+    float far = properties.reversedDepth ? properties.near : properties.far;
+    if(properties.orthographic)
     {
-        float top = properties.vfov * 0.5f;
+        float top = properties.vFov * 0.5f;
         float bottom = -top;
         float right = aspectRatio * top;
         float left = -right;
@@ -55,20 +56,20 @@ void Camera::updateCamera()
         projection = glm::mat4(
             2.f / (right - left), 0, 0, 0,
             0, 2.f / (bottom - top), 0, 0,
-            0, 0, 1.f / (properties.far - properties.near), 0,
-            -(right + left) / (right - left), -(bottom + top) / (bottom - top), properties.near / (properties.far - properties.near), 1.f
+            0, 0, 1.f / (far - near), 0,
+            -(right + left) / (right - left), -(bottom + top) / (bottom - top), near / (far - near), 1.f
         );
         // perspective = glm::mat4(1);
     }
     else
     {
-        float halfTanFovY = glm::tan(glm::radians(properties.vfov * 0.5f)) * 0.5f;
+        float halfTanFovY = glm::tan(glm::radians(properties.vFov * 0.5f)) * 0.5f;
 
         projection = glm::mat4(
             1.f / (aspectRatio * halfTanFovY), 0, 0, 0,
             0, -1.f / halfTanFovY, 0, 0,
-            0, 0, properties.far / (properties.far - properties.near), 1.f,
-            0, 0, -properties.near * properties.far / (properties.far - properties.near), 0
+            0, 0, far / (far - near), 1.f,
+            0, 0, -near * far / (far - near), 0
         );
     }
 

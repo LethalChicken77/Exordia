@@ -362,19 +362,19 @@ void PipelineConfigInfo::SetShaderConfig(const graphics::ShaderProperties& shade
             depthStencilInfo.depthCompareOp = vk::CompareOp::eNever;
             break;
         case CompareOp::Less:
-            depthStencilInfo.depthCompareOp = vk::CompareOp::eLess;
+            depthStencilInfo.depthCompareOp = graphicsData->REVERSED_DEPTH ? vk::CompareOp::eGreater : vk::CompareOp::eLess;
             break;
         case CompareOp::LessEqual:
-            depthStencilInfo.depthCompareOp = vk::CompareOp::eLessOrEqual;
+            depthStencilInfo.depthCompareOp = graphicsData->REVERSED_DEPTH ? vk::CompareOp::eGreaterOrEqual : vk::CompareOp::eLessOrEqual;
             break;
         case CompareOp::Equal:
             depthStencilInfo.depthCompareOp = vk::CompareOp::eEqual;
             break;
         case CompareOp::GreaterEqual:
-            depthStencilInfo.depthCompareOp = vk::CompareOp::eGreaterOrEqual;
+            depthStencilInfo.depthCompareOp = graphicsData->REVERSED_DEPTH ? vk::CompareOp::eLessOrEqual : vk::CompareOp::eGreaterOrEqual;
             break;
         case CompareOp::Greater:
-            depthStencilInfo.depthCompareOp = vk::CompareOp::eGreater;
+            depthStencilInfo.depthCompareOp = graphicsData->REVERSED_DEPTH ? vk::CompareOp::eLess : vk::CompareOp::eGreater;
             break;
         case CompareOp::NotEqual:
             depthStencilInfo.depthCompareOp = vk::CompareOp::eNotEqual;

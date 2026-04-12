@@ -100,7 +100,6 @@ void FrameOrchestrator::EndFrame()
 }
 
 
-// void FrameOrchestrator::BeginRenderDynamic(VkCommandBuffer cmdBuffer, VkImageView colorView, VkImageView depthView, VkExtent2D extent, VkClearValue clearColor)
 void FrameOrchestrator::BeginRenderDynamic(const FrameContext& context, const PassInfo& passInfo)
 {
     if(!frameInProgress)
@@ -120,7 +119,7 @@ void FrameOrchestrator::BeginRenderDynamic(const FrameContext& context, const Pa
     depthAttachment.imageLayout = vk::ImageLayout::eDepthStencilAttachmentOptimal;
     depthAttachment.loadOp = vk::AttachmentLoadOp::eClear;
     depthAttachment.storeOp = vk::AttachmentStoreOp::eStore;
-    depthAttachment.clearValue.depthStencil = vk::ClearDepthStencilValue{1.0f, 0};
+    depthAttachment.clearValue.depthStencil = vk::ClearDepthStencilValue{graphicsData->REVERSED_DEPTH ? 0.0f : 1.0f, 0};
 
     vk::RenderingInfo renderingInfo{};
     renderingInfo.renderArea.offset = vk::Offset2D{0, 0};
