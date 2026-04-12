@@ -185,11 +185,11 @@ namespace game
                 // float height = core::Random::getRandom01();
                 // float height1 = procedural::simplex2D(i * (invResolution * 2 ), j * (invResolution * 2 ), 69);
                 // heightMap->setPixel(i, j, (height1) * 40.f);
-                float height1 = procedural::simplex2D(i * (invResolution * 2 ), j * (invResolution * 2 ), 691);
-                float height2 = procedural::simplex2D(i * (invResolution * 4 ), j * (invResolution * 4 ), 211) * 0.5f;
-                float height3 = procedural::simplex2D(i * (invResolution * 8 ), j * (invResolution * 8 ), 4201) * 0.25f;
-                float height4 = procedural::simplex2D(i * (invResolution * 16), j * (invResolution * 16), 123) * 0.125f;
-                float height5 = procedural::simplex2D(i * (invResolution * 32), j * (invResolution * 32), 643) * 0.0625f;
+                float height1 = procedural::simplex2D(i * (invResolution * 2 ), j * (invResolution * 2 ), 100);
+                float height2 = procedural::simplex2D(i * (invResolution * 4 ), j * (invResolution * 4 ), 420) * 0.5f;
+                float height3 = procedural::simplex2D(i * (invResolution * 8 ), j * (invResolution * 8 ), 888) * 0.25f;
+                float height4 = procedural::simplex2D(i * (invResolution * 16), j * (invResolution * 16), 777) * 0.125f;
+                float height5 = procedural::simplex2D(i * (invResolution * 32), j * (invResolution * 32), 1) * 0.0625f;
                 heightMap->setPixel(i, j, (height1 + height2 + height3 + height4 + height5) * 40.f);
                 // heightMap->setPixel(i, j, (height1 + height2 + height3) * 30.f);
                 // heightMap->setPixel(i, j, (j - resolution * 0.5f) / 16.0f);
