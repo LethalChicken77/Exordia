@@ -17,7 +17,6 @@ namespace core
 
             static inline float getRandom01()
             {
-                std::random_device rd;
                 return getRandom01(rd());
             }
 
@@ -30,7 +29,6 @@ namespace core
 
             static inline int getRandomInt(int min, int max)
             {
-                std::random_device rd;
                 return getRandomInt(min, max, rd());
             }
 
@@ -43,7 +41,6 @@ namespace core
 
             static inline float getRandomFloat(float min, float max)
             {
-                std::random_device rd;
                 return getRandomFloat(min, max, rd());
             }
 
@@ -96,5 +93,7 @@ namespace core
             {
                 return SeedFrom4D(std::bit_cast<int>(x), std::bit_cast<int>(y), std::bit_cast<int>(z), std::bit_cast<int>(w), baseSeed);
             }
+        private:
+            static std::random_device rd;
     };
 } // namespace core
