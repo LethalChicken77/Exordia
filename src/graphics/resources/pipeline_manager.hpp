@@ -22,11 +22,11 @@ class [[deprecated("Replaced with PipelineRegistry")]] PipelineManager
         void RegisterShader(Shader *shader) { shaders.insert(shader); }
         void DeregisterShader(Shader *shader) { shaders.erase(shader); }
 
-        std::unique_ptr<GraphicsPipeline> &GetPipeline(uint32_t index) { return graphicsPipelines[index]; }
+        std::unique_ptr<GraphicsPipelineOld> &GetPipeline(uint32_t index) { return graphicsPipelines[index]; }
 
     private:
         internal::Device &device;
-        std::vector<std::unique_ptr<GraphicsPipeline>> graphicsPipelines;
+        std::vector<std::unique_ptr<GraphicsPipelineOld>> graphicsPipelines;
 
         uint32_t currentID = 0;
 

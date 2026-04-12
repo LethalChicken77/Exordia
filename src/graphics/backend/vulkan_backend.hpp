@@ -20,28 +20,25 @@ class VulkanBackend
 
         void Cleanup(graphics::GraphicsData *_graphicsData);
 
-        // VkBuffer AllocateBuffer();
-        // VkImage AllocateImage();
-
-        inline VkInstance &GetInstance() { return instance; }
+        inline vk::Instance &GetInstance() { return instance; }
         inline Device &GetDevice() { return device; }
         inline const PhysicalDevice &GetPhysicalDevice() const { return physicalDevice; }
 
         inline void WaitForDevice() { device.WaitIdle(); }
     private:
-    #ifdef NDEBUG
+    #ifndef DEBUG
         const bool enableValidationLayers = false;
     #else
         const bool enableValidationLayers = true;
     #endif
         void init(const std::string& appName, const std::string& engName, Window& window); // Initialize backend, must be called before use
 
-        VkApplicationInfo appInfo{};
+        vk::ApplicationInfo appInfo{};
         
-        VkInstance instance{};
+        vk::Instance instance{};
         PhysicalDevice physicalDevice;
         Device device{physicalDevice};
-        VkDebugUtilsMessengerEXT debugMessenger;
+        vk::DebugUtilsMessengerEXT debugMessenger;
         
         bool cleanedUp = false;
 
@@ -54,7 +51,7 @@ class VulkanBackend
 
         // Utilities
         void setupDebugMessenger();
-        void populateDebugMessengerCreateInfo(VkDebugUtilsMessengerCreateInfoEXT &createInfo);
+        void populateDebugMessengerCreateInfo(vk::DebugUtilsMessengerCreateInfoEXT &createInfo);
         std::vector<const char *> getRequiredExtensions();
         bool hasGflwRequiredInstanceExtensions();
         bool checkValidationLayerSupport();

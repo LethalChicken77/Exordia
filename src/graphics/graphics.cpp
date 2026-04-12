@@ -149,17 +149,16 @@ namespace graphics
 
     void Graphics::DrawFrame()
     {
-        Renderer &renderer = graphicsData->renderer;
+        FrameOrchestrator &renderer = graphicsData->renderer;
         VkExtent2D extent = renderer.GetExtent();
         if(extent.width <= 0 || extent.height <= 0) return; // Don't draw frame if minimized
 
         std::vector<VkDescriptorSet> localDescriptorSets;
         // VkCommandBuffer commandBuffer; // Attempt to block if swapchain isn't ready yet. This didn't work
         // while (!(commandBuffer = renderer.BeginFrame())) {}
-        if(VkCommandBuffer commandBuffer = renderer.BeginFrame())
+        FrameContext renderContext = renderer.BeginFrame();
+        if(renderContext.commandBuffer != nullptr)
         {
-            RenderContext renderContext = renderer.GetContext();
-
             GlobalUbo globalUboData{};
             // globalUboData.lights[0] = {glm::vec3(1, 1, 1), LightType::DIRECTIONAL, glm::vec3(1.0, 1.0, 1.0), 6.0};
             globalUboData.lights[0] = {glm::vec3(1, 1, 1), LightType::DIRECTIONAL, glm::vec3(1.0, 1.0, 1.0), 3.0};
@@ -174,12 +173,14 @@ namespace graphics
 
             graphicsData->cameraUBOs[renderContext.frameIndex].WriteData(&cameraState);
 
+            PassInfo passInfo{};
+            passInfo.colorView = renderer.GetSwapchain().GetImageView(renderContext.imageIndex);
+            passInfo.depthView = renderer.GetSwapchain().GetDepthImageView(renderContext.imageIndex);
+            passInfo.extent = extent;
+            passInfo.clearColor = {{0.02f, 0.03f, 0.1f, 1.0f}};
             renderer.BeginRenderDynamic(
-                commandBuffer,
-                renderer.GetSwapchain().GetImageView(renderContext.imageIndex),
-                renderer.GetSwapchain().GetDepthImageView(renderContext.imageIndex),
-                extent,
-                VkClearValue{.color = {{0.02f, 0.03f, 0.1f, 1.0f}}}
+                renderContext,
+                passInfo
             );
 
             for(MeshRenderData &renderData : drawQueue)
@@ -187,21 +188,20 @@ namespace graphics
                 GraphicsMaterial *mat = graphicsData->materialRegistry.Get(renderData.materialHandle);
                 // Console::debugf("{}", renderData.materialHandle.index);
                 if(mat == nullptr) continue;
-                GraphicsPipeline *currentPipeline = graphicsData->pipelineRegistry.Get(mat->shaderHandle);
+                GraphicsPipelineOld *currentPipeline = graphicsData->pipelineRegistry.Get(mat->base->shader->graphicsHandle);
                 if(currentPipeline == nullptr) continue;
-                currentPipeline->Bind(commandBuffer);
+                currentPipeline->Bind(renderContext.commandBuffer);
                 localDescriptorSets = {mat->GetDescriptorSet()}; // This is terrible. TODO: literally anything else
 
                 DrawFunctions::bindCameraDescriptor(renderContext, graphicsData->cameraDescriptorSets[renderContext.frameIndex], currentPipeline);
                 DrawFunctions::bindGlobalDescriptor(renderContext, graphicsData->globalDescriptorSet, currentPipeline);
 
-                vkCmdBindDescriptorSets(
-                    commandBuffer, 
-                    VK_PIPELINE_BIND_POINT_GRAPHICS, 
-                    currentPipeline->GetPipelineLayout(), 
+                renderContext.commandBuffer.bindDescriptorSets(
+                    vk::PipelineBindPoint::eGraphics,
+                    vk::PipelineLayout(currentPipeline->GetPipelineLayout()), // Temporary until pipeline rewrite is finished 
                     2,
                     1,
-                    localDescriptorSets.data(), 
+                    (vk::DescriptorSet*)localDescriptorSets.data(), 
                     0,
                     nullptr
                 );
@@ -209,16 +209,17 @@ namespace graphics
                 const GraphicsMesh* mesh = graphicsData->meshRegistry.Get(renderData.handle);
                 if(mesh != nullptr)
                 {
-                    mesh->bind(commandBuffer, renderData.instanceBuffer);
-                    mesh->draw(commandBuffer, renderData.transforms.size());
+                    mesh->bind(renderContext.commandBuffer, renderData.instanceBuffer);
+                    mesh->draw(renderContext.commandBuffer, renderData.transforms.size());
                 }
-    
-                
             }
 
-            renderer.EndRenderDynamic(commandBuffer);
+            renderer.EndRenderDynamic(
+                renderContext,
+                passInfo
+            );
             drawImgui(renderContext);
-            // RenderContext frameInfo{frameIndex, 0.0, commandBuffer, Descriptors::globalDescriptorSet, Descriptors::cameraDescriptorSets[frameIndex]};
+            // FrameContext frameInfo{frameIndex, 0.0, commandBuffer, Descriptors::globalDescriptorSet, Descriptors::cameraDescriptorSets[frameIndex]};
             renderer.EndFrame();
         }
         graphicsData->GetBackend().WaitForDevice();
@@ -289,8 +290,8 @@ namespace graphics
         initInfo.PipelineInfoMain.PipelineRenderingCreateInfo = {};
         initInfo.PipelineInfoMain.PipelineRenderingCreateInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_RENDERING_CREATE_INFO;
         initInfo.PipelineInfoMain.PipelineRenderingCreateInfo.colorAttachmentCount = 1;
-        initInfo.PipelineInfoMain.PipelineRenderingCreateInfo.pColorAttachmentFormats = &swapchain.GetImageFormat();
-        initInfo.PipelineInfoMain.PipelineRenderingCreateInfo.depthAttachmentFormat = swapchain.GetDepthFormat();
+        initInfo.PipelineInfoMain.PipelineRenderingCreateInfo.pColorAttachmentFormats = (VkFormat*)&swapchain.GetImageFormat();
+        initInfo.PipelineInfoMain.PipelineRenderingCreateInfo.depthAttachmentFormat = (VkFormat)swapchain.GetDepthFormat();
         initInfo.PipelineInfoMain.PipelineRenderingCreateInfo.stencilAttachmentFormat = VK_FORMAT_UNDEFINED;
 
         // For multisampling, probably won't use
@@ -314,7 +315,7 @@ namespace graphics
         // );
     }
 
-    void Graphics::drawImgui(RenderContext context)
+    void Graphics::drawImgui(FrameContext context)
     {
         VkRenderingAttachmentInfo colorAttachment = {};
         colorAttachment.sType = VK_STRUCTURE_TYPE_RENDERING_ATTACHMENT_INFO;

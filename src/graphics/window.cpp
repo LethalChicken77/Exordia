@@ -49,7 +49,9 @@ void Window::init(uint32_t _width, uint32_t _height, const std::string& title)
 
 void Window::createSurface(VkInstance instance)
 {
-    VkResult result = glfwCreateWindowSurface(instance, window, nullptr, &surface);
+    VkSurfaceKHR tempSurface{};
+    VkResult result = glfwCreateWindowSurface(instance, window, nullptr, &tempSurface);
+    surface = tempSurface;
     if(result != VK_SUCCESS) 
     {
         throw std::runtime_error("Failed to create window surface: " + Debug::VkResultToString(result));
@@ -58,7 +60,7 @@ void Window::createSurface(VkInstance instance)
 
 void Window::Clear()
 {
-    // Clear the window
+    // Clear the window :D
 }
 
 void Window::Close()

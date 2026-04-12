@@ -28,38 +28,35 @@ void Device::cleanup()
         vkDestroyDevice(device, nullptr);
 }
 
-VkCommandBuffer Device::BeginSingleTimeCommands()
+vk::CommandBuffer Device::BeginSingleTimeCommands()
 {
-    VkCommandBufferAllocateInfo allocInfo{};
-    allocInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
-    allocInfo.level = VK_COMMAND_BUFFER_LEVEL_PRIMARY;
+    vk::CommandBufferAllocateInfo allocInfo{};
+    allocInfo.level = vk::CommandBufferLevel::ePrimary;
     allocInfo.commandPool = commandPool;
     allocInfo.commandBufferCount = 1;
 
-    VkCommandBuffer commandBuffer;
-    vkAllocateCommandBuffers(device, &allocInfo, &commandBuffer);
+    vk::CommandBuffer commandBuffer;
+    device.allocateCommandBuffers(&allocInfo, &commandBuffer);
 
-    VkCommandBufferBeginInfo beginInfo{};
-    beginInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
-    beginInfo.flags = VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT;
+    vk::CommandBufferBeginInfo beginInfo{};
+    beginInfo.flags = vk::CommandBufferUsageFlagBits::eOneTimeSubmit;
 
-    vkBeginCommandBuffer(commandBuffer, &beginInfo);
+    commandBuffer.begin(&beginInfo);
     return commandBuffer;
 }
 
-void Device::EndSingleTimeCommands(VkCommandBuffer commandBuffer)
+void Device::EndSingleTimeCommands(vk::CommandBuffer commandBuffer)
 {
-    vkEndCommandBuffer(commandBuffer);
+    commandBuffer.end();
 
-    VkSubmitInfo submitInfo{};
-    submitInfo.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
+    vk::SubmitInfo submitInfo{};
     submitInfo.commandBufferCount = 1;
     submitInfo.pCommandBuffers = &commandBuffer;
 
-    vkQueueSubmit(graphicsQueue, 1, &submitInfo, VK_NULL_HANDLE);
-    vkQueueWaitIdle(graphicsQueue);
+    graphicsQueue.submit(1, &submitInfo, VK_NULL_HANDLE);
+    graphicsQueue.waitIdle();
 
-    vkFreeCommandBuffers(device, commandPool, 1, &commandBuffer);
+    device.freeCommandBuffers(commandPool, 1, &commandBuffer);
 }
 
 // Private methods
@@ -68,13 +65,12 @@ void Device::createLogicalDevice(bool enableValidationLayers)
     Console::log("Creating logical device", "Device");
     // pDevice = &physicalDevice;
     const PhysicalDevice::QueueFamilyIndices &indices = pDevice.GetQueueFamilyIndices();
-    std::vector<VkDeviceQueueCreateInfo> queueCreateInfos;
+    std::vector<vk::DeviceQueueCreateInfo> queueCreateInfos;
     std::set<uint32_t> uniqueQueueFamilies = {indices.graphicsFamily, indices.presentFamily};
 
     float queuePriority = 1.0f;
     for (uint32_t queueFamily : uniqueQueueFamilies) {
-        VkDeviceQueueCreateInfo queueCreateInfo = {};
-        queueCreateInfo.sType = VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO;
+        vk::DeviceQueueCreateInfo queueCreateInfo = {};
         queueCreateInfo.queueFamilyIndex = queueFamily;
         queueCreateInfo.queueCount = 1;
         queueCreateInfo.pQueuePriorities = &queuePriority;
@@ -90,9 +86,7 @@ void Device::createLogicalDevice(bool enableValidationLayers)
     // atomicFloatFeatures.shaderImageFloat32Atomics = VK_TRUE; // Enable float32 atomics on images
     // atomicFloatFeatures.shaderImageFloat32AtomicAdd = VK_TRUE; // Enable float32 atomics on images
 
-    VkDeviceCreateInfo createInfo{};
-    createInfo.sType = VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO;
-
+    vk::DeviceCreateInfo createInfo{};
     createInfo.queueCreateInfoCount = static_cast<uint32_t>(queueCreateInfos.size());
     createInfo.pQueueCreateInfos = queueCreateInfos.data();
 
@@ -113,30 +107,30 @@ void Device::createLogicalDevice(bool enableValidationLayers)
         createInfo.enabledLayerCount = 0;
     }
 
-    if (vkCreateDevice(pDevice.Get(), &createInfo, nullptr, &device) != VK_SUCCESS) {
+    if (pDevice.Get().createDevice(&createInfo, nullptr, &device) != vk::Result::eSuccess) 
+    {
         throw std::runtime_error("Failed to create logical device");
     }
 
-    vkGetDeviceQueue(device, indices.graphicsFamily, 0, &graphicsQueue);
-    vkGetDeviceQueue(device, indices.presentFamily, 0, &presentQueue);
+    graphicsQueue = device.getQueue(indices.graphicsFamily, 0);
+    presentQueue = device.getQueue(indices.presentFamily, 0);
 }
 
 void Device::createCommandPool() 
 {
     const PhysicalDevice::QueueFamilyIndices &indices = pDevice.GetQueueFamilyIndices();
 
-    VkCommandPoolCreateInfo poolInfo = {};
-    poolInfo.sType = VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO;
+    vk::CommandPoolCreateInfo poolInfo{};
     poolInfo.queueFamilyIndex = indices.graphicsFamily;
-    poolInfo.flags = VK_COMMAND_POOL_CREATE_TRANSIENT_BIT | VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT;
+    poolInfo.flags = vk::CommandPoolCreateFlagBits::eTransient | vk::CommandPoolCreateFlagBits::eResetCommandBuffer;
 
-    if (vkCreateCommandPool(device, &poolInfo, nullptr, &commandPool) != VK_SUCCESS) 
+    if(device.createCommandPool(&poolInfo, nullptr, &commandPool) != vk::Result::eSuccess) 
     {
         throw std::runtime_error("Failed to create command pool");
     }
 }
 
-void Device::createAllocator(VkInstance &instance)
+void Device::createAllocator(vk::Instance &instance)
 {
     VmaVulkanFunctions vulkanFunctions = {};
     vulkanFunctions.vkGetInstanceProcAddr = vkGetInstanceProcAddr;

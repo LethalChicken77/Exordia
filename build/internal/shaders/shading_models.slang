@@ -4,11 +4,31 @@ import constants;
 import colorspace;
 
 // Diffuse Models
+// Simple but inaccurate diffuse
 public float DiffLambertian(float3 normal, float3 lightDir)
 {
     return saturate(dot(normal, lightDir));
 }
 
+// OG Burley diffuse, does not conserve energy without F0 factor
+public float3 DiffBurley(float3 normal, float3 lightDir, float3 viewDir, float3 albedo, float roughness)
+{
+    float3 reflDir = -viewDir;
+    float3 halfDir = normalize(lightDir - viewDir);
+
+    float HdotL = dot(halfDir, lightDir);
+    float NdotL = dot(normal, lightDir);
+    float NdotV = dot(normal, reflDir);
+
+    float F90 = 0.5 + 2 * roughness * HdotL * HdotL;
+    float lightScatter = 1.0 + (F90 - 1.0) * pow(1 - NdotL, 5.0);
+    float viewScatter = 1.0 + (F90 - 1.0) * pow(1 - NdotV, 5.0);
+
+    float3 result = albedo / PI * lightScatter * viewScatter * DiffLambertian(normal, lightDir);
+    return max(result, float3(0));
+}
+
+// Most accurate but most expensive diffuse
 public float3 DiffOrenNayar(float3 normal, float3 lightDir, float3 viewDir, float3 albedo, float roughness)
 {
     // clamp roughness to [0,1]
@@ -134,10 +154,14 @@ public float3 pbrBRDF(
     float alpha = roughness * roughness;
     float3 reflDir = reflect(viewDir, normal);
 
+    // float3 F_diffuse = lerp(F0, F_L, 1.0 - roughness); // Effect on diffuse based on roughness
     float3 F_L = SchlickFresnel(F0, normal, lightDir);             // Reflectance with respect to the light direction
-    float3 F_diffuse = lerp(F0, F_L, 1.0 - roughness); // Effect on diffuse based on roughness
+    float3 F_diffuse = saturate(lerp(F0, F_L, 1.0 - roughness)); // Effect on diffuse based on roughness
     
     float3 diffuse = (1 - metallic) * (1 - F_diffuse) * DiffOrenNayar(normal, lightDir, viewDir, albedo, roughness);
+    // float3 diffuse = (1 - metallic) * (1 - F_diffuse) * DiffBurley(normal, lightDir, viewDir, albedo, roughness);
+    // float3 diffuse = (1 - metallic) * DiffBurley(normal, lightDir, viewDir, albedo, roughness);
+    // float3 diffuse = (1 - metallic) * DiffLambertian(normal, lightDir) * albedo / PI;
     float3 specular = SpecCookTorrance(normal, lightDir, viewDir, roughness, F0);
     
     return lightColor * (diffuse + specular);

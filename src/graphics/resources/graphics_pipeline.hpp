@@ -15,9 +15,19 @@ namespace graphics
 {
 enum class PipelineType
 {
-    STANDARD = 0,
-    POST_PROCESSING = 1,
-    ID_BUFFER = 2
+    Standard = 0,
+    PostProcessing = 1,
+    IDBuffer = 2
+};
+
+/// @brief Specifies the primitive topology class. Used to prevent invalid swaps between topologies,
+/// such as from line list to triangle list.
+enum class PipelineTopologyClass
+{
+    Point,
+    Line,
+    Triangle,
+    Patch
 };
 
 struct PipelineConfigInfo 
@@ -26,72 +36,82 @@ struct PipelineConfigInfo
     PipelineConfigInfo(const ShaderProperties&);
     PipelineConfigInfo(const PipelineConfigInfo&) = delete;
     PipelineConfigInfo& operator=(const PipelineConfigInfo&) = delete;
+    PipelineConfigInfo(PipelineConfigInfo&&);
+    PipelineConfigInfo&& operator=(PipelineConfigInfo&&) = delete;
 
-    PipelineType pipelineType = PipelineType::STANDARD;
+    PipelineType pipelineType = PipelineType::Standard;
+    PipelineTopologyClass topologyClass = PipelineTopologyClass::Triangle;
 
-    VkPipelineViewportStateCreateInfo viewportInfo{};
-    VkPipelineInputAssemblyStateCreateInfo inputAssemblyInfo{};
-    VkPipelineRasterizationStateCreateInfo rasterizationInfo{};
-    VkPipelineMultisampleStateCreateInfo multisampleInfo{};
-    VkPipelineColorBlendAttachmentState colorBlendAttachment{};
-    VkPipelineColorBlendStateCreateInfo colorBlendInfo{};
-    VkPipelineDepthStencilStateCreateInfo depthStencilInfo{};
+    vk::PipelineViewportStateCreateInfo viewportInfo{};
+    vk::PipelineInputAssemblyStateCreateInfo inputAssemblyInfo{};
+    vk::PipelineRasterizationStateCreateInfo rasterizationInfo{};
+    vk::PipelineMultisampleStateCreateInfo multisampleInfo{};
+    vk::PipelineColorBlendAttachmentState colorBlendAttachment{};
+    vk::PipelineColorBlendStateCreateInfo colorBlendInfo{};
+    vk::PipelineDepthStencilStateCreateInfo depthStencilInfo{};
 
-    std::vector<VkDynamicState> dynamicStateEnables{};
-    VkPipelineDynamicStateCreateInfo dynamicStateInfo{};
+    std::vector<vk::Format> colorAttachmentFormats{};
+    vk::Format depthAttachmentFormat = vk::Format::eUndefined;
+    vk::Format stencilAttachmentFormat = vk::Format::eUndefined;
 
-    std::vector<VkFormat> colorAttachmentFormats{};
-    VkFormat depthAttachmentFormat = VK_FORMAT_UNDEFINED;
-    VkFormat stencilAttachmentFormat = VK_FORMAT_UNDEFINED;
+    const std::vector<vk::DynamicState> dynamicStateEnables {
+        vk::DynamicState::eViewport, vk::DynamicState::eScissor, // Controlled dynamically by viewport image
+        vk::DynamicState::ePrimitiveTopology, // Determined by mesh data
+        // vk::DynamicState::ePolygonModeEXT, // Can be overridden
+        // Look into:
+        // VK_DYNAMIC_STATE_PRIMITIVE_RESTART_ENABLE,
+        // VK_DYNAMIC_STATE_LINE_STIPPLE
+    };
+    vk::PipelineDynamicStateCreateInfo dynamicStateInfo{};
 
     void SetShaderConfig(const graphics::ShaderProperties& shaderConfig);
 
-    constexpr void DefaultPreset()
+    void DefaultPreset()
     {
-        pipelineType = PipelineType::STANDARD;
+        pipelineType = PipelineType::Standard;
 
-        inputAssemblyInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_INPUT_ASSEMBLY_STATE_CREATE_INFO;
-        inputAssemblyInfo.topology = VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST;
-        inputAssemblyInfo.primitiveRestartEnable = VK_FALSE;
+        inputAssemblyInfo.topology = vk::PrimitiveTopology::eTriangleList;
+        inputAssemblyInfo.primitiveRestartEnable = false;
+        topologyClass = PipelineTopologyClass::Triangle;
     
-        viewportInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_VIEWPORT_STATE_CREATE_INFO;
         viewportInfo.viewportCount = 1;
-        viewportInfo.pViewports = NULL;
+        viewportInfo.pViewports = VK_NULL_HANDLE;
         viewportInfo.scissorCount = 1;
-        viewportInfo.pScissors = NULL;
+        viewportInfo.pScissors = VK_NULL_HANDLE;
 
-        rasterizationInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_RASTERIZATION_STATE_CREATE_INFO;
-        rasterizationInfo.depthClampEnable = VK_FALSE;
-        rasterizationInfo.rasterizerDiscardEnable = VK_FALSE;
-        rasterizationInfo.polygonMode = VK_POLYGON_MODE_FILL;
+        rasterizationInfo.depthClampEnable = false;
+        rasterizationInfo.rasterizerDiscardEnable = false;
+        rasterizationInfo.polygonMode = vk::PolygonMode::eFill;
         rasterizationInfo.lineWidth = 1.0f;
-        rasterizationInfo.cullMode = VK_CULL_MODE_BACK_BIT;
-        rasterizationInfo.frontFace = VK_FRONT_FACE_CLOCKWISE;
-        rasterizationInfo.depthBiasEnable = VK_FALSE;
+        rasterizationInfo.cullMode = vk::CullModeFlagBits::eBack;
+        rasterizationInfo.frontFace = vk::FrontFace::eClockwise;
+        rasterizationInfo.depthBiasEnable = false;
         rasterizationInfo.depthBiasConstantFactor = 0.0f;
         rasterizationInfo.depthBiasClamp = 0.0f;
         rasterizationInfo.depthBiasSlopeFactor = 0.0f;
 
-        multisampleInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_MULTISAMPLE_STATE_CREATE_INFO;
-        multisampleInfo.sampleShadingEnable = VK_FALSE;
-        multisampleInfo.rasterizationSamples = VK_SAMPLE_COUNT_1_BIT;
+        multisampleInfo.sampleShadingEnable = false;
+        multisampleInfo.rasterizationSamples = vk::SampleCountFlagBits::e1;
         multisampleInfo.minSampleShading = 1.0f;
-        multisampleInfo.pSampleMask = nullptr;
-        multisampleInfo.alphaToCoverageEnable = VK_FALSE;
-        multisampleInfo.alphaToOneEnable = VK_FALSE;
+        multisampleInfo.pSampleMask = VK_NULL_HANDLE;
+        multisampleInfo.alphaToCoverageEnable = false;
+        multisampleInfo.alphaToOneEnable = false;
 
-        colorBlendAttachment.colorWriteMask = VK_COLOR_COMPONENT_R_BIT | VK_COLOR_COMPONENT_G_BIT | VK_COLOR_COMPONENT_B_BIT | VK_COLOR_COMPONENT_A_BIT;
-        colorBlendAttachment.blendEnable = VK_FALSE;
-        colorBlendAttachment.srcColorBlendFactor = VK_BLEND_FACTOR_ONE;
-        colorBlendAttachment.dstColorBlendFactor = VK_BLEND_FACTOR_ZERO;
-        colorBlendAttachment.colorBlendOp = VK_BLEND_OP_ADD;
-        colorBlendAttachment.srcAlphaBlendFactor = VK_BLEND_FACTOR_ONE;
-        colorBlendAttachment.dstAlphaBlendFactor = VK_BLEND_FACTOR_ZERO;
-        colorBlendAttachment.alphaBlendOp = VK_BLEND_OP_ADD;
+        colorBlendAttachment.colorWriteMask = 
+            vk::ColorComponentFlagBits::eR | 
+            vk::ColorComponentFlagBits::eG | 
+            vk::ColorComponentFlagBits::eB | 
+            vk::ColorComponentFlagBits::eA;
+        colorBlendAttachment.blendEnable = false;
+        colorBlendAttachment.srcColorBlendFactor = vk::BlendFactor::eOne;
+        colorBlendAttachment.dstColorBlendFactor = vk::BlendFactor::eZero;
+        colorBlendAttachment.colorBlendOp = vk::BlendOp::eAdd;
+        colorBlendAttachment.srcAlphaBlendFactor = vk::BlendFactor::eOne;
+        colorBlendAttachment.dstAlphaBlendFactor = vk::BlendFactor::eZero;
+        colorBlendAttachment.alphaBlendOp = vk::BlendOp::eAdd;
 
-        colorBlendInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_COLOR_BLEND_STATE_CREATE_INFO;
-        colorBlendInfo.logicOpEnable = VK_FALSE;
-        colorBlendInfo.logicOp = VK_LOGIC_OP_COPY;
+        colorBlendInfo.logicOpEnable = false;
+        colorBlendInfo.logicOp = vk::LogicOp::eCopy;
         colorBlendInfo.attachmentCount = 1;
         colorBlendInfo.pAttachments = &colorBlendAttachment;
         colorBlendInfo.blendConstants[0] = 0.0f;
@@ -99,47 +119,42 @@ struct PipelineConfigInfo
         colorBlendInfo.blendConstants[2] = 0.0f;
         colorBlendInfo.blendConstants[3] = 0.0f;
 
-        depthStencilInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_DEPTH_STENCIL_STATE_CREATE_INFO;
-        depthStencilInfo.depthTestEnable = VK_TRUE;
-        depthStencilInfo.depthWriteEnable = VK_TRUE;
-        depthStencilInfo.depthCompareOp = VK_COMPARE_OP_LESS;
-        depthStencilInfo.depthBoundsTestEnable = VK_FALSE;
+        depthStencilInfo.depthTestEnable = true;
+        depthStencilInfo.depthWriteEnable = true;
+        depthStencilInfo.depthCompareOp = vk::CompareOp::eGreater; // Reversed depth
+        depthStencilInfo.depthBoundsTestEnable = false;
         depthStencilInfo.minDepthBounds = 0.0f;
         depthStencilInfo.maxDepthBounds = 1.0f;
-        depthStencilInfo.stencilTestEnable = VK_FALSE;
-        depthStencilInfo.front = {};
-        depthStencilInfo.back = {};
+        depthStencilInfo.stencilTestEnable = false;
+        depthStencilInfo.front = vk::StencilOpState{};
+        depthStencilInfo.back = vk::StencilOpState{};
 
-        dynamicStateEnables = {VK_DYNAMIC_STATE_VIEWPORT, VK_DYNAMIC_STATE_SCISSOR};
-        dynamicStateInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_DYNAMIC_STATE_CREATE_INFO;
-        dynamicStateInfo.pDynamicStates = nullptr; // Set in constructor
+        dynamicStateInfo.pDynamicStates = dynamicStateEnables.data();
         dynamicStateInfo.dynamicStateCount = static_cast<uint32_t>(dynamicStateEnables.size());
-        dynamicStateInfo.flags = 0;
-        dynamicStateInfo.pNext = nullptr;
     }
 
     void TransparentPreset()
     {
         DefaultPreset();
         colorBlendAttachment.blendEnable = VK_TRUE;
-        colorBlendAttachment.srcColorBlendFactor = VK_BLEND_FACTOR_SRC_ALPHA;
-        colorBlendAttachment.dstColorBlendFactor = VK_BLEND_FACTOR_ONE_MINUS_SRC_ALPHA;
-        colorBlendAttachment.colorBlendOp = VK_BLEND_OP_ADD;
-        colorBlendAttachment.srcAlphaBlendFactor = VK_BLEND_FACTOR_SRC_ALPHA;
-        colorBlendAttachment.dstAlphaBlendFactor = VK_BLEND_FACTOR_ONE_MINUS_SRC_ALPHA;
-        colorBlendAttachment.alphaBlendOp = VK_BLEND_OP_ADD;
+        colorBlendAttachment.srcColorBlendFactor = vk::BlendFactor::eSrcAlpha;
+        colorBlendAttachment.dstColorBlendFactor = vk::BlendFactor::eOneMinusSrcAlpha;
+        colorBlendAttachment.colorBlendOp = vk::BlendOp::eAdd;
+        colorBlendAttachment.srcAlphaBlendFactor = vk::BlendFactor::eSrcAlpha;
+        colorBlendAttachment.dstAlphaBlendFactor = vk::BlendFactor::eOneMinusSrcAlpha;
+        colorBlendAttachment.alphaBlendOp = vk::BlendOp::eAdd;
     }
 };
 
-class GraphicsPipeline // TODO: Rewrite entirely. Maybe merge with compute pipeline.
+class GraphicsPipelineOld // TODO: Rewrite entirely. Maybe merge with compute pipeline.
 {
 public:
-    GraphicsPipeline(internal::Device &device, id_t id, const Shader &shader, VkPipelineCache cache);
+    GraphicsPipelineOld(internal::Device &device, id_t id, const Shader &shader, VkPipelineCache cache);
     // GraphicsPipeline(const std::string& vertPath, const std::string& fragPath, const PipelineConfigInfo& configInfo, int id, VkPipelineLayout layout);
-    ~GraphicsPipeline();
+    ~GraphicsPipelineOld();
 
-    GraphicsPipeline(const GraphicsPipeline&) = delete;
-    GraphicsPipeline& operator=(const GraphicsPipeline&) = delete;
+    GraphicsPipelineOld(const GraphicsPipelineOld&) = delete;
+    GraphicsPipelineOld& operator=(const GraphicsPipelineOld&) = delete;
 
     void Bind(VkCommandBuffer commandBuffer);
 
@@ -176,4 +191,35 @@ private:
     // void createPostProcessingLayout();
     // void createIDBufferLayout();
 };
+
+/// @brief Abstraction of a VkPipeline used for graphics. 
+/// Pipelines are immutable, so the pipeline must be destroyed and recreated to make changes.
+class GraphicsPipeline
+{
+public:
+    GraphicsPipeline(internal::Device &device, const Shader &shader, VkPipelineCache cache);
+    ~GraphicsPipeline();
+
+    GraphicsPipeline(const GraphicsPipeline&) = delete;
+    GraphicsPipeline& operator=(const GraphicsPipeline&) = delete;
+    GraphicsPipeline (GraphicsPipeline&&); // Allow explicit moving
+    GraphicsPipeline&& operator=(GraphicsPipeline&&) = delete;
+
+    VkPipelineLayout GetPipelineLayout() const { return m_pipelineLayout; }
+    const DescriptorSetLayout &GetDescriptorSetLayout() const { return m_materialSetLayout; }
+private:
+    internal::Device& m_device;
+
+    vk::PipelineLayout m_pipelineLayout = nullptr;
+    vk::Pipeline m_pipeline = nullptr;
+    DescriptorSetLayout m_materialSetLayout;
+
+    PipelineConfigInfo m_configInfo;
+
+    DescriptorSetLayout createDescriptorSetLayout(const Shader &shader);
+
+    void createPipelineLayout(const Shader &shader);
+    void createPipeline(VkPipelineCache cache);
+};
+
 }

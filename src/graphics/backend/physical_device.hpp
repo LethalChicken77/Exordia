@@ -15,9 +15,9 @@ class PhysicalDevice
 {
 public:
     struct SwapchainSupportDetails {
-        VkSurfaceCapabilitiesKHR capabilities;
-        std::vector<VkSurfaceFormatKHR> formats;
-        std::set<VkPresentModeKHR> presentModes;
+        vk::SurfaceCapabilitiesKHR capabilities;
+        std::vector<vk::SurfaceFormatKHR> formats;
+        std::set<vk::PresentModeKHR> presentModes;
     };
 
     struct QueueFamilyIndices {
@@ -28,17 +28,17 @@ public:
         bool isComplete() { return graphicsFamilyHasValue && presentFamilyHasValue; }
     };
 
-    const VkPhysicalDevice &Get() const { return physicalDevice; }
-    const VkPhysicalDeviceProperties2 &GetProperties() const { return properties; }
+    const vk::PhysicalDevice &Get() const { return physicalDevice; }
+    const vk::PhysicalDeviceProperties2 &GetProperties() const { return properties; }
     const vk::PhysicalDeviceLimits GetLimits() const { return properties.properties.limits; }
     const QueueFamilyIndices &GetQueueFamilyIndices() const { return queueFamilyIndices; }
-    SwapchainSupportDetails &GetSwapchainSupportDetails(VkSurfaceKHR* surface) { 
-        swapchainSupport = querySwapChainSupport(physicalDevice, surface);
+    SwapchainSupportDetails &GetSwapchainSupportDetails(vk::SurfaceKHR* surface) { 
+        swapchainSupport = querySwapChainSupport(surface);
         return swapchainSupport;
     }
-    uint32_t FindMemoryType(uint32_t typeFilter, VkMemoryPropertyFlags properties) const;
+    uint32_t FindMemoryType(uint32_t typeFilter, vk::MemoryPropertyFlags properties) const;
 
-    VkFormat FindSupportedFormat(const std::vector<VkFormat> &candidates, VkImageTiling tiling, VkFormatFeatureFlags features) const;
+    vk::Format FindSupportedFormat(const std::vector<vk::Format> &candidates, vk::ImageTiling tiling, vk::FormatFeatureFlags features) const;
 
     // uint32_t FindMemoryType(uint32_t typeFilter, VkMemoryPropertyFlags properties);
     // VkFormat PhysicalDevice::FindSupportedFormat(const std::vector<VkFormat> &candidates, VkImageTiling tiling, VkFormatFeatureFlags features);
@@ -47,22 +47,22 @@ public:
 private:
     PhysicalDevice();
 
-    VkPhysicalDevice physicalDevice = VK_NULL_HANDLE;
+    vk::PhysicalDevice physicalDevice = VK_NULL_HANDLE;
 
-    VkPhysicalDeviceProperties2 properties{};
+    vk::PhysicalDeviceProperties2 properties{};
 
     QueueFamilyIndices queueFamilyIndices{};
     SwapchainSupportDetails swapchainSupport{};
     // VkPhysicalDeviceMemoryProperties memoryProperties{};
 
-    void init(VkInstance instance, VkSurfaceKHR* surface);
-    void pickPhysicalDevice(VkInstance instance, VkSurfaceKHR* surface);
-    bool findDeviceCapabilities(VkPhysicalDevice physicalDevice, VkSurfaceKHR* surface);
+    void init(vk::Instance instance, vk::SurfaceKHR* surface);
+    void pickPhysicalDevice(vk::Instance instance, vk::SurfaceKHR* surface);
+    bool findDeviceCapabilities(vk::SurfaceKHR* surface);
     
     // Utilities
-    bool checkDeviceExtensionSupport(VkPhysicalDevice device);
-    QueueFamilyIndices findQueueFamilies(VkPhysicalDevice device, VkSurfaceKHR* surface);
-    SwapchainSupportDetails querySwapChainSupport(VkPhysicalDevice device, VkSurfaceKHR* surface);
+    bool checkDeviceExtensionSupport();
+    QueueFamilyIndices findQueueFamilies(vk::SurfaceKHR* surface);
+    SwapchainSupportDetails querySwapChainSupport(vk::SurfaceKHR* surface);
 
     friend class VulkanBackend;
 };

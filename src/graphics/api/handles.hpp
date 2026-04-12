@@ -17,6 +17,14 @@ struct GHandle
     {
         return other.index == index && other.generation == generation;
     }
+
+    struct Hash
+    {
+        uint64_t operator()(const GHandle& handle) const
+        {
+            return static_cast<uint64_t>(handle.index) << 32 | handle.generation;
+        }
+    };
 };
 
 // Defined in a CPP to prevent outside usage

@@ -96,7 +96,17 @@ public:
     void TransitionImageLayout(VkImageLayout oldLayout, VkImageLayout newLayout);
     void TransitionImageLayout(VkImageLayout oldLayout, VkImageLayout newLayout, VkCommandBuffer commandBuffer);
     static void TransitionVkImageLayout(internal::Device& device, VkImage& image, VkImageLayout oldLayout, VkImageLayout newLayout, VkImageSubresourceRange subresourceRange);
-    static void TransitionVkImageLayout(VkImage& image, VkImageLayout oldLayout, VkImageLayout newLayout, VkCommandBuffer commandBuffer, VkImageSubresourceRange subresourceRange);
+    static void TransitionVkImageLayout(VkImage image, VkImageLayout oldLayout, VkImageLayout newLayout, VkCommandBuffer commandBuffer, VkImageSubresourceRange subresourceRange);
+    static inline void TransitionVkImageLayout(vk::Image image, vk::ImageLayout oldLayout, vk::ImageLayout newLayout, vk::CommandBuffer commandBuffer, vk::ImageSubresourceRange subresourceRange)
+    {
+        TransitionVkImageLayout(
+            static_cast<VkImage>(image), 
+            static_cast<VkImageLayout>(oldLayout),
+            static_cast<VkImageLayout>(newLayout),
+            static_cast<VkCommandBuffer>(commandBuffer),
+            static_cast<VkImageSubresourceRange>(subresourceRange)
+        );
+    }
     /// @brief Reset to default image layout
     inline void ResetImageLayout() { TransitionImageLayout(defaultLayout); }
     /// @brief Reset to default image layout with command buffer

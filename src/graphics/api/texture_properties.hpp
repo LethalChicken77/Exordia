@@ -67,24 +67,23 @@ struct Swizzle
 
 enum class TextureDataType : uint8_t
 {
-    UInt = 0,
-    SInt = 1,
-    UNorm = 2,
-    SNorm = 3,
-    Float = 4,
+    Invalid,
+    UInt,
+    SInt,
+    UNorm,
+    SNorm,
+    Float,
 
-    Packed_B10G11R11_UFloat = 5,
-    Packed_A2R10G10B10_UNorm = 6,
+    Packed_B10G11R11_UFloat,
+    Packed_A2R10G10B10_UNorm,
 
-    D16_UNorm = 7,
-    D24_UNorm = 8,
-    D32_SFloat = 9,
-    D16_UNorm_S8_UInt = 10,
-    D24_UNorm_S8_UInt = 11,
-    D32_SFloat_S8_UInt = 12,
-    S8_UInt = 13,
-
-    Invalid = 14
+    D16_UNorm,
+    D24_UNorm,
+    D32_SFloat,
+    D16_UNorm_S8_UInt,
+    D24_UNorm_S8_UInt,
+    D32_SFloat_S8_UInt,
+    S8_UInt,
 };
 
 enum class ChannelOrder : uint8_t

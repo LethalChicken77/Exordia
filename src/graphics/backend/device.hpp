@@ -29,8 +29,8 @@ public:
     Device(const Device&&) = delete;
     Device&& operator=(const Device&&) = delete;
 
-    VkQueue GraphicsQueueHandle() { return graphicsQueue; }
-    VkQueue PresentQueueHandle() { return presentQueue; }
+    vk::Queue GraphicsQueueHandle() { return graphicsQueue; }
+    vk::Queue PresentQueueHandle() { return presentQueue; }
     
     // Utilities
 
@@ -39,35 +39,35 @@ public:
 
     /// @brief Create a temporary command buffer
     /// @return Vulkan command buffer handle
-    VkCommandBuffer BeginSingleTimeCommands();
+    vk::CommandBuffer BeginSingleTimeCommands();
     /// @brief End temporary command buffer
     /// @param commandBuffer Temporary command buffer to end
-    void EndSingleTimeCommands(VkCommandBuffer commandBuffer);
+    void EndSingleTimeCommands(vk::CommandBuffer commandBuffer);
 
-    const VkDevice &Get() const { return device; }
+    const vk::Device &Get() const { return device; }
     PhysicalDevice &GetPhysicalDevice() { return pDevice; }
     const VmaAllocator &GetAllocator() const { return allocator; }
-    const VkCommandPool &GetCommandPool() const { return commandPool; }
-    const VkQueue &GetGraphicsQueue() const { return graphicsQueue; }
-    const VkQueue &GetPresentQueue() const { return presentQueue; }
+    const vk::CommandPool &GetCommandPool() const { return commandPool; }
+    const vk::Queue &GetGraphicsQueue() const { return graphicsQueue; }
+    const vk::Queue &GetPresentQueue() const { return presentQueue; }
 
-    uint32_t GetDescriptorSetLayoutSize(const VkDescriptorSetLayout layout) const {
+    uint32_t GetDescriptorSetLayoutSize(const vk::DescriptorSetLayout layout) const {
         VkDeviceSize layoutSize = 0;
         vkGetDescriptorSetLayoutSizeEXT(device, layout, &layoutSize);
         return layoutSize; // NOTE: Layout size should fit in uint32_t, if not you're doing something wrong
     }
 private:
-    VkDevice device;
-    VkQueue graphicsQueue;
-    VkQueue presentQueue;
-    VkCommandPool commandPool;
+    vk::Device device;
+    vk::Queue graphicsQueue;
+    vk::Queue presentQueue;
+    vk::CommandPool commandPool;
 
     VmaAllocator allocator;
 
     PhysicalDevice &pDevice;
     void createLogicalDevice(bool enableValidationLayers);
     void createCommandPool();
-    void createAllocator(VkInstance &instance);
+    void createAllocator(vk::Instance &instance);
     
     void cleanup();
 

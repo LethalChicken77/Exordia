@@ -1,7 +1,15 @@
 // Not functional yet, TODO: Slang reflection
 // Include using #include rather than import for preprocessor defines
-#define COLOR() [[Color]]
-#define RANGE(min, max) [[Range(#min, #max)]]
+// #define RANGE(min, max) [Range(#min, #max)]
+
+[__AttributeUsage(_AttributeTargets.Var)]
+struct UNorm8Attribute {};
+[__AttributeUsage(_AttributeTargets.Var)]
+struct SNorm8Attribute {};
+[__AttributeUsage(_AttributeTargets.Var)]
+struct UNorm16Attribute {};
+[__AttributeUsage(_AttributeTargets.Var)]
+struct SNorm16Attribute {};
 
 [__AttributeUsage(_AttributeTargets.Var)]
 struct ColorAttribute{};

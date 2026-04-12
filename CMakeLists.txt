@@ -164,6 +164,7 @@ target_compile_definitions(GameEngine PRIVATE IMGUI_IMPL_VULKAN_USE_VOLK)
 target_compile_definitions(GameEngine PRIVATE GLFW_INCLUDE_NONE)
 target_compile_definitions(GameEngine PRIVATE GRAPHICS_TESTS)
 
+# target_compile_definitions(GameEngine PRIVATE VULKAN_HPP_NO_EXCEPTIONS)
 target_compile_definitions(GameEngine PRIVATE VULKAN_SDK="${VULKAN_SDK}") # TODO: Only set in editor builds. Might be irrelevant if I make a new CMakeLists for the runtime.
 
 # target_compile_definitions(GameEngine PRIVATE DISABLE_VALIDATION) # Disable validation checks for performance. Ensure correctness manually.

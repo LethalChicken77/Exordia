@@ -42,9 +42,18 @@ class Debug
         static std::string SlangStageToString(const uint32_t stage);
 
         static std::string VkResultToString(VkResult result);
+        static std::string VkResultToString(vk::Result result);
 
         static void VkCheckImpl(VkResult result, const std::string& msg, const char* file, int line);
+        static inline void VkCheckImpl(vk::Result result, const std::string& msg, const char* file, int line)
+        {
+            VkCheckImpl((VkResult)result, msg, file, line);
+        }
         static void VkCheckImplLight(VkResult result, const std::string& msg, const char* file, int line);
+        static inline void VkCheckImplLight(vk::Result result, const std::string& msg, const char* file, int line)
+        {
+            VkCheckImplLight((VkResult)result, msg, file, line);
+        }
 };
 
 #ifndef DISABLE_VALIDATION

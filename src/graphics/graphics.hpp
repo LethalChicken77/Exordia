@@ -26,6 +26,11 @@ class Graphics
         void DrawFrame();
 
         inline void RegisterShader(Shader &shader) { graphicsData->pipelineRegistry.Register(shader); }
+        inline void UpdateShader(Shader &shader) 
+        { 
+            if(!graphicsData->pipelineRegistry.Reload(shader))
+                graphicsData->pipelineRegistry.Register(shader); 
+        }
         inline void DeregisterShader(Shader &shader) { graphicsData->pipelineRegistry.Deregister(shader); }
 
         void RegisterMaterial(Material &mat) 
@@ -60,7 +65,7 @@ class Graphics
         std::vector<MeshRenderData> drawQueue{};
         CameraUbo cameraState{};
         // Temporary
-        void drawImgui(RenderContext context);
+        void drawImgui(FrameContext context);
 };
 
 } // namespace graphics

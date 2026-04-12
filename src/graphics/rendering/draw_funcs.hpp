@@ -5,16 +5,16 @@
 namespace graphics
 {
 class Graphics;
-class GraphicsPipeline;
+class GraphicsPipelineOld;
 class DrawFunctions
 {
     public:
-        static void bindCameraDescriptor(const RenderContext &renderContext, VkDescriptorSet descriptorSet, const GraphicsPipeline* pipeline);
-        static void bindGlobalDescriptor(const RenderContext &renderContext, VkDescriptorSet descriptorSet, const GraphicsPipeline* pipeline);
+        static void bindCameraDescriptor(const FrameContext &renderContext, VkDescriptorSet descriptorSet, const GraphicsPipelineOld* pipeline);
+        static void bindGlobalDescriptor(const FrameContext &renderContext, VkDescriptorSet descriptorSet, const GraphicsPipelineOld* pipeline);
     private:
-        static void renderMeshes(RenderContext& frameInfo, const std::vector<MeshRenderData> &renderQueue);
-        static void renderGameObjectIDs(RenderContext& frameInfo, const std::vector<MeshRenderData> &renderQueue);
-        static void renderFullScreenQuad(RenderContext& frameInfo);
+        static void renderMeshes(FrameContext& frameInfo, const std::vector<MeshRenderData> &renderQueue);
+        static void renderGameObjectIDs(FrameContext& frameInfo, const std::vector<MeshRenderData> &renderQueue);
+        static void renderFullScreenQuad(FrameContext& frameInfo);
 
         friend class Graphics;
 };

@@ -3,6 +3,7 @@ import shading_models;
 import colorspace; // TODO: Perform colorspace transforms in post-processing
 
 import shaderInputs;
+import "vertex/vertex_full.slang";
 
 // Material Descriptor Set
 struct MaterialInfo
@@ -27,7 +28,7 @@ VOut vsMain(VertexData vertex, InstanceData instance)
     output.FragPosition = mul(cameraData.viewProj, mul(model, float4(vertex.Position, 1.0)));
     output.Position = mul(model, float4(vertex.Position, 1.0)).xyz;
 
-    float3x3 normalMatrix = transpose(inverse(float3x3(model)));
+    float3x3 normalMatrix = transpose(adjugate(float3x3(model)));
     output.Normal = normalize(mul(normalMatrix, vertex.Normal));
     output.Tangent = float4(normalize(mul(normalMatrix, vertex.Tangent.xyz)), vertex.Tangent.w);
     output.Bitangent = normalize(mul(normalMatrix, cross(vertex.Normal.xyz, vertex.Tangent.xyz)));

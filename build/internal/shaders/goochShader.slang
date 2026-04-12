@@ -3,6 +3,7 @@ import shading_models;
 import colorspace; // TODO: Perform colorspace transforms in post-processing
 
 import shaderInputs;
+import "vertex/vertex_full.slang";
 
 // Material Descriptor Set
 struct MaterialInfo
@@ -19,19 +20,20 @@ struct MaterialInfo
 VOut vsMain(VertexData vertex, InstanceData instance)
 {
     VOut output;
-    float4x4 model = float4x4(instance.Model0, instance.Model1, instance.Model2, instance.Model3);
-    output.FragPosition = mul(transpose(cameraData.viewProj), mul(model, float4(vertex.Position, 1.0)));
+    float4x4 model = transpose(instance.Model);
+    output.FragPosition = mul(cameraData.viewProj, mul(model, float4(vertex.Position, 1.0)));
     output.Position = mul(model, float4(vertex.Position, 1.0)).xyz;
 
-    float3x3 normalMatrix = transpose(inverse(float3x3(model)));
+    float3x3 normalMatrix = transpose(adjugate(float3x3(model)));
     output.Normal = normalize(mul(normalMatrix, vertex.Normal));
 
     float3 cameraPos = cameraData.view[3].xyz;
-    float3 viewDir = normalize(vertex.Position.xyz - cameraPos);
+    float3 viewDir = normalize(output.Position.xyz - cameraPos);
     if (dot(output.Normal, viewDir) > 0)
     {
         output.Normal = normalize(output.Normal - viewDir * dot(output.Normal, viewDir));
     }
+
     output.Color = vertex.Color;
     output.UV = vertex.UV;
 
@@ -51,8 +53,12 @@ float4 fsMain(VOut input)
 
     float3 F0 = float3(0.05f);
 
-    Light currentLight = globalData.lights[0];
-    float3 lightDir = normalize(currentLight.position);
+    Light currentLight = globalData.lights[0]; // TODO: Pass light direction in material properties
+    // float3 lightDir = normalize(currentLight.position);
+
+    float3 lightDir = float3(-1, 1, -0.5);
+    lightDir = normalize(mul(cameraData.invView, float4(lightDir, 0.0)).xyz);
+
     float3 halfDir = 0.5 * (lightDir - viewDir);
 
     float3 lightColor = currentLight.color * currentLight.intensity;

@@ -1,42 +1,33 @@
-struct VertexData
-{
-    float3 Position : POSITION;
-    float3 Normal : NORMAL;
-    float4 Tangent : TANGENT;
-    float3 Color : COLOR;
-    float2 UV : TEXCOORD0;
-};
+#include "attributes.slang"
 
 struct InstanceData
 {
-    // float4 Model0 : LOCATION6;
-    // float4 Model1 : LOCATION7;
-    // float4 Model2 : LOCATION8;
-    // float4 Model3 : LOCATION9;
     float4x4 Model : MODEL;
+    uint InstanceID : SV_InstanceID;
 };
 
 struct VOut
 {
-    float4 FragPosition : SV_POSITION;
     float3 Position : POSITION;
     float3 Normal : NORMAL;
     float4 Tangent : TANGENT;
     float3 Bitangent : BITANGENT;
     float3 Color : COLOR;
     float2 UV : TEXCOORD0;
+    
+    float4 FragPosition : SV_Position;
 };
 
 struct FIn
 {
-    float4 FragPosition : SV_POSITION;
     float3 Position : POSITION;
     float3 Normal : NORMAL;
     float4 Tangent : TANGENT;
     float3 Bitangent : BITANGENT;
     float3 Color : COLOR;
     float2 UV : TEXCOORD0;
-
+    
+    float4 FragPosition : SV_POSITION;
     bool isFrontFace : SV_IsFrontFace;
 };
 

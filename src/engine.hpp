@@ -5,7 +5,6 @@
 #include <memory>
 
 #include "modules.hpp"
-#include "graphics/graphics.hpp"
 #include "primitives/camera.hpp"
 #include "core/game_object.hpp"
 #include "utils/debug.hpp"
@@ -45,6 +44,10 @@ private:
 
     VkInstance instance;
     VkApplicationInfo appInfo{};
+    graphics::Shader* shader;
+    graphics::Shader* gShader;
+    graphics::Shader* sbShader;
+    graphics::Shader* pbr;
 
     Scene scene;
 

@@ -43,7 +43,7 @@ public:
     std::string name;
     std::vector<InputAttachments> dependencies;
 
-    virtual void Execute(RenderContext context);
+    virtual void Execute(FrameContext context);
 
 private:
     std::vector<Image> imageAttachments{};
@@ -56,13 +56,13 @@ private:
 class RenderPass : public RenderNode
 {
 public:
-    void Execute(RenderContext context);
+    void Execute(FrameContext context);
 };
 
 class ComputePass : public RenderNode
 {
 public:
-    void Execute(RenderContext context);
+    void Execute(FrameContext context);
 };
 
 class RenderGraph : public RenderNode
@@ -73,7 +73,7 @@ public:
 
     };
 public:
-    void Execute(RenderContext context);
+    void Execute(FrameContext context);
 };
 
 };

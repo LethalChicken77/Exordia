@@ -30,8 +30,8 @@ struct RenderResult
 class RenderNode
 {
 public:
-    virtual void Execute(const RenderContext& context, Image* pResult, Image* pDepthResult) = 0;
-    virtual void Execute(const RenderContext& context, RenderResult* pResult) = 0;
+    virtual void Execute(const FrameContext& context, Image* pResult, Image* pDepthResult) = 0;
+    virtual void Execute(const FrameContext& context, RenderResult* pResult) = 0;
 
     void AddImage(Image* pImage, uint32_t set, uint32_t binding) noexcept;
     void AddBuffer(Buffer* pBuffer, uint32_t set, uint32_t binding) noexcept;
@@ -44,8 +44,8 @@ private:
 class RenderPass : public RenderNode
 {
 public:
-    void Execute(const RenderContext& context, Image* pResult, Image* pDepthResult) override;
-    void Execute(const RenderContext& context, RenderResult* pResult) override;
+    void Execute(const FrameContext& context, Image* pResult, Image* pDepthResult) override;
+    void Execute(const FrameContext& context, RenderResult* pResult) override;
 private:
     void bindInputs();
 };
@@ -56,8 +56,8 @@ class RenderStage : public RenderNode
 {
 public:
     RenderStage(uint32_t maxResources = 32);
-    void Execute(const RenderContext& context, Image* pResult, Image* pDepthResult) override;
-    void Execute(const RenderContext& context, RenderResult* pResult) override;
+    void Execute(const FrameContext& context, Image* pResult, Image* pDepthResult) override;
+    void Execute(const FrameContext& context, RenderResult* pResult) override;
 private:
     std::vector<Image> images{};
     std::vector<Buffer> buffers{};

@@ -53,23 +53,24 @@ void Engine::init()
     graphicsModule.RegisterMesh(*gameData->skyboxMesh);
 
     ShaderAsset *testShader = AssetManager::LoadAsset<ShaderAsset>("internal/shaders/basicShader.slang");
+    ShaderAsset *goochShader = AssetManager::LoadAsset<ShaderAsset>("internal/shaders/goochShader.slang");
     ShaderAsset *pbrShader = AssetManager::LoadAsset<ShaderAsset>("internal/shaders/PBR.slang");
     ShaderAsset *skyboxShader = AssetManager::LoadAsset<ShaderAsset>("internal/shaders/skybox.slang");
 
     testShader->LoadData();
+    goochShader->LoadData();
     pbrShader->LoadData();
     skyboxShader->LoadData();
 
     // Shader shader = Shader(testShader, testShader);
     // This is just to test memory pools, this will be replaced with a proper resource management system
-    Shader* shader = gameData->shaderPool.New(testShader, testShader);
-    Shader* sbShader = gameData->shaderPool.New(skyboxShader, skyboxShader);
-    Shader* pbr = gameData->shaderPool.New(pbrShader, pbrShader);
+    shader = gameData->shaderPool.New(testShader, testShader);
+    gShader = gameData->shaderPool.New(goochShader, goochShader);
+    sbShader = gameData->shaderPool.New(skyboxShader, skyboxShader);
+    pbr = gameData->shaderPool.New(pbrShader, pbrShader);
     sbShader->properties.depthWrite = DepthWrite::DISABLED;
+    sbShader->Update();
     // Shader* pbr = shaderPool.New(pbrShader, pbrShader);
-    graphicsModule.RegisterShader(*shader);
-    graphicsModule.RegisterShader(*pbr);
-    graphicsModule.RegisterShader(*sbShader);
 
 
     std::unique_ptr<TextureData> texa = TextureData::LoadFromFile("./internal/textures/worn_tile_floor/worn_tile_floor_diff_1k.jpg");
@@ -103,14 +104,20 @@ void Engine::init()
     int64_t testVal = 69;
     // mat.SetInt("test", testVal);
     yella->SetVector("color", glm::vec4(1.f, 0.8f, 0.3f, 1.0f));
-    yella->SetFloat("roughness", 0.5f);
+    yella->SetFloat("roughness", 0.2f);
     yella->SetFloat("metallic", 0.0f);
     yella->name = "Yella";
 
     blue->SetVector("color", glm::vec4(0.2f, 0.5f, 0.8f, 1.0f));
-    blue->SetFloat("roughness", 0.7f);
+    blue->SetFloat("roughness", 0.9f);
     blue->SetFloat("metallic", 0.0f);
     blue->name = "Blue";
+    // blue->SetVector("coolColor", glm::vec4(0.15f, 0.2f, 0.4f, 1.0f));
+    // blue->SetVector("warmColor", glm::vec4(0.9f, 0.9f, 0.8f, 1.0f));
+    // blue->SetVector("outlineColor", glm::vec4(0.1f, 0.05f, 0.0f, 1.0f));
+    // blue->SetFloat("outlinePower", 4.0f);
+    // blue->SetFloat("roughness", 0.5f);
+    // blue->name = "Gooch";
 
     // pbrMat->SetVector("color", glm::vec4(0.1f, 0.5f, 0.1f, 1.0f));
     pbrMat->SetVector("color", glm::vec4(1.f, 1.f, 1.f, 1.f));
@@ -153,8 +160,8 @@ void Engine::init()
     //     {0.01f, 100.0f, 20.0f},
     //     true
     // );
-    cameraTransform.setPosition(glm::vec3(0.0f, 2.0f, -5.0f));
-    cameraTransform.setPosition(glm::vec3(glm::radians(20.0f), 0.0f, 0.0f));
+    cameraTransform.setPosition(glm::vec3(0.0f, 2.0f, 5.0f));
+    cameraTransform.setRotation(glm::vec3(glm::radians(20.0f), glm::radians(-180.0f), 0.0f));
 
     scene = Scene("Test");
     scene->loadScene();
@@ -197,6 +204,14 @@ void Engine::update(double deltaTime)
     if(core::Input::getKey(GLFW_KEY_LEFT_SHIFT))
     {
         cameraTransform.addPosition(glm::vec3(0, -10.f * deltaTime, 0));
+    }
+    if(core::Input::getKeyDown(GLFW_KEY_R))
+    {
+        // TODO: Make a better system for this
+        shader->Compile();
+        gShader->Compile();
+        sbShader->Compile();
+        pbr->Compile();
     }
 
     // TODO: Reimplement object selection

@@ -422,7 +422,7 @@ void Image::TransitionVkImageLayout(internal::Device& device, VkImage& image, Vk
     device.EndSingleTimeCommands(commandBuffer); // Submit and free the command buffer
 }
 
-void Image::TransitionVkImageLayout(VkImage& image, VkImageLayout oldLayout, VkImageLayout newLayout, VkCommandBuffer commandBuffer, VkImageSubresourceRange subresourceRange)
+void Image::TransitionVkImageLayout(VkImage image, VkImageLayout oldLayout, VkImageLayout newLayout, VkCommandBuffer commandBuffer, VkImageSubresourceRange subresourceRange)
 {
     VkImageMemoryBarrier barrier{};
     barrier.sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER;
@@ -436,7 +436,7 @@ void Image::TransitionVkImageLayout(VkImage& image, VkImageLayout oldLayout, VkI
     VkPipelineStageFlags sourceStage;
     VkPipelineStageFlags destinationStage;
 
-    switch(oldLayout)
+    switch (oldLayout)
     {
         case VK_IMAGE_LAYOUT_UNDEFINED:
             barrier.srcAccessMask = 0;

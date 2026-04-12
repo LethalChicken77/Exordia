@@ -18,7 +18,7 @@ public:
 
 public:
     MaterialHandle graphicsHandle;
-    ShaderHandle shaderHandle;
+    const Shader* shader;
     std::string name;
 
     Material(const Shader *shader);

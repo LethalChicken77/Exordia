@@ -8,7 +8,7 @@
 namespace graphics
 {
 
-class GraphicsPipeline;
+class GraphicsPipelineOld;
 class MaterialRegistry : public GraphicsRegistry<GraphicsMaterial, MaterialHandle>
 {
 public:

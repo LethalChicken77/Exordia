@@ -18,21 +18,23 @@ namespace graphics
 class Shader
 {
 public:
-    Shader(const ShaderAsset* vertAsset, const ShaderAsset* fragAsset);
+    Shader(ShaderAsset* vertAsset, ShaderAsset* fragAsset);
+    Shader(ShaderAsset* vertAsset, ShaderAsset* fragAsset, const ShaderProperties& properties);
     ~Shader() = default;
 
     Shader(const Shader&) = delete;
     Shader& operator=(const Shader&) = delete;
 
     void Compile();
+    void Update();
 
     const std::vector<uint32_t>& GetVertSpirv() const { return vertSpirv; }
     const std::vector<uint32_t>& GetFragSpirv() const { return fragSpirv; }
     const ShaderLayout& GetLayout() const { return layout; }
     const ShaderLayout* GetLayoutPtr() const { return &layout; }
 
-    void SetVertexShaderAsset(const ShaderAsset* asset) { vertexShaderAsset = asset; }
-    void SetFragmentShaderAsset(const ShaderAsset* asset) { fragmentShaderAsset = asset; }
+    void SetVertexShaderAsset(ShaderAsset* asset) { vertexShaderAsset = asset; }
+    void SetFragmentShaderAsset(ShaderAsset* asset) { fragmentShaderAsset = asset; }
 
     ShaderProperties properties{};
 
@@ -40,12 +42,13 @@ public:
 
 private:
 
-    const ShaderAsset* vertexShaderAsset = nullptr;
-    const ShaderAsset* fragmentShaderAsset = nullptr;
+    ShaderAsset* vertexShaderAsset = nullptr;
+    ShaderAsset* fragmentShaderAsset = nullptr;
     std::vector<uint32_t> vertSpirv{};
     std::vector<uint32_t> fragSpirv{};
     ShaderLayout layout{};
     VertexLayout vertLayout{};
+    bool isValid; // Used to prevent passing bad data to the graphics module if compilation fails
 
     void compileFrag();
     void compileVert();

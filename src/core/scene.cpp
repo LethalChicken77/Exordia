@@ -29,7 +29,7 @@ void Scene_t::loadScene()
     // obj->mesh->generateNormals();
     // obj->mesh->createBuffers();
     obj->material = gameData->materials.Get(0);
-    obj->transform.setPosition(glm::vec3(0, 1, 0));
+    obj->transform.setPosition(glm::vec3(2, 0, 0));
     // obj->transform.scale = glm::vec3(0.01f);
     // obj->transform.scale = glm::vec3(-0.01f, 0.01f, 0.01f); // TODO: Make sure negative scaling doesn't turn models inside out
     // obj->transform.rotation.x = glm::radians(-90.0f);
@@ -41,7 +41,7 @@ void Scene_t::loadScene()
 
     obj3->mesh = monkeyMesh;
     obj3->material = gameData->materials.Get(1);
-    obj3->transform.setPosition(glm::vec3(-3, -1, 0));
+    obj3->transform.setPosition(glm::vec3(-4, 0, 0));
     obj3->transform.parent = &obj->transform;
     // obj3.mesh = GraphicsMesh::createSierpinskiPyramid(12.0f, 8);
     // obj3.materialID = 2;

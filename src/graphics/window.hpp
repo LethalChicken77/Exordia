@@ -27,9 +27,9 @@ public:
     uint32_t GetWidth() const { return width; }
     uint32_t GetHeight() const { return height; }
     float GetAspectRatio() const { return (float)width / (float)height; }
-    VkExtent2D GetExtent() { return {static_cast<uint32_t>(width), static_cast<uint32_t>(height)}; }
+    vk::Extent2D GetExtent() { return {static_cast<uint32_t>(width), static_cast<uint32_t>(height)}; }
     GLFWwindow* GetWindow() { return window; }
-    VkSurfaceKHR &GetSurface() { return surface; }
+    vk::SurfaceKHR &GetSurface() { return surface; }
     bool WindowResized() { return frameBufferResized; }
     void ResetWindowResizedFlag() { frameBufferResized = false; }
 
@@ -52,7 +52,7 @@ private:
 
     std::string name;
     GLFWwindow *window;
-    VkSurfaceKHR surface;
+    vk::SurfaceKHR surface;
 
     friend class Graphics;
     friend class internal::VulkanBackend;

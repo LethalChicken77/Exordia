@@ -15,7 +15,7 @@ MaterialHandle MaterialRegistry::Register(Material &material, DescriptorPool &po
 {
     if(material.graphicsHandle.IsValid()) return material.graphicsHandle; // Material is already registered
 
-    GraphicsPipeline* pipeline = pipelineRegistry.Get(material.shaderHandle);
+    GraphicsPipelineOld* pipeline = pipelineRegistry.Get(material.shader->graphicsHandle);
     if(pipeline == nullptr)
     {
         Console::error("Failed to create graphics material: Invalid pipeline", "GraphicsMaterial");
@@ -37,7 +37,7 @@ MaterialHandle MaterialRegistry::Register(Material &material, DescriptorPool &po
 
     Entry &entry = entries[index];
     entry.value = std::make_unique<GraphicsMaterial>(
-        material,
+        &material,
         *pipeline,
         textureRegistry,
         pool

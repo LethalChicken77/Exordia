@@ -1,9 +1,14 @@
 #include "shader_reflection.hpp"
-#include <console.hpp>
+#include "graphics/backend/vulkan_include.h"
+#include "console.hpp"
+#include "graphics/utils/alignment.hpp"
 
 namespace graphics
 {
-
+using Attribute = VertexLayout::Attribute;
+using AttrType = VertexLayout::AttrType;
+using AttrSemantic = VertexLayout::AttrSemantic;
+using AttrFormat = VertexLayout::AttrFormat;
 
 void SlangReflect::GenerateLayouts(
     Slang::ComPtr<slang::ICompileRequest> request, 
@@ -38,10 +43,16 @@ void SlangReflect::reflectLayout(slang::VariableLayoutReflection* reflect, Shade
 
 void SlangReflect::reflectVertex(slang::EntryPointReflection* reflect, VertexLayout* vertLayout)
 {
+    uint32_t bufferOffset = 0;
+    // uint32_t weightsBufferoffset = 0;
     for(uint32_t i = 0; i < reflect->getParameterCount(); i++)
     {
+        // Leaving this as a loop in case I need to parse instance layout
+        if(i != 0) continue; // Vertex parameter comes first.
         slang::VariableLayoutReflection* inputRefl = reflect->getParameterByIndex(i);
         slang::TypeLayoutReflection* typeLayout = inputRefl->getTypeLayout();
+
+        Console::debugf("Input name: {}", typeLayout->getName());
         for(uint32_t j = 0; j < typeLayout->getFieldCount(); j++)
         {
             slang::VariableLayoutReflection* field = typeLayout->getFieldByIndex(j);
@@ -49,16 +60,123 @@ void SlangReflect::reflectVertex(slang::EntryPointReflection* reflect, VertexLay
                 Console::debugf("{}: {}", field->getName(), field->getSemanticName());
             else
                 Console::debugf("{}", field->getName());
-            Console::debugf("{}", field->getOffset(SLANG_PARAMETER_CATEGORY_VERTEX_INPUT));
 
-            if(field->getSemanticName())
-                std::string fieldSemantic = field->getSemanticName();
-            // if(fieldSemantic == "POSITION")
-            // {
-                
-            // }
+            Attribute attribute{};
+            attribute.location = field->getOffset(SLANG_PARAMETER_CATEGORY_VERTEX_INPUT);
+            
+            AttrFormat &attrFormat = attribute.format;
+            
+            const char* fieldSemantic_p = field->getSemanticName();
+            if(fieldSemantic_p) // Yucky nesting, could handle in a helper
+            {
+                std::string fieldSemantic = fieldSemantic_p;
+
+                if(fieldSemantic.starts_with("SV_")) 
+                    continue; // Ignore system semantics for layout
+
+                if(fieldSemantic == "POSITION")
+                    attribute.semantic = AttrSemantic::Position;
+                else if(fieldSemantic == "NORMAL")
+                    attribute.semantic = AttrSemantic::Normal;
+                else if(fieldSemantic == "TANGENT")
+                    attribute.semantic = AttrSemantic::Tangent;
+                else if(fieldSemantic == "BITANGENT")
+                    attribute.semantic = AttrSemantic::Bitangent;
+                else if(fieldSemantic == "COLOR")
+                    attribute.semantic = AttrSemantic::Color;
+                else if(fieldSemantic.starts_with("UV") || fieldSemantic.starts_with("TEXCOORD"))
+                    attribute.semantic = AttrSemantic::UV;
+            }
+
+            attrFormat.componentCount = field->getType()->getColumnCount();
+            attrFormat.arrayCount  = field->getType()->getRowCount();
+            // uint32_t elementSize = 0;
+            slang::TypeReflection::ScalarType scalarType = field->getType()->getScalarType();
+            switch(scalarType)
+            {
+                case slang::TypeReflection::ScalarType::Int8:
+                    attrFormat.type = AttrType::SInt;
+                    attrFormat.componentSize = 1;
+                    break;
+                case slang::TypeReflection::ScalarType::Bool:
+                case slang::TypeReflection::ScalarType::UInt8:
+                    attrFormat.type = AttrType::UInt;
+                    attrFormat.componentSize = 1;
+                    break;
+                case slang::TypeReflection::ScalarType::Int16:
+                    attrFormat.type = AttrType::SInt;
+                    attrFormat.componentSize = 2;
+                    break;
+                case slang::TypeReflection::ScalarType::UInt16:
+                    attrFormat.type = AttrType::UInt;
+                    attrFormat.componentSize = 2;
+                    break;
+                case slang::TypeReflection::ScalarType::Float16:
+                    attrFormat.type = AttrType::Float;
+                    attrFormat.componentSize = 2;
+                    break;
+                case slang::TypeReflection::ScalarType::Int32:
+                    attrFormat.type = AttrType::SInt;
+                    attrFormat.componentSize = 4;
+                    break;
+                case slang::TypeReflection::ScalarType::UInt32:
+                    attrFormat.type = AttrType::UInt;
+                    attrFormat.componentSize = 4;
+                    break;
+                case slang::TypeReflection::ScalarType::Float32:
+                    attrFormat.type = AttrType::Float;
+                    attrFormat.componentSize = 4;
+                    break;
+                default:
+                    continue;
+            }
+
+            if(field->getVariable()->getUserAttributeCount() > 0)
+            {
+                if(attrFormat.type == AttrType::Float)
+                {
+                    std::string attrName = field->getVariable()->getUserAttributeByIndex(0)->getName();
+                    if(attrName == "SNorm8")
+                    {
+                        attrFormat.type = AttrType::SNorm;
+                        attrFormat.componentSize = 1;
+                    }
+                    else if(attrName == "UNorm8")
+                    {
+                        attrFormat.type = AttrType::UNorm;
+                        attrFormat.componentSize = 1;
+                    }
+                    else if(attrName == "SNorm16")
+                    {
+                        attrFormat.type = AttrType::SNorm;
+                        attrFormat.componentSize = 2;
+                    }
+                    else if(attrName == "UNorm16")
+                    {
+                        attrFormat.type = AttrType::UNorm;
+                        attrFormat.componentSize = 2;
+                    }
+                }
+            }
+
+            if(attribute.semantic == AttrSemantic::Position)
+            {
+                attribute.offset = 0;
+            }
+            else
+            {
+                bufferOffset = Alignment::AlignUp(bufferOffset, attribute.format.GetAlignment(false)); // Don't worry about alignment
+                attribute.offset = bufferOffset;
+                bufferOffset += attribute.format.GetSize();
+            }
+
+            // Console::debugf("\tFormat info: {}", attrFormat.ToString());
+            // vk::Format validationFormat = (vk::Format)attribute.GetFormat();
+            // Console::log(vk::to_string(validationFormat));
+            vertLayout->vertexAttributes.push_back(attribute);
         }
     }
+    Console::log(vertLayout->ToString());
 }
 
 }

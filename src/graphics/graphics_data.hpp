@@ -2,7 +2,7 @@
 #include <memory>
 
 #include "backend/vulkan_backend.hpp"
-#include "rendering/renderer.hpp"
+#include "rendering/frame_orchestrator.hpp"
 #include "resources/descriptors.hpp"
 #include "resources/pipeline_manager.hpp"
 #include "resources/shader_buffer.hpp"
@@ -56,7 +56,7 @@ private:
 // Declaration order matters here
     Window window;
     internal::VulkanBackend backend;
-    Renderer renderer{backend.GetDevice(), window};
+    FrameOrchestrator renderer{backend.GetDevice(), window};
 
 public:
     ~GraphicsData();

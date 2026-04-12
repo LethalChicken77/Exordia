@@ -4,7 +4,7 @@
 namespace graphics
 {
 
-void DrawFunctions::bindCameraDescriptor(const RenderContext &renderContext, VkDescriptorSet descriptorSet, const GraphicsPipeline* pipeline)
+void DrawFunctions::bindCameraDescriptor(const FrameContext &renderContext, VkDescriptorSet descriptorSet, const GraphicsPipelineOld* pipeline)
 {
     std::vector<VkDescriptorSet> descriptorSets = { descriptorSet };
 
@@ -20,7 +20,7 @@ void DrawFunctions::bindCameraDescriptor(const RenderContext &renderContext, VkD
     );
 }
 
-void DrawFunctions::bindGlobalDescriptor(const RenderContext &renderContext, VkDescriptorSet descriptorSet, const GraphicsPipeline* pipeline)
+void DrawFunctions::bindGlobalDescriptor(const FrameContext &renderContext, VkDescriptorSet descriptorSet, const GraphicsPipelineOld* pipeline)
 {
 
     std::vector<VkDescriptorSet> descriptorSets = { descriptorSet };
@@ -37,7 +37,7 @@ void DrawFunctions::bindGlobalDescriptor(const RenderContext &renderContext, VkD
     );
 }
 
-// void DrawFunctions::renderMeshes(RenderContext& context, const std::vector<MeshRenderData> &renderQueue)
+// void DrawFunctions::renderMeshes(FrameContext& context, const std::vector<MeshRenderData> &renderQueue)
 // {
 //     VkCommandBuffer& commandBuffer = context.commandBuffer;
 
@@ -96,7 +96,7 @@ void DrawFunctions::bindGlobalDescriptor(const RenderContext &renderContext, VkD
 //     }
 // }
 
-// void DrawFunctions::renderGameObjectIDs(RenderContext& context, const std::vector<MeshRenderData> &renderQueue)
+// void DrawFunctions::renderGameObjectIDs(FrameContext& context, const std::vector<MeshRenderData> &renderQueue)
 // {
 //     VkCommandBuffer& commandBuffer = context.commandBuffer;
 

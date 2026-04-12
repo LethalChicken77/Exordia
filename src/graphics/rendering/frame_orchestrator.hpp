@@ -8,31 +8,32 @@ namespace graphics
 {
 class Graphics;
 
-class Renderer
+class FrameOrchestrator
 {
 public:
-    Renderer();
-    Renderer(internal::Device &device, Window &window);
-    ~Renderer();
+    FrameOrchestrator();
+    FrameOrchestrator(internal::Device &device, Window &window);
+    ~FrameOrchestrator();
 
-    Renderer(const Renderer&) = delete;
-    Renderer& operator=(const Renderer&) = delete;
+    FrameOrchestrator(const FrameOrchestrator&) = delete;
+    FrameOrchestrator& operator=(const FrameOrchestrator&) = delete;
 
     void Cleanup();
 
     void RecreateSwapchain();
 
-    [[nodiscard]] VkCommandBuffer BeginFrame();
-    void BeginRenderDynamic(VkCommandBuffer cmdBuffer, VkImageView colorView, VkImageView depthView, VkExtent2D extent, VkClearValue clearColor);
+    [[nodiscard]] FrameContext BeginFrame();
+    // void BeginRenderDynamic(vk::ImageView colorView, vk::ImageView depthView, vk::Extent2D extent, vk::ClearValue clearColor);
+    void BeginRenderDynamic(const FrameContext& context, const PassInfo& passInfo);
     void ExecuteRenderGraph(/*const &RenderGraph graph*/);
-    void EndRenderDynamic(VkCommandBuffer cmdBuffer);
+    void EndRenderDynamic(const FrameContext& context, const PassInfo& passInfo); // Takes pass info, but might not need it
     void EndFrame();
 
     // Getters
 
-    [[nodiscard]] VkExtent2D GetExtent() const { return swapchain->GetSwapChainExtent(); }
+    [[nodiscard]] vk::Extent2D GetExtent() const { return swapchain->GetSwapChainExtent(); }
     [[nodiscard]] bool IsFrameInProgress() const { return frameInProgress; }
-    [[nodiscard]] VkCommandBuffer GetCurrentCommandBuffer() const 
+    [[nodiscard]] vk::CommandBuffer GetCurrentCommandBuffer() const 
     {
         if(!frameInProgress)
         {
@@ -50,7 +51,7 @@ public:
     }
     [[nodiscard]] uint32_t GetImageIndex() const { return currentImageIndex; }
     [[nodiscard]] const Swapchain &GetSwapchain() const { return *swapchain; }
-    [[nodiscard]] RenderContext GetContext() const 
+    [[nodiscard]] FrameContext GetContext() const 
     { 
         if(!frameInProgress)
         {
@@ -63,10 +64,8 @@ private:
     Window &window;
 
     std::unique_ptr<Swapchain> swapchain{};
-    std::vector<VkCommandBuffer> commandBuffers{};
-    VkCommandBuffer currentCommandBuffer{};
-
-    std::vector<bool> firstUse{};
+    std::vector<vk::CommandBuffer> commandBuffers{};
+    vk::CommandBuffer currentCommandBuffer{};
 
     uint32_t currentImageIndex = 0;
     uint32_t currentFrameIndex = 0;
@@ -78,8 +77,8 @@ private:
     void createCommandBuffers();
     void recreateSwapChain();
 
-    void transitionToPresent(VkCommandBuffer commandBuffer, VkImage image);
-    void transitionToRenderTarget(VkCommandBuffer commandBuffer, VkImage image);
+    void transitionToPresent(vk::CommandBuffer commandBuffer, vk::Image image);
+    void transitionToRenderTarget(vk::CommandBuffer commandBuffer, vk::Image image);
 
     friend class Graphics;
 };

@@ -7,11 +7,10 @@ using graphics::BufferLayout;
 namespace graphics
 {
 
-Material::Material(const Shader *shader) 
-    // : shader(_shader), 
-    : materialLayout(shader->GetLayoutPtr())
+Material::Material(const Shader *_shader) 
+    : shader(_shader), 
+    materialLayout(_shader->GetLayoutPtr())
 {
-    shaderHandle = shader->graphicsHandle;
     if(materialLayout == nullptr) 
     {
         data = std::vector<uint8_t>(0);

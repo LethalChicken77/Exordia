@@ -34,7 +34,7 @@ void PipelineRegistry::createPipelineCache()
 /// @return Handle for new pipeline, invalid on failure
 PipelineHandle PipelineRegistry::Register(Shader &shader)
 {
-    if(IsValid(shader.graphicsHandle)) return shader.graphicsHandle; // Mesh is already registered
+    if(IsValid(shader.graphicsHandle)) return shader.graphicsHandle; // Pipeline is already registered
 
     uint32_t index;
     if(freeList.size() > 0)
@@ -50,7 +50,7 @@ PipelineHandle PipelineRegistry::Register(Shader &shader)
     }
 
     Entry &entry = entries[index];
-    entry.value = std::make_unique<GraphicsPipeline>(
+    entry.value = std::make_unique<GraphicsPipelineOld>(
         device,
         -1,
         shader,
@@ -72,7 +72,7 @@ bool PipelineRegistry::Reload(Shader &shader)
 
     Entry &entry = entries[handle.index];
 
-    entry.value = std::make_unique<GraphicsPipeline>(
+    entry.value = std::make_unique<GraphicsPipelineOld>(
         device,
         -1,
         shader,

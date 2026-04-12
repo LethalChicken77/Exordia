@@ -11,6 +11,15 @@ public float3x3 inverse(float3x3 m)
     )) / det;
 }
 
+public float3x3 adjugate(float3x3 m)
+{
+    return transpose(float3x3(
+        cross(m[1], m[2]),
+        cross(m[2], m[0]),
+        cross(m[0], m[1])
+    ));
+}
+
 public float2 cartesianToSphericalNorm(float3 dir)
 {
     float theta = -atan2(dir.z, dir.x);     // Azimuthal angle
@@ -41,4 +50,16 @@ public float Hash(float2 p)
     // Use a dot product with irrational numbers, then apply sin+frac for mixing
     float h = dot(p, float2(127.1, 311.7));
     return frac(sin(h) * 43758.5453);
+}
+
+public float3 UnpackOctahedral(float2 v)
+{
+    float3 result = float3(v, 1.0 - abs(v.x) - abs(v.y));
+    
+    if (result.z < 0.0)
+    {
+        result.xy = (1.0 - abs(result.yx)) * sign(result.xy);
+    }
+
+    return normalize(result);
 }
