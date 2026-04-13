@@ -73,11 +73,17 @@ void Engine::init()
     // Shader* pbr = shaderPool.New(pbrShader, pbrShader);
 
 
-    std::unique_ptr<TextureData> texa = TextureData::LoadFromFile("./internal/textures/worn_tile_floor/worn_tile_floor_diff_1k.jpg");
-    std::unique_ptr<TextureData> texr = TextureData::LoadFromFileEXR("./internal/textures/worn_tile_floor/worn_tile_floor_rough_1k.exr");
+    // std::unique_ptr<TextureData> texa = TextureData::LoadFromFile("./internal/textures/worn_tile_floor/worn_tile_floor_diff_1k.jpg");
+    // std::unique_ptr<TextureData> texr = TextureData::LoadFromFileEXR("./internal/textures/worn_tile_floor/worn_tile_floor_rough_1k.exr");
+    // std::unique_ptr<TextureData> texm = TextureData::LoadFromFileEXR("./internal/textures/defaults/default_metal.exr");
+    // std::unique_ptr<TextureData> texs = TextureData::LoadFromFileEXR("./internal/textures/defaults/default_spec.exr");
+    // std::unique_ptr<TextureData> texn = TextureData::LoadFromFileEXR("./internal/textures/worn_tile_floor/worn_tile_floor_nor_gl_1k.exr");
+    std::unique_ptr<TextureData> texa = TextureData::LoadFromFile("./internal/textures/rocky_terrain_02/rocky_terrain_02_diff_4k.jpg");
+    // std::unique_ptr<TextureData> texr = TextureData::LoadFromFile("./internal/textures/rocky_terrain_02/rocky_terrain_02_rough_512.png");
+    std::unique_ptr<TextureData> texr = TextureData::LoadFromFileEXR("./internal/textures/rocky_terrain_02/rocky_terrain_02_rough_4k.exr");
     std::unique_ptr<TextureData> texm = TextureData::LoadFromFileEXR("./internal/textures/defaults/default_metal.exr");
-    std::unique_ptr<TextureData> texs = TextureData::LoadFromFileEXR("./internal/textures/defaults/default_spec.exr");
-    std::unique_ptr<TextureData> texn = TextureData::LoadFromFileEXR("./internal/textures/worn_tile_floor/worn_tile_floor_nor_gl_1k.exr");
+    std::unique_ptr<TextureData> texs = TextureData::LoadFromFileEXR("./internal/textures/rocky_terrain_02/rocky_terrain_02_spec_4k.exr");
+    std::unique_ptr<TextureData> texn = TextureData::LoadFromFileEXR("./internal/textures/rocky_terrain_02/rocky_terrain_02_nor_gl_4k.exr");
 
     TextureHandle thA{};
     TextureHandle thR{};
@@ -109,7 +115,7 @@ void Engine::init()
     yella->name = "Yella";
 
     blue->SetVector("color", glm::vec4(0.2f, 0.5f, 0.8f, 1.0f));
-    blue->SetFloat("roughness", 0.9f);
+    blue->SetFloat("roughness", 0.7f);
     blue->SetFloat("metallic", 0.0f);
     blue->name = "Blue";
     // blue->SetVector("coolColor", glm::vec4(0.15f, 0.2f, 0.4f, 1.0f));
@@ -152,7 +158,10 @@ void Engine::init()
     Input::initializeKeys();
 
 
-    camera = Camera();
+    CameraProperties camProps{};
+    camProps.near = 0.01f;
+    camProps.far = INFINITY;
+    camera = Camera(camProps);
     // camera = Camera(
     //     {0.01f, 100.0f, 20.0f},
     //     true
@@ -177,6 +186,10 @@ void Engine::update(double deltaTime)
     forward *= glm::sign(cameraTransform.up().y);
     glm::vec3 right = cameraTransform.right();
     float movementSpeed = 10.f;
+    if(core::Input::getKey(GLFW_KEY_LEFT_CONTROL))
+    {
+        movementSpeed *= 10.f;
+    }
     if(core::Input::getKey(GLFW_KEY_A))
     {
         cameraTransform.addPosition(-movementSpeed * (float)deltaTime * right);
@@ -193,15 +206,15 @@ void Engine::update(double deltaTime)
     {
         cameraTransform.addPosition(-movementSpeed * (float)deltaTime * forward);
     }
-
     if(core::Input::getKey(GLFW_KEY_SPACE))
     {
-        cameraTransform.addPosition(glm::vec3(0, 10.f * deltaTime, 0));
+        cameraTransform.addPosition(glm::vec3(0, movementSpeed * deltaTime, 0));
     }
     if(core::Input::getKey(GLFW_KEY_LEFT_SHIFT))
     {
-        cameraTransform.addPosition(glm::vec3(0, -10.f * deltaTime, 0));
+        cameraTransform.addPosition(glm::vec3(0, -movementSpeed * deltaTime, 0));
     }
+
     if(core::Input::getKeyDown(GLFW_KEY_R))
     {
         // TODO: Make a better system for this

@@ -14,6 +14,11 @@
 namespace core
 {
 
+MeshData::~MeshData()
+{
+    graphicsModule.DeregisterMesh(*this);
+}
+
 void MeshData::SetMesh(const std::vector<Vertex>& _vertices, const std::vector<uint32_t>& _indices)
 {
     vertices = _vertices;
@@ -40,9 +45,12 @@ void MeshData::SetMesh(const std::vector<Vertex>& _vertices, const std::vector<T
         graphicsModule.RegisterMesh(*this);
 }
 
-MeshData::~MeshData()
+void MeshData::UpdateOnGPU()
 {
-    graphicsModule.DeregisterMesh(*this);
+    if(graphicsHandle.IsValid())
+        graphicsModule.UpdateMesh(*this);
+    else
+        graphicsModule.RegisterMesh(*this);
 }
 
 float angleBetween(glm::vec3 v1, glm::vec3 v2)
@@ -141,7 +149,7 @@ void Mesh::generateTangents()
     }
 
     std::vector<glm::vec3> vertBitangents{};
-    vertBitangents.resize(vertices.size());
+    vertBitangents.reserve(vertices.size());
     for(Vertex& vertex : vertices)
     {
         vertex.tangent = glm::vec4(0.0f);
@@ -196,11 +204,12 @@ void Mesh::generateTangents()
 
         // Calculate handedness
         tempTangent = glm::vec3(vertex.tangent);
-        if(glm::dot(glm::cross(vertex.normal, tempTangent), bitangent) < 0.0f)
+        if(glm::dot(glm::cross(vertex.normal, tempTangent), bitangent) > 0.0f)
         {
             bitangent = bitangent * -1.0f;
             vertex.tangent.w = -1.0f;
         }
+        // vertex.tangent = glm::vec4(1, 1, 0, 1); // Debug value
         index++;
     }
 }
@@ -482,9 +491,9 @@ Mesh Mesh::loadObj(const std::string& filename, const std::string& objectName, M
 
                     if (3 * posIdx + 2 < attrib.colors.size()) {
                         v.color = {
-                            attrib.colors[3 * posIdx],
-                            attrib.colors[3 * posIdx + 1],
-                            attrib.colors[3 * posIdx + 2]
+                            attrib.colors[3 * posIdx] * 255,
+                            attrib.colors[3 * posIdx + 1] * 255,
+                            attrib.colors[3 * posIdx + 2] * 255
                         };
                     }
 
@@ -508,6 +517,7 @@ Mesh Mesh::loadObj(const std::string& filename, const std::string& objectName, M
 
     Mesh mesh(vertices, triangles, objectName);
     mesh.generateTangents(); // Not included in OBJ, so we must generate them
+    mesh->UpdateOnGPU();
     return mesh;
 }
 

@@ -51,7 +51,7 @@ std::unique_ptr<TextureData> TextureData::LoadFromFile(const std::string& path)
         return nullptr;
     }
     
-    stbi_set_flip_vertically_on_load(true); // Flip texture on load to match UV coords
+    stbi_set_flip_vertically_on_load(false); // Flip texture on load to match UV coords
 
     int texWidth, texHeight, texChannels;
     stbi_uc* pixels = stbi_load(path.c_str(), &texWidth, &texHeight, &texChannels, STBI_rgb_alpha);

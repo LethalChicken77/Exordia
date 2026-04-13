@@ -72,7 +72,7 @@ void GraphicsMesh::createVertexBuffer(const core::MeshData* meshPtr)
     };
 
     stagingBuffer.Map();
-    stagingBuffer.WriteData((void *)vertices.data(), vertices.size() * vertexSize);
+    stagingBuffer.WriteData((void *)vertices.data(), vertexCount * vertexSize);
 
     vertexBuffer = std::make_unique<Buffer>(
         device,
@@ -150,49 +150,49 @@ std::vector<VkVertexInputBindingDescription> GraphicsMesh::getVertexBindingDescr
 std::vector<VkVertexInputAttributeDescription> GraphicsMesh::getVertexAttributeDescriptions()
 {
     std::vector<VkVertexInputAttributeDescription> attributeDescriptions(9);
-    uint32_t currentOffset = 0;
-    attributeDescriptions[currentOffset].binding = 0;
-    attributeDescriptions[currentOffset].location = currentOffset;
-    attributeDescriptions[currentOffset].format = VK_FORMAT_R32G32B32_SFLOAT;
-    attributeDescriptions[currentOffset].offset = offsetof(Vertex, position);
-    currentOffset++;
+    uint32_t currentLocation = 0;
+    attributeDescriptions[currentLocation].binding = 0;
+    attributeDescriptions[currentLocation].location = currentLocation;
+    attributeDescriptions[currentLocation].format = VK_FORMAT_R32G32B32_SFLOAT;
+    attributeDescriptions[currentLocation].offset = offsetof(Vertex, position);
+    currentLocation++;
 
-    attributeDescriptions[currentOffset].binding = 0;
-    attributeDescriptions[currentOffset].location = currentOffset;
-    attributeDescriptions[currentOffset].format = VK_FORMAT_R32G32B32_SFLOAT;
-    attributeDescriptions[currentOffset].offset = offsetof(Vertex, normal);
-    currentOffset++;
+    attributeDescriptions[currentLocation].binding = 0;
+    attributeDescriptions[currentLocation].location = currentLocation;
+    attributeDescriptions[currentLocation].format = VK_FORMAT_R32G32B32_SFLOAT;
+    attributeDescriptions[currentLocation].offset = offsetof(Vertex, normal);
+    currentLocation++;
 
-    attributeDescriptions[currentOffset].binding = 0;
-    attributeDescriptions[currentOffset].location = currentOffset;
-    attributeDescriptions[currentOffset].format = VK_FORMAT_R32G32B32A32_SFLOAT;
-    attributeDescriptions[currentOffset].offset = offsetof(Vertex, tangent);
-    currentOffset++;
+    attributeDescriptions[currentLocation].binding = 0;
+    attributeDescriptions[currentLocation].location = currentLocation;
+    attributeDescriptions[currentLocation].format = VK_FORMAT_R32G32B32A32_SFLOAT;
+    attributeDescriptions[currentLocation].offset = offsetof(Vertex, tangent);
+    currentLocation++;
 
     // attributeDescriptions[3].binding = 0;
     // attributeDescriptions[3].location = 3;
     // attributeDescriptions[3].format = VK_FORMAT_R32G32B32_SFLOAT;
     // attributeDescriptions[3].offset = offsetof(Vertex, bitangent);
 
-    attributeDescriptions[currentOffset].binding = 0;
-    attributeDescriptions[currentOffset].location = currentOffset;
-    attributeDescriptions[currentOffset].format = VK_FORMAT_R32G32B32_SFLOAT;
-    attributeDescriptions[currentOffset].offset = offsetof(Vertex, color);
-    currentOffset++;
+    attributeDescriptions[currentLocation].binding = 0;
+    attributeDescriptions[currentLocation].location = currentLocation;
+    attributeDescriptions[currentLocation].format = VK_FORMAT_R8G8B8_UNORM;
+    attributeDescriptions[currentLocation].offset = offsetof(Vertex, color);
+    currentLocation++;
 
-    attributeDescriptions[currentOffset].binding = 0;
-    attributeDescriptions[currentOffset].location = currentOffset;
-    attributeDescriptions[currentOffset].format = VK_FORMAT_R32G32_SFLOAT;
-    attributeDescriptions[currentOffset].offset = offsetof(Vertex, texCoord);
-    currentOffset++;
+    attributeDescriptions[currentLocation].binding = 0;
+    attributeDescriptions[currentLocation].location = currentLocation;
+    attributeDescriptions[currentLocation].format = VK_FORMAT_R32G32_SFLOAT;
+    attributeDescriptions[currentLocation].offset = offsetof(Vertex, texCoord);
+    currentLocation++;
 
     // Instance attributes
     for(int i = 0; i < 4; i++) // Transformation matrix
     {
-        attributeDescriptions[i + currentOffset].binding = 1;
-        attributeDescriptions[i + currentOffset].location = i + currentOffset;
-        attributeDescriptions[i + currentOffset].format = VK_FORMAT_R32G32B32A32_SFLOAT;
-        attributeDescriptions[i + currentOffset].offset = sizeof(glm::vec4) * i;
+        attributeDescriptions[i + currentLocation].binding = 1;
+        attributeDescriptions[i + currentLocation].location = i + currentLocation;
+        attributeDescriptions[i + currentLocation].format = VK_FORMAT_R32G32B32A32_SFLOAT;
+        attributeDescriptions[i + currentLocation].offset = sizeof(glm::vec4) * i;
     }
 
     return attributeDescriptions;

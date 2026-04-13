@@ -54,13 +54,14 @@ float4 fsMain(FIn input)
     float3 ambientColor = globalData.ambientLight;//invLinearToSRGB(float3(0.04f, 0.08f, 0.2f));
     float2 UV = input.UV * 10;
 
-    float3 albedo = SRGBToLinear(input.Color * materialInfo.color.xyz * albedoMap.Sample(UV).xyz);
+    // float3 albedo = SRGBToLinear(input.Color * materialInfo.color.xyz * albedoMap.Sample(UV).xyz);
+    float3 albedo = albedoMap.Sample(UV).xyz;
     float roughness = roughnessMap.Sample(UV).x; // Assume linear texture
     float metallic = saturate(metallicMap.Sample(UV).x * 1.2);
     float specular = 0.1;//specularMap.Sample(UV).x;
     float3 normalMapSample = normalMap.Sample(UV).xyz * 2.0 - 1.0;
 
-    normalMapSample *= float3(materialInfo.normalMapStrength, materialInfo.normalMapStrength, 1);
+    normalMapSample *= float3(1, 1, 1 / materialInfo.normalMapStrength);
     normalMapSample = normalize(normalMapSample);
     normal = normalize(
         normalMapSample.x * tangent + 
@@ -95,6 +96,7 @@ float4 fsMain(FIn input)
     outColor += pbrAmbient(albedo, roughness, metallic, specular, ambientColor, ambientColor, normal, viewDir);
     // outColor = PhongBRDF(albedo, 80, lightColor, ambientColor, normal, lightDir, viewDir);
 
+    // outColor = albedo;
     return float4(outColor, 1.0);
     // return float4(normalMap.Sample(UV).xyz, 1.0);
 }

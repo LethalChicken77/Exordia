@@ -33,7 +33,7 @@ namespace core
             glm::vec3 normal{}; // 12
             glm::vec4 tangent{}; // 16
             // glm::vec3 bitangent{}; // 12
-            glm::vec3 color{1.0f, 1.0f, 1.0f}; // 12
+            glm::i8vec3 color{255, 255, 255}; // 3
             glm::vec2 texCoord{}; // 8
             // 72
         };
@@ -75,6 +75,7 @@ namespace core
         void SetMesh(const std::vector<Vertex>& _vertices, const std::vector<uint32_t>& _indices);
         void SetMesh(const std::vector<Vertex>& _vertices, const std::vector<Triangle>& _indices);
         ~MeshData();
+        void UpdateOnGPU();
 
         std::vector<Vertex> vertices{};
         std::vector<Triangle> triangles{};

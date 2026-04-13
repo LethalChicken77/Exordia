@@ -16,11 +16,16 @@ void Scene_t::loadScene()
     // };
 
     Mesh monkeyMesh = Mesh::loadObj("internal/models/monkey_high_res.obj", "Monkey Mesh");
+    Mesh terrainMesh = Mesh::loadObj("internal/models/terrain.obj", "Terrain Mesh");
+    Mesh haloMesh = Mesh::loadObj("internal/models/halo_skybox.obj", "Halo Mesh");
+    // terrainMesh.generateTangents();
+    monkeyMesh->vertices[0].tangent = glm::vec4(1,1,0,1);
     Mesh cubeMesh = Mesh::createCube(0.1f, "Cube");
 
     GameObject obj{ObjectManager::Instantiate<GameObject_t>("Basic Monkey")};
     GameObject obj2{ObjectManager::Instantiate<GameObject_t>("Floor")};
     GameObject obj3{ObjectManager::Instantiate<GameObject_t>("Wireframe Monkey")};
+    GameObject obj4{ObjectManager::Instantiate<GameObject_t>("Halo")};
     // std::cout << "Creating Grid" << std::endl;
     // obj.mesh = GraphicsMesh::createGrid(512, 512, {50.0f, 50.0f});
     // obj.materialID = 0;
@@ -35,19 +40,27 @@ void Scene_t::loadScene()
     // obj->transform.rotation.x = glm::radians(-90.0f);
 
     // obj2.mesh = GraphicsMesh::loadObj("internal/models/monkey_high_res.obj");
-    obj2->mesh = Mesh::createGrid(16,16, {50.0f, 50.0f});
+    // obj2->mesh = Mesh::createGrid(16,16, {50.0f, 50.0f});
+    obj2->mesh = terrainMesh;
+    // obj2->material = gameData->materials.Get(0);
     obj2->material = gameData->materials.Get(2);
-    obj2->transform.setPosition(glm::vec3(0, -3, 0));
+    obj2->transform.setPosition(glm::vec3(0, 0, 0));
+    obj2->transform.setScale(glm::vec3(8));
 
     obj3->mesh = monkeyMesh;
     obj3->material = gameData->materials.Get(1);
     obj3->transform.setPosition(glm::vec3(-4, 0, 0));
     obj3->transform.parent = &obj->transform;
+
+    obj4->mesh = haloMesh;
+    obj4->material = gameData->materials.Get(1);
+    obj4->transform.setScale(glm::vec3(10000000));
     // obj3.mesh = GraphicsMesh::createSierpinskiPyramid(12.0f, 8);
     // obj3.materialID = 2;
     gameObjects.push_back(std::move(obj));
     gameObjects.push_back(std::move(obj2));
     gameObjects.push_back(std::move(obj3));
+    gameObjects.push_back(std::move(obj4));
     Console::log("Scene loaded with " + std::to_string(gameObjects.size()) + " game objects.", "Scene");
 }
 

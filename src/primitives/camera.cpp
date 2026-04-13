@@ -59,18 +59,28 @@ void Camera::updateCamera()
             0, 0, 1.f / (far - near), 0,
             -(right + left) / (right - left), -(bottom + top) / (bottom - top), near / (far - near), 1.f
         );
-        // perspective = glm::mat4(1);
     }
     else
     {
-        float halfTanFovY = glm::tan(glm::radians(properties.vFov * 0.5f)) * 0.5f;
-
-        projection = glm::mat4(
-            1.f / (aspectRatio * halfTanFovY), 0, 0, 0,
-            0, -1.f / halfTanFovY, 0, 0,
-            0, 0, far / (far - near), 1.f,
-            0, 0, -near * far / (far - near), 0
-        );
+        float fovY = 2.0f / (glm::tan(glm::radians(properties.vFov * 0.5f)));
+        if(properties.far != INFINITY)
+            projection = glm::mat4(
+                fovY / (aspectRatio), 0, 0, 0,
+                0, -fovY, 0, 0,
+                0, 0, far / (far - near), 1.f,
+                0, 0, -near * far / (far - near), 0
+            );
+        else
+        {
+            near = properties.near;
+            // fovY = fovY * near;
+            projection = glm::mat4(
+                fovY / aspectRatio, 0, 0, 0,
+                0, -fovY, 0, 0,
+                0, 0, 0, 1,
+                0, 0, near, 0
+            );
+        }
     }
 
     // projection = orthographic * perspective;
