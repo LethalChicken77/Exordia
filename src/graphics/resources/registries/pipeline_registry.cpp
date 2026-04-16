@@ -50,9 +50,8 @@ PipelineHandle PipelineRegistry::Register(Shader &shader)
     }
 
     Entry &entry = entries[index];
-    entry.value = std::make_unique<GraphicsPipelineOld>(
+    entry.value = std::make_unique<GraphicsPipeline>(
         device,
-        -1,
         shader,
         pipelineCache);
     entry.inUse = true;
@@ -72,9 +71,8 @@ bool PipelineRegistry::Reload(Shader &shader)
 
     Entry &entry = entries[handle.index];
 
-    entry.value = std::make_unique<GraphicsPipelineOld>(
+    entry.value = std::make_unique<GraphicsPipeline>(
         device,
-        -1,
         shader,
         pipelineCache);
 

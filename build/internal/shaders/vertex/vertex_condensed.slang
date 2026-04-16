@@ -9,3 +9,5 @@ struct VertexData
     uint8_t3 Color : COLOR;
     half2 UV : TEXCOORD0;
 };
+
+#include "instance.slang"

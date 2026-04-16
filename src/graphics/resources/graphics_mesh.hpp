@@ -11,14 +11,15 @@
 #include <iostream>
 
 #include "core/mesh.hpp"
+#include "engine_types.hpp"
+
+#include "graphics/api/vertex_layout.hpp"
 
 namespace graphics
 {
     class GraphicsMesh
     {
     public:
-        static std::vector<VkVertexInputBindingDescription> getVertexBindingDescriptions();
-        static std::vector<VkVertexInputAttributeDescription> getVertexAttributeDescriptions();
 
         GraphicsMesh(const core::MeshData* meshptr);
         GraphicsMesh(internal::Device &device, const core::MeshData* meshptr);
@@ -27,21 +28,26 @@ namespace graphics
         GraphicsMesh(const GraphicsMesh&) = delete;
         GraphicsMesh& operator=(const GraphicsMesh&) = delete;
 
-        void bind(VkCommandBuffer commandBuffer, const std::unique_ptr<Buffer> &instanceBuffer) const; // TODO: Remove in favor of graphics.draw(Mesh)
-        void draw(VkCommandBuffer commandBuffer, uint32_t instanceCount) const;
+        void bind(vk::CommandBuffer commandBuffer, const std::unique_ptr<Buffer> &instanceBuffer) const; // TODO: Remove in favor of graphics.draw(Mesh)
+        void draw(vk::CommandBuffer commandBuffer, uint32_t instanceCount) const;
 
         void createBuffers(const core::MeshData* meshPtr);
 
     private:
         internal::Device &device;
 
-        std::unique_ptr<Buffer> vertexBuffer{};
-        uint32_t vertexCount;
-        bool useIndexBuffer = true;
-        std::unique_ptr<Buffer> indexBuffer{};
-        uint32_t indexCount;
+        uint32_t vertexCount = 0;
+        uint32_t indexCount = 0;
 
-        void createVertexBuffer(const core::MeshData* meshPtr);
+        std::unique_ptr<Buffer> positionBuffer{};
+        std::unique_ptr<Buffer> vertexBuffer{};
+        std::vector<Buffer> vertexBuffers{};
+        std::unordered_map<VertexLayout, size_t, VertexLayout::Hash> vertexBufferIndex{};
+        bool useIndexBuffer = true;
+        MeshConfig config{};
+        std::unique_ptr<Buffer> indexBuffer{};
+
+        void createVertexBuffers(const core::MeshData* meshPtr);
         void createIndexBuffer(const core::MeshData* meshPtr);
         
         void loadModelFromObj(const std::string& filename);

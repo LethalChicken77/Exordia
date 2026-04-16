@@ -11,28 +11,27 @@ public float DiffLambertian(float3 normal, float3 lightDir)
 }
 
 // OG Burley diffuse, does not conserve energy without F0 factor
-public float3 DiffBurley(float3 normal, float3 lightDir, float3 viewDir, float3 albedo, float roughness)
+public float DiffBurley(float3 normal, float3 lightDir, float3 viewDir, float roughness)
 {
     float3 reflDir = -viewDir;
     float3 halfDir = normalize(lightDir - viewDir);
 
     float HdotL = dot(halfDir, lightDir);
-    float NdotL = dot(normal, lightDir);
+    float NdotL = max(dot(normal, lightDir), 0.0);
     float NdotV = dot(normal, reflDir);
 
     float F90 = 0.5 + 2 * roughness * HdotL * HdotL;
     float lightScatter = 1.0 + (F90 - 1.0) * pow(1 - NdotL, 5.0);
     float viewScatter = 1.0 + (F90 - 1.0) * pow(1 - NdotV, 5.0);
 
-    float3 result = albedo / PI * lightScatter * viewScatter * DiffLambertian(normal, lightDir);
-    return max(result, float3(0));
+    float result = 1 / PI * lightScatter * viewScatter * NdotL;
+    return max(result, 0);
 }
 
-// Most accurate but most expensive diffuse
-public float3 DiffOrenNayar(float3 normal, float3 lightDir, float3 viewDir, float3 albedo, float roughness)
+// Accurate but most expensive diffuse
+public float3 DiffOrenNayar(float3 normal, float3 lightDir, float3 viewDir, float roughness, float3 albedo)
 {
     // clamp roughness to [0,1]
-    roughness = clamp(roughness, 0.0, 1.0);
     float3 reflDir = -viewDir; // Reflectance direction
 
     // Keep only positive cosines (light/view above the surface)
@@ -70,6 +69,146 @@ public float3 DiffOrenNayar(float3 normal, float3 lightDir, float3 viewDir, floa
     float3 L1 = albedo * INVPI * NdotL * (C1 + C2 * cosPhi * tan(clamp(beta, -HALFPI + EPSILON, HALFPI - EPSILON)) + C3 * (1.0 - abs(cosPhi)) * tan((0.5 - EPSILON) * (alpha + beta)));
     float3 L2 = 0.17 * albedo * albedo * INVPI * NdotL * sigma2 / (sigma2 + 0.13) * (1 - cosPhi * pow(2 * beta * INVPI, 2));
     return L1 + L2;
+}
+
+// Qualitative Oren-Nayar - Approximate but cheaper version of full Oren-Nayar
+public float DiffQON(float3 normal, float3 lightDir, float3 viewDir, float roughness)
+{
+    float3 reflDir = -viewDir; // Reflectance direction
+
+    // Keep only positive cosines (light/view above the surface)
+    float NdotL = max(dot(normal, lightDir), 0.0);
+    float NdotV = max(dot(normal, reflDir), 0.0);
+
+    if(NdotL <= 0.0) return 0.0;
+
+    float sigma2 = roughness * roughness;
+    float A = 1.0 - 0.5 * (sigma2 / (sigma2 + 0.33));
+    float B = 0.45 * (sigma2 / (sigma2 + 0.09));
+    
+    float3 L_perp = lightDir - normal * NdotL;
+    float3 V_perp = -viewDir - normal * NdotV;
+    float L_perp_len = max(1e-6, length(L_perp));
+    float V_perp_len = max(1e-6, length(V_perp));
+
+    float cos_phi_diff = (L_perp_len > 0.0 && V_perp_len > 0.0) 
+                       ? saturate(dot(L_perp / L_perp_len, V_perp / V_perp_len)) 
+                       : 1.0;
+    
+    float alpha = max(acos(NdotL), acos(NdotV));
+    float beta  = min(acos(NdotL), acos(NdotV));
+    
+    float C = sin(alpha) * tan(beta);
+    
+    float oren_nayar = NdotL * (A + B * max(0.0, cos_phi_diff) * C);
+    
+    return oren_nayar / PI;
+}
+
+// Fujii Qualitative Oren-Nayar - Approximate but cheaper version of full Oren-Nayar, with improved coefficients.
+public float3 DiffFON(float3 normal, float3 lightDir, float3 viewDir, float roughness, float3 albedo)
+{
+    float3 reflDir = -viewDir; // Reflectance direction
+
+    // Keep only positive cosines (light/view above the surface)
+    float NdotL = max(dot(normal, lightDir), 0.0);
+    float NdotV = max(dot(normal, reflDir), 0.0);
+
+    if(NdotL <= 0.0) return float3(0.0);
+
+    float s = dot(lightDir, reflDir) - NdotL * NdotV;
+
+    float t;
+    if (s <= 0.0)
+        t = 1.0;
+    else
+        t = max(NdotL, NdotV);
+
+    // Option 1:
+    // float sigma_prime = roughness;
+    // float denom = PI + (PI/2.0 - 2.0/3.0) * sigma_prime;
+    // float A = PI / denom;
+    // float B = roughness * A;
+
+    // Option 2: (closer to full ON)
+    float sigma2 = roughness * roughness;
+    float A = (1.0 - 0.5 * sigma2 / (sigma2 + 0.33) + 0.17 * luminance(albedo) * sigma2 / (sigma2 + 0.13));
+    float B = 0.45 * sigma2 / (sigma2 + 0.09);
+    
+    float extra = B * (s / t);
+    
+    float oren_nayar = NdotL * (A + extra);
+    
+    return albedo * oren_nayar / PI;
+}
+
+static const float c1FON = 0.5 - 2.0 / (3.0 * PI);
+static const float c2FON = 2.0 / 3.0 - 28.0 / (15.0 * PI);
+float eFONexact(float NdotV, float roughness)
+{
+    float A = 1.0 / (1.0 + c1FON * roughness);
+    float B = roughness * A;
+    float Si = sqrt(1.0 - NdotV * NdotV);
+    float G = Si * (acos(NdotV) - Si * NdotV) + (2.0 / 3.0) * ((Si / NdotV) * (1.0 - (Si * Si * Si)) - Si);
+    return A + (B * INVPI) * G;
+}
+
+float eFONapprox(float NdotV, float roughness)
+{
+    float mucomp = 1.0 - NdotV;
+    const float g1 = 0.0571085289;
+    const float g2 = 0.491881867;
+    const float g3 = -0.332181442;
+    const float g4 = 0.0714429953;
+    float GoverPi = mucomp * (g1 + mucomp * (g2 + mucomp * (g3 + mucomp * g4)));
+    return (1.0 + roughness * GoverPi) / (1.0 + c1FON * roughness);
+}
+
+// Energy conserving Oren-Nayar - Improved ON
+public float3 DiffEON(float3 normal, float3 lightDir, float3 viewDir, float roughness, float3 albedo, bool exact)
+{
+    float3 reflDir = -viewDir; // Reflectance direction
+
+    // float sigma = roughness * PI / 2;
+    float sigma = roughness;
+
+    // Keep only positive cosines (light/view above the surface)
+    float NdotL = dot(normal, lightDir);
+    float NdotV = dot(normal, reflDir);
+
+    if(NdotL <= 0.0) return 0.0;
+
+    float s = dot(lightDir, reflDir) - NdotL * NdotV;
+    float sovertF = s > 0.0 ? s / max(NdotL, NdotV) : s;
+    float A = 1.0 / (1.0 + c1FON * roughness);
+    float3 f_ss = albedo * INVPI * A * (1.0 + roughness * sovertF);
+
+    float EFo = exact ? eFONexact(NdotL, roughness) : eFONapprox(NdotL, roughness);
+    float EFi = exact ? eFONexact(NdotV, roughness) : eFONapprox(NdotV, roughness);
+    float avgEF = A * (1.0 + c2FON * roughness);
+    float3 rho_ms = (albedo * albedo) * avgEF / (float3(1.0) - albedo * (1.0 - avgEF));
+    float3 f_ms = rho_ms * INVPI * max(EPSILON, 1.0 - EFo) * max(EPSILON, 1.0 - EFi) / max(EPSILON, 1.0 - avgEF);
+    // return float3(sovertF);
+    return (f_ss + f_ms) * NdotL;
+
+    // float sigma2 = sigma * sigma;
+    // float A = 1.0 - 0.5 * (sigma2 / (sigma2 + 0.33));
+    // float B = 0.45 * (sigma2 / (sigma2 + 0.09));
+
+    // float3 L_perp = normalize(lightDir - normal * NdotL);
+    // float3 V_perp = normalize(reflDir - normal * NdotV);
+    // float cos_phi_diff = dot(L_perp, V_perp);
+
+    // float alpha = max(acos(NdotL), acos(NdotV));
+    // float beta  = min(acos(NdotL), acos(NdotV));
+    
+    // float C = sin(alpha) * tan(beta);
+    // float f_FON = NdotL * (A + B * max(0.0, cos_phi_diff) * C);
+
+    // float EFo = exact ? eFONexact(NdotV, roughness) : eFONapprox(NdotV, roughness);
+    
+
+    // return f_FON;
 }
 
 public float3 SchlickFresnel(float3 F0, float3 halfDir, float3 reflDir)
@@ -158,11 +297,15 @@ public float3 pbrBRDF(
     float3 F_L = SchlickFresnel(F0, normal, lightDir);             // Reflectance with respect to the light direction
     float3 F_diffuse = saturate(lerp(F0, F_L, 1.0 - roughness)); // Effect on diffuse based on roughness
     
-    float3 diffuse = (1 - metallic) * (1 - F_diffuse) * DiffOrenNayar(normal, lightDir, viewDir, albedo, roughness);
-    // float3 diffuse = (1 - metallic) * (1 - F_diffuse) * DiffBurley(normal, lightDir, viewDir, albedo, roughness);
-    // float3 diffuse = (1 - metallic) * DiffBurley(normal, lightDir, viewDir, albedo, roughness);
+    float3 diffuse = (1 - metallic) * (1 - F_diffuse) * DiffEON(normal, lightDir, viewDir, roughness * roughness, albedo, true);
+    // float3 diffuse = (1 - metallic) * DiffFON(normal, lightDir, viewDir, roughness, albedo);
+    // float3 diffuse = (1 - metallic) * DiffOrenNayar(normal, lightDir, viewDir, roughness, albedo);
+    // float3 diffuse = (1 - metallic) * (1 - F_diffuse) * DiffBurley(normal, lightDir, viewDir, roughness) * albedo;
+    // float3 diffuse = (1 - metallic) * DiffBurley(normal, lightDir, viewDir, roughness) * albedo;
     // float3 diffuse = (1 - metallic) * DiffLambertian(normal, lightDir) * albedo / PI;
     float3 specular = SpecCookTorrance(normal, lightDir, viewDir, roughness, F0);
+    // float3 specTint = lerp(float3(1), albedo, 0.5);
+    // specular *= specTint;
     
     return lightColor * (diffuse + specular);
 }
@@ -190,6 +333,7 @@ public float3 pbrAmbient(
     float3 ambientSpecular = reflectSample * F_ambient;
 
     return ambientDiffuse + ambientSpecular;
+    // return float3(0);
 }
 
 public float3 goochBRDF(

@@ -19,7 +19,6 @@ void Scene_t::loadScene()
     Mesh terrainMesh = Mesh::loadObj("internal/models/terrain.obj", "Terrain Mesh");
     Mesh haloMesh = Mesh::loadObj("internal/models/halo_skybox.obj", "Halo Mesh");
     // terrainMesh.generateTangents();
-    monkeyMesh->vertices[0].tangent = glm::vec4(1,1,0,1);
     Mesh cubeMesh = Mesh::createCube(0.1f, "Cube");
 
     GameObject obj{ObjectManager::Instantiate<GameObject_t>("Basic Monkey")};

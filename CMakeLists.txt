@@ -23,7 +23,7 @@ add_compile_options(
     -fno-caret-diagnostics
     -fno-diagnostics-show-option
     -fno-diagnostics-show-note-include-stack
-    -fcolor-diagnostics
+    -fno-color-diagnostics
     -fdiagnostics-absolute-paths
     # -fmacro-prefix-map=${CMAKE_SOURCE_DIR}/=.
     # -ffile-prefix-map=${CMAKE_SOURCE_DIR}/=.

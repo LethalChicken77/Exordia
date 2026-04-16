@@ -15,7 +15,7 @@ MaterialHandle MaterialRegistry::Register(Material &material, DescriptorPool &po
 {
     if(material.graphicsHandle.IsValid()) return material.graphicsHandle; // Material is already registered
 
-    GraphicsPipelineOld* pipeline = pipelineRegistry.Get(material.shader->graphicsHandle);
+    GraphicsPipeline* pipeline = pipelineRegistry.Get(material.shader->graphicsHandle);
     if(pipeline == nullptr)
     {
         Console::error("Failed to create graphics material: Invalid pipeline", "GraphicsMaterial");

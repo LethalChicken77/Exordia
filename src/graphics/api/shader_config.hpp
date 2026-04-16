@@ -14,20 +14,6 @@ enum class ShaderType
     UI = 5
 };
 
-enum class PrimitiveTopology
-{
-    POINT_LIST = 0,
-    LINE_LIST = 1,
-    LINE_STRIP = 2,
-    TRIANGLE_LIST = 3,
-    TRIANGLE_STRIP = 4,
-    TRIANGLE_FAN = 5,
-    LINE_LIST_WITH_ADJACENCY = 6,
-    LINE_STRIP_WITH_ADJACENCY = 7,
-    TRIANGLE_LIST_WITH_ADJACENCY = 8,
-    TRIANGLE_STRIP_WITH_ADJACENCY = 9,
-};
-
 enum class DrawMode
 {
     FILL = 0,
@@ -74,7 +60,6 @@ enum class StencilOp
 struct ShaderProperties
 {
     ShaderType shaderType = ShaderType::LIT;
-    PrimitiveTopology primitiveTopology = PrimitiveTopology::TRIANGLE_LIST;
     DrawMode drawMode = DrawMode::FILL;
     BlendMode blendMode = BlendMode::ALPHA;
     CullMode cullMode = CullMode::BACK;

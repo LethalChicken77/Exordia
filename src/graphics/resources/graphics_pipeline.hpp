@@ -50,14 +50,16 @@ struct PipelineConfigInfo
     vk::PipelineColorBlendStateCreateInfo colorBlendInfo{};
     vk::PipelineDepthStencilStateCreateInfo depthStencilInfo{};
 
-    std::vector<vk::Format> colorAttachmentFormats{};
-    vk::Format depthAttachmentFormat = vk::Format::eUndefined;
+    std::vector<vk::Format> colorAttachmentFormats = { vk::Format::eB8G8R8A8Srgb };
+    vk::Format depthAttachmentFormat = vk::Format::eD32Sfloat;
     vk::Format stencilAttachmentFormat = vk::Format::eUndefined;
 
     const std::vector<vk::DynamicState> dynamicStateEnables {
         vk::DynamicState::eViewport, vk::DynamicState::eScissor, // Controlled dynamically by viewport image
-        vk::DynamicState::ePrimitiveTopology, // Determined by mesh data
+        vk::DynamicState::ePrimitiveTopology, // Determined by mesh data. TODO: Reenable after mesh rewrite
+        vk::DynamicState::ePrimitiveRestartEnable,
         // vk::DynamicState::ePolygonModeEXT, // Can be overridden
+
         // Look into:
         // VK_DYNAMIC_STATE_PRIMITIVE_RESTART_ENABLE,
         // VK_DYNAMIC_STATE_LINE_STIPPLE
@@ -197,13 +199,15 @@ private:
 class GraphicsPipeline
 {
 public:
-    GraphicsPipeline(internal::Device &device, const Shader &shader, VkPipelineCache cache);
+    GraphicsPipeline(internal::Device &device, const Shader &shader, vk::PipelineCache cache);
     ~GraphicsPipeline();
 
     GraphicsPipeline(const GraphicsPipeline&) = delete;
     GraphicsPipeline& operator=(const GraphicsPipeline&) = delete;
     GraphicsPipeline (GraphicsPipeline&&); // Allow explicit moving
     GraphicsPipeline&& operator=(GraphicsPipeline&&) = delete;
+
+    void Bind(vk::CommandBuffer commandBuffer);
 
     VkPipelineLayout GetPipelineLayout() const { return m_pipelineLayout; }
     const DescriptorSetLayout &GetDescriptorSetLayout() const { return m_materialSetLayout; }
@@ -219,7 +223,11 @@ private:
     DescriptorSetLayout createDescriptorSetLayout(const Shader &shader);
 
     void createPipelineLayout(const Shader &shader);
-    void createPipeline(VkPipelineCache cache);
+    vk::ShaderModuleCreateInfo createShaderModuleInfo(const std::vector<uint32_t> &spvCode);
+    std::vector<vk::VertexInputBindingDescription> createVertexBindings(const VertexLayout& layout);
+    std::vector<vk::VertexInputAttributeDescription> createVertexAttributes(const VertexLayout& layout);
+    void createPipeline(const Shader &shader, vk::PipelineCache cache);
+
 };
 
 }

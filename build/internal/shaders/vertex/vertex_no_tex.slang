@@ -7,3 +7,5 @@ struct VertexData
     [SNorm8] float2 Normal : NORMAL;
     uint8_t3 Color : COLOR;
 };
+
+#include "instance.slang"

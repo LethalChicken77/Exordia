@@ -4,7 +4,6 @@
 #include "backend/vulkan_backend.hpp"
 #include "rendering/frame_orchestrator.hpp"
 #include "resources/descriptors.hpp"
-#include "resources/pipeline_manager.hpp"
 #include "resources/shader_buffer.hpp"
 #include "resources/registries/mesh_registry.hpp"
 #include "resources/registries/material_registry.hpp"

@@ -12,6 +12,7 @@ struct GHandle
     uint32_t generation = 0; // UAF protection
 
     bool IsValid() const { return index != ~0u; }
+    void Invalidate() { *this = GHandle<Tag>(); }
 
     bool operator==(const GHandle& other) const
     {

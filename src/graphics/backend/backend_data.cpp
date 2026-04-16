@@ -12,19 +12,22 @@ Features::Features()
     vk::PhysicalDeviceVulkan13Features &features13 = featureChain.get<vk::PhysicalDeviceVulkan13Features>();
     vk::PhysicalDeviceVulkan14Features &features14 = featureChain.get<vk::PhysicalDeviceVulkan14Features>();
 
-    features2.features.samplerAnisotropy = VK_TRUE;
-    features2.features.fillModeNonSolid = VK_TRUE;
-    features2.features.shaderFloat64 = VK_TRUE;
+    features2.features.samplerAnisotropy = true;
+    features2.features.fillModeNonSolid = true;
+    features2.features.shaderFloat64 = true;
     
-    features11.uniformAndStorageBuffer16BitAccess = VK_TRUE;
-    features12.shaderFloat16 = VK_TRUE;
-    features12.uniformAndStorageBuffer8BitAccess = VK_TRUE;
-    features12.shaderInt8 = VK_TRUE;
+    features11.uniformAndStorageBuffer16BitAccess = true;
+    features12.shaderFloat16 = true;
+    features12.uniformAndStorageBuffer8BitAccess = true;
+    features12.shaderInt8 = true;
     
-    features13.dynamicRendering = VK_TRUE;
+    features13.dynamicRendering = true;
     
-    features12.scalarBlockLayout = VK_TRUE;
-
+    features12.scalarBlockLayout = true;
+    
+    features13.maintenance4 = true;
+    features14.maintenance5 = true;
+    features14.maintenance6 = true;
 }
 
 bool Features::operator==(const Features &other) const

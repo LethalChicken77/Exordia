@@ -133,7 +133,7 @@ void Engine::init()
     pbrMat->SetTexture("albedoMap", thA);
     pbrMat->SetTexture("roughnessMap", thR);
     pbrMat->SetTexture("metallicMap", thM);
-    // pbrMat->SetTexture("specularMap", thS);
+    pbrMat->SetTexture("specularMap", thS);
     pbrMat->SetTexture("normalMap", thN);
     pbrMat->name = "PBR Mat";
 

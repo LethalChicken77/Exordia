@@ -146,7 +146,8 @@ std::string VertexLayout::Attribute::ToString() const
             result << "I_Model";
             break;
     }
-    result << " \tFormat: " << format.ToString() << "}";
+    vk::Format validationFormat = (vk::Format)GetFormat();
+    result << " \tFormat: " << format.ToString() << "} : " << vk::to_string(validationFormat);
     return result.str();
 }
 

@@ -5,7 +5,7 @@
 namespace graphics
 {
 
-GraphicsMaterial::GraphicsMaterial(const Material* _base, const GraphicsPipelineOld &pipeline, const TextureRegistry& textureRegistry, DescriptorPool &pool) 
+GraphicsMaterial::GraphicsMaterial(const Material* _base, const GraphicsPipeline &pipeline, const TextureRegistry& textureRegistry, DescriptorPool &pool) 
     : device(pool.GetDevice()),
     base(_base),
     layout(&pipeline.GetDescriptorSetLayout()),

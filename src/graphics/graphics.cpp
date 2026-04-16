@@ -188,7 +188,7 @@ namespace graphics
                 GraphicsMaterial *mat = graphicsData->materialRegistry.Get(renderData.materialHandle);
                 // Console::debugf("{}", renderData.materialHandle.index);
                 if(mat == nullptr) continue;
-                GraphicsPipelineOld *currentPipeline = graphicsData->pipelineRegistry.Get(mat->base->shader->graphicsHandle);
+                GraphicsPipeline *currentPipeline = graphicsData->pipelineRegistry.Get(mat->base->shader->graphicsHandle);
                 if(currentPipeline == nullptr) continue;
                 currentPipeline->Bind(renderContext.commandBuffer);
                 localDescriptorSets = {mat->GetDescriptorSet()}; // This is terrible. TODO: literally anything else

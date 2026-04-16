@@ -32,6 +32,7 @@ public:
     const std::vector<uint32_t>& GetFragSpirv() const { return fragSpirv; }
     const ShaderLayout& GetLayout() const { return layout; }
     const ShaderLayout* GetLayoutPtr() const { return &layout; }
+    const VertexLayout& GetVertexLayout() const { return vertLayout; }
 
     void SetVertexShaderAsset(ShaderAsset* asset) { vertexShaderAsset = asset; }
     void SetFragmentShaderAsset(ShaderAsset* asset) { fragmentShaderAsset = asset; }

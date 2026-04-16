@@ -4,34 +4,32 @@
 namespace graphics
 {
 
-void DrawFunctions::bindCameraDescriptor(const FrameContext &renderContext, VkDescriptorSet descriptorSet, const GraphicsPipelineOld* pipeline)
+void DrawFunctions::bindCameraDescriptor(const FrameContext &renderContext, vk::DescriptorSet descriptorSet, const GraphicsPipeline* pipeline)
 {
-    std::vector<VkDescriptorSet> descriptorSets = { descriptorSet };
+    std::vector<vk::DescriptorSet> descriptorSets = { descriptorSet };
 
-    vkCmdBindDescriptorSets(
-        renderContext.commandBuffer, 
-        VK_PIPELINE_BIND_POINT_GRAPHICS, 
-        pipeline->GetPipelineLayout(), 
+    renderContext.commandBuffer.bindDescriptorSets(
+        vk::PipelineBindPoint::eGraphics,
+        pipeline->GetPipelineLayout(),
         0,
-        static_cast<uint32_t>(descriptorSets.size()),
-        descriptorSets.data(), 
+        descriptorSets.size(),
+        descriptorSets.data(),
         0,
         nullptr
     );
 }
 
-void DrawFunctions::bindGlobalDescriptor(const FrameContext &renderContext, VkDescriptorSet descriptorSet, const GraphicsPipelineOld* pipeline)
+void DrawFunctions::bindGlobalDescriptor(const FrameContext &renderContext, vk::DescriptorSet descriptorSet, const GraphicsPipeline* pipeline)
 {
 
-    std::vector<VkDescriptorSet> descriptorSets = { descriptorSet };
+    std::vector<vk::DescriptorSet> descriptorSets = { descriptorSet };
 
-    vkCmdBindDescriptorSets(
-        renderContext.commandBuffer, 
-        VK_PIPELINE_BIND_POINT_GRAPHICS, 
-        pipeline->GetPipelineLayout(), 
+    renderContext.commandBuffer.bindDescriptorSets(
+        vk::PipelineBindPoint::eGraphics,
+        pipeline->GetPipelineLayout(),
         1,
-        static_cast<uint32_t>(descriptorSets.size()),
-        descriptorSets.data(), 
+        descriptorSets.size(),
+        descriptorSets.data(),
         0,
         nullptr
     );

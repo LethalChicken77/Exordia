@@ -10,8 +10,9 @@ struct CameraProperties
     /// @brief Distance in world units to the near clipping plane.
     float near = 0.01f;
     /// @brief Distance in world units to the far clipping plane.
-    float far = INFINITY; 
+    float far = 10000.0f; 
     // float whereverYouAre;
+    bool infiniteFarPlane = true;
     
     /// @brief Vertical field of view.
     ///

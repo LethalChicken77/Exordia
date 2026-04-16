@@ -26,7 +26,6 @@ Shader::Shader(ShaderAsset* vertAsset, ShaderAsset* fragAsset, const ShaderPrope
 
 void Shader::Compile()
 {
-    vertLayout = VertexLayout();
     std::vector<uint32_t> tempVertSpirv{};
     std::vector<uint32_t> tempFragSpirv{};
     isValid = false;
@@ -40,6 +39,8 @@ void Shader::Compile()
             &tempFragSpirv,
             nullptr,
             &vertLayout);
+            
+        Console::log(vertLayout.ToString());
     }
     else
     {
@@ -53,7 +54,6 @@ void Shader::Compile()
     {
         vertSpirv = tempVertSpirv;
         fragSpirv = tempFragSpirv;
-        // vertLayout = VertexLayout(vertSpirv); // TODO: Replace with slang reflection
         layout = ShaderLayout(fragSpirv);
         graphicsModule.UpdateShader(*this);
     }

@@ -1,11 +1,5 @@
 #include "attributes.slang"
 
-struct InstanceData
-{
-    float4x4 Model : MODEL;
-    uint InstanceID : SV_InstanceID;
-};
-
 struct VOut
 {
     float3 Position : POSITION;

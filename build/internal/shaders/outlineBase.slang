@@ -2,7 +2,7 @@ import utils;
 import shading_models;
 import colorspace;
 
-import shaderInputs;
+import vertex_pos_only;
 
 // Material Descriptor Set
 struct MaterialInfo

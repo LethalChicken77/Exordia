@@ -1,4 +1,7 @@
 #include "shader_reflection.hpp"
+
+#include <glm/glm.hpp>
+
 #include "graphics/backend/vulkan_include.h"
 #include "console.hpp"
 #include "graphics/utils/alignment.hpp"
@@ -44,25 +47,35 @@ void SlangReflect::reflectLayout(slang::VariableLayoutReflection* reflect, Shade
 void SlangReflect::reflectVertex(slang::EntryPointReflection* reflect, VertexLayout* vertLayout)
 {
     uint32_t bufferOffset = 0;
+    reflect->getTypeLayout();
     // uint32_t weightsBufferoffset = 0;
+    uint32_t locationBase = 0;
     for(uint32_t i = 0; i < reflect->getParameterCount(); i++)
     {
         // Leaving this as a loop in case I need to parse instance layout
-        if(i != 0) continue; // Vertex parameter comes first.
-        slang::VariableLayoutReflection* inputRefl = reflect->getParameterByIndex(i);
-        slang::TypeLayoutReflection* typeLayout = inputRefl->getTypeLayout();
-
-        Console::debugf("Input name: {}", typeLayout->getName());
+        
+        slang::VariableLayoutReflection* param = reflect->getParameterByIndex(i);
+        slang::TypeLayoutReflection* typeLayout = param->getTypeLayout();
+        // if (param->getCategory() == slang::ParameterCategory::VaryingInput ||
+        //     param->getCategory() == slang::ParameterCategory::Mixed)
+        uint32_t location;
         for(uint32_t j = 0; j < typeLayout->getFieldCount(); j++)
         {
             slang::VariableLayoutReflection* field = typeLayout->getFieldByIndex(j);
-            if(field->getSemanticName())
-                Console::debugf("{}: {}", field->getName(), field->getSemanticName());
-            else
-                Console::debugf("{}", field->getName());
+            // uint32_t location = field->getOffset(slang::ParameterCategory::VaryingInput);
+            location = field->getBindingIndex() + locationBase;
 
             Attribute attribute{};
-            attribute.location = field->getOffset(SLANG_PARAMETER_CATEGORY_VERTEX_INPUT);
+            // attribute.location = field->getOffset(SLANG_PARAMETER_CATEGORY_VERTEX_INPUT);
+            attribute.location = (uint8_t)location;
+            // attribute.location = field->getSemanticIndex();
+
+            if(i == 1) 
+            {
+                Console::logf("{}", location);
+                vertLayout->instanceBaseLocation = glm::min(vertLayout->instanceBaseLocation, (uint8_t)location);
+                continue; // Don't add instance parameters to vertex layout
+            }
             
             AttrFormat &attrFormat = attribute.format;
             
@@ -71,7 +84,7 @@ void SlangReflect::reflectVertex(slang::EntryPointReflection* reflect, VertexLay
             {
                 std::string fieldSemantic = fieldSemantic_p;
 
-                if(fieldSemantic.starts_with("SV_")) 
+                if(fieldSemantic.starts_with("SV_"))
                     continue; // Ignore system semantics for layout
 
                 if(fieldSemantic == "POSITION")
@@ -86,6 +99,8 @@ void SlangReflect::reflectVertex(slang::EntryPointReflection* reflect, VertexLay
                     attribute.semantic = AttrSemantic::Color;
                 else if(fieldSemantic.starts_with("UV") || fieldSemantic.starts_with("TEXCOORD"))
                     attribute.semantic = AttrSemantic::UV;
+                else if(fieldSemantic == "MODEL")
+                    attribute.semantic = AttrSemantic::I_Model;
             }
 
             attrFormat.componentCount = field->getType()->getColumnCount();
@@ -170,11 +185,9 @@ void SlangReflect::reflectVertex(slang::EntryPointReflection* reflect, VertexLay
                 bufferOffset += attribute.format.GetSize();
             }
 
-            // Console::debugf("\tFormat info: {}", attrFormat.ToString());
-            // vk::Format validationFormat = (vk::Format)attribute.GetFormat();
-            // Console::log(vk::to_string(validationFormat));
             vertLayout->vertexAttributes.push_back(attribute);
         }
+        if(location + 1 > locationBase) locationBase = location + 1;
     }
     Console::log(vertLayout->ToString());
 }

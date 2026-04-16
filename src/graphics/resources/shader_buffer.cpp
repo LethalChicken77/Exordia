@@ -1,6 +1,5 @@
 #include "shader_buffer.hpp"
 #include "graphics/graphics_data.hpp"
-#include "pipeline_manager.hpp"
 
 namespace graphics
 {

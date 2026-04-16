@@ -6,6 +6,8 @@
 #include <cstdint>
 
 using Vertex = core::MeshData::Vertex;
+using VertexNoPos = core::MeshData::VertexNoPos;
+using VertexPos = core::MeshData::VertexPos;
 using Triangle = core::MeshData::Triangle;
 
 namespace graphics
@@ -32,16 +34,40 @@ GraphicsMesh::GraphicsMesh(internal::Device &_device, const core::MeshData* mesh
 
 GraphicsMesh::~GraphicsMesh(){}
 
-void GraphicsMesh::bind(VkCommandBuffer commandBuffer, const std::unique_ptr<Buffer> &instanceBuffer) const
+constexpr vk::PrimitiveTopology getVkTopology(PrimitiveTopology t)
 {
-    VkBuffer buffers[] = {vertexBuffer->GetBuffer(), instanceBuffer->GetBuffer()};
-    VkDeviceSize offsets[] = {0, 0};
-    vkCmdBindVertexBuffers(commandBuffer, 0, 2, buffers, offsets);
-    if(useIndexBuffer)
-        vkCmdBindIndexBuffer(commandBuffer, indexBuffer->GetBuffer(), 0, VK_INDEX_TYPE_UINT32);
+    switch(t)
+    {
+    default:
+    case PrimitiveTopology::TriangleList:
+        return vk::PrimitiveTopology::eTriangleList;
+    case PrimitiveTopology::TriangleFan:
+        return vk::PrimitiveTopology::eTriangleFan;
+    case PrimitiveTopology::TriangleStrip:
+        return vk::PrimitiveTopology::eTriangleStrip;
+    case PrimitiveTopology::LineList:
+        return vk::PrimitiveTopology::eLineList;
+    case PrimitiveTopology::LineStrip:
+        return vk::PrimitiveTopology::eLineStrip;
+    case PrimitiveTopology::PointList:
+        return vk::PrimitiveTopology::ePointList;
+    
+    }
 }
 
-void GraphicsMesh::draw(VkCommandBuffer commandBuffer, uint32_t instanceCount) const
+void GraphicsMesh::bind(vk::CommandBuffer commandBuffer, const std::unique_ptr<Buffer> &instanceBuffer) const
+{
+    vk::Buffer buffers[] = {positionBuffer->GetBuffer(), vertexBuffer->GetBuffer(), instanceBuffer->GetBuffer()};
+    vk::DeviceSize offsets[] = {0, 0, 0};
+    commandBuffer.bindVertexBuffers(0, 3, buffers, offsets);
+    if(useIndexBuffer)
+        commandBuffer.bindIndexBuffer(indexBuffer->GetBuffer(), 0, vk::IndexType::eUint32);
+        
+    commandBuffer.setPrimitiveTopology(getVkTopology(config.primitiveTopology));
+    commandBuffer.setPrimitiveRestartEnable(config.enablePrimitiveRestart);
+}
+
+void GraphicsMesh::draw(vk::CommandBuffer commandBuffer, uint32_t instanceCount) const
 {
     if(useIndexBuffer)
         vkCmdDrawIndexed(commandBuffer, indexCount, instanceCount, 0, 0, 0);
@@ -49,7 +75,7 @@ void GraphicsMesh::draw(VkCommandBuffer commandBuffer, uint32_t instanceCount) c
         vkCmdDraw(commandBuffer, vertexCount, instanceCount, 0, 0);
 }
 
-void GraphicsMesh::createVertexBuffer(const core::MeshData* meshPtr)
+void GraphicsMesh::createVertexBuffers(const core::MeshData* meshPtr)
 {
     if(meshPtr == nullptr)
     {
@@ -59,30 +85,68 @@ void GraphicsMesh::createVertexBuffer(const core::MeshData* meshPtr)
     
     const std::vector<Vertex> &vertices = meshPtr->vertices; // Reference to triangles array for easy access
 
-    assert(vertexCount >= 3 && "Vertex count must be at least 3");
-    VkDeviceSize bufferSize = sizeof(vertices[0]) * vertexCount;
-    uint32_t vertexSize = sizeof(vertices[0]);
+    assert(vertices.size() >= 3 && "Vertex count must be at least 3");
+    std::vector<VertexPos> positions{vertices.size()};
+    std::vector<VertexNoPos> vertices2{vertices.size()};
 
-    Buffer stagingBuffer{
-        device,
-        vertexSize,
-        vertexCount,
-        VK_BUFFER_USAGE_TRANSFER_SRC_BIT,
-        VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT
-    };
+    for(uint32_t i = 0; i < vertices.size(); i++)
+    {
+        const Vertex& vert = vertices[i];
+        positions[i].position = vert.position;
+        vertices2[i].normal = vert.normal;
+        vertices2[i].tangent = vert.tangent;
+        vertices2[i].color = vert.color;
+        vertices2[i].texCoord = vert.texCoord;
+    }
 
-    stagingBuffer.Map();
-    stagingBuffer.WriteData((void *)vertices.data(), vertexCount * vertexSize);
+    uint32_t positionSize = sizeof(positions[0]);
+    uint32_t vertexSize = sizeof(vertices2[0]); 
 
-    vertexBuffer = std::make_unique<Buffer>(
-        device,
-        vertexSize,
-        vertexCount,
-        VK_BUFFER_USAGE_VERTEX_BUFFER_BIT | VK_BUFFER_USAGE_TRANSFER_DST_BIT,
-        VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT
-    );
+    {
+        VkDeviceSize bufferSize = positionSize * vertices.size();
+        Buffer stagingBuffer{
+            device,
+            positionSize,
+            vertexCount,
+            VK_BUFFER_USAGE_TRANSFER_SRC_BIT,
+            VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT
+        };
+    
+        stagingBuffer.Map();
+        stagingBuffer.WriteData((void *)positions.data(), vertices.size() * positionSize);
+    
+        positionBuffer = std::make_unique<Buffer>(
+            device,
+            positionSize,
+            vertices.size(),
+            VK_BUFFER_USAGE_VERTEX_BUFFER_BIT | VK_BUFFER_USAGE_TRANSFER_DST_BIT,
+            VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT
+        );
+        positionBuffer->CopyFromBuffer(stagingBuffer, bufferSize);
+    }
 
-    vertexBuffer->CopyFromBuffer(stagingBuffer, bufferSize);
+    {
+        VkDeviceSize bufferSize = vertexSize * vertices.size();
+        Buffer stagingBuffer{
+            device,
+            vertexSize,
+            vertexCount,
+            VK_BUFFER_USAGE_TRANSFER_SRC_BIT,
+            VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT
+        };
+    
+        stagingBuffer.Map();
+        stagingBuffer.WriteData((void *)vertices2.data(), vertices.size() * vertexSize);
+    
+        vertexBuffer = std::make_unique<Buffer>(
+            device,
+            vertexSize,
+            vertices.size(),
+            VK_BUFFER_USAGE_VERTEX_BUFFER_BIT | VK_BUFFER_USAGE_TRANSFER_DST_BIT,
+            VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT
+        );
+        vertexBuffer->CopyFromBuffer(stagingBuffer, bufferSize);
+    }
 }
 
 void GraphicsMesh::createIndexBuffer(const core::MeshData* meshPtr)
@@ -129,73 +193,8 @@ void GraphicsMesh::createIndexBuffer(const core::MeshData* meshPtr)
 
 void GraphicsMesh::createBuffers(const core::MeshData* meshPtr)
 {
-    createVertexBuffer(meshPtr);
+    createVertexBuffers(meshPtr);
     createIndexBuffer(meshPtr);
-}
-
-std::vector<VkVertexInputBindingDescription> GraphicsMesh::getVertexBindingDescriptions()
-{
-    std::vector<VkVertexInputBindingDescription> bindingDescriptions(2);
-    bindingDescriptions[0].binding = 0;
-    bindingDescriptions[0].stride = sizeof(Vertex);
-    bindingDescriptions[0].inputRate = VK_VERTEX_INPUT_RATE_VERTEX;
-
-    // Instance data
-    bindingDescriptions[1].binding = 1;
-    bindingDescriptions[1].stride = sizeof(glm::mat4);
-    bindingDescriptions[1].inputRate = VK_VERTEX_INPUT_RATE_INSTANCE;
-    return bindingDescriptions;
-}
-
-std::vector<VkVertexInputAttributeDescription> GraphicsMesh::getVertexAttributeDescriptions()
-{
-    std::vector<VkVertexInputAttributeDescription> attributeDescriptions(9);
-    uint32_t currentLocation = 0;
-    attributeDescriptions[currentLocation].binding = 0;
-    attributeDescriptions[currentLocation].location = currentLocation;
-    attributeDescriptions[currentLocation].format = VK_FORMAT_R32G32B32_SFLOAT;
-    attributeDescriptions[currentLocation].offset = offsetof(Vertex, position);
-    currentLocation++;
-
-    attributeDescriptions[currentLocation].binding = 0;
-    attributeDescriptions[currentLocation].location = currentLocation;
-    attributeDescriptions[currentLocation].format = VK_FORMAT_R32G32B32_SFLOAT;
-    attributeDescriptions[currentLocation].offset = offsetof(Vertex, normal);
-    currentLocation++;
-
-    attributeDescriptions[currentLocation].binding = 0;
-    attributeDescriptions[currentLocation].location = currentLocation;
-    attributeDescriptions[currentLocation].format = VK_FORMAT_R32G32B32A32_SFLOAT;
-    attributeDescriptions[currentLocation].offset = offsetof(Vertex, tangent);
-    currentLocation++;
-
-    // attributeDescriptions[3].binding = 0;
-    // attributeDescriptions[3].location = 3;
-    // attributeDescriptions[3].format = VK_FORMAT_R32G32B32_SFLOAT;
-    // attributeDescriptions[3].offset = offsetof(Vertex, bitangent);
-
-    attributeDescriptions[currentLocation].binding = 0;
-    attributeDescriptions[currentLocation].location = currentLocation;
-    attributeDescriptions[currentLocation].format = VK_FORMAT_R8G8B8_UNORM;
-    attributeDescriptions[currentLocation].offset = offsetof(Vertex, color);
-    currentLocation++;
-
-    attributeDescriptions[currentLocation].binding = 0;
-    attributeDescriptions[currentLocation].location = currentLocation;
-    attributeDescriptions[currentLocation].format = VK_FORMAT_R32G32_SFLOAT;
-    attributeDescriptions[currentLocation].offset = offsetof(Vertex, texCoord);
-    currentLocation++;
-
-    // Instance attributes
-    for(int i = 0; i < 4; i++) // Transformation matrix
-    {
-        attributeDescriptions[i + currentLocation].binding = 1;
-        attributeDescriptions[i + currentLocation].location = i + currentLocation;
-        attributeDescriptions[i + currentLocation].format = VK_FORMAT_R32G32B32A32_SFLOAT;
-        attributeDescriptions[i + currentLocation].offset = sizeof(glm::vec4) * i;
-    }
-
-    return attributeDescriptions;
 }
 
 std::vector<Vertex> generateSierpinski(float edgeLength, int depth)

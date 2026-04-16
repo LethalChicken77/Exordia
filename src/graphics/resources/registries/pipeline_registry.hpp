@@ -6,7 +6,7 @@ namespace graphics
 {
 
 /// @brief Manager for graphics pipelines. Shaders are registered, and a handle is returned.
-class PipelineRegistry : public GraphicsRegistry<GraphicsPipelineOld, PipelineHandle>
+class PipelineRegistry : public GraphicsRegistry<GraphicsPipeline, PipelineHandle>
 {
 public:
     PipelineRegistry(internal::Device &device);
@@ -15,7 +15,7 @@ public:
     PipelineHandle Register(Shader &shader);
     bool Reload(Shader &shader);
     void ReloadAll();
-    using GraphicsRegistry<GraphicsPipelineOld, PipelineHandle>::Deregister;
+    using GraphicsRegistry<GraphicsPipeline, PipelineHandle>::Deregister;
     inline bool Deregister(Shader &shader)
     {
         return Deregister(shader);

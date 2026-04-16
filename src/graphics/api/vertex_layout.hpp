@@ -162,6 +162,19 @@ public:
         }
     };
 
+    inline uint32_t GetPositionStride() const 
+    {
+        for(const Attribute& attr : vertexAttributes)
+        {
+            if(attr.semantic == AttrSemantic::Position)
+            {
+                return attr.format.GetSize();
+            }
+        }
+        // return Alignment::AlignUp(bufferEnd, 16); // Seems to be outdated
+        return 0;
+    }
+
     inline uint32_t GetStride() const 
     {
         uint32_t bufferEnd = 0;
@@ -178,6 +191,7 @@ public:
     }
 
     inline const std::vector<Attribute> &GetAttributes() const { return vertexAttributes; }
+    inline uint8_t GetInstanceBaseLocation() const { return instanceBaseLocation; }
     
     const std::vector<VkVertexInputBindingDescription> GetVertexBindingDescriptions() const;
     const std::vector<VkVertexInputAttributeDescription> GetVertexAttributeDescriptions() const;
@@ -186,6 +200,7 @@ public:
 
 private:
     std::vector<Attribute> vertexAttributes{};
+    uint8_t instanceBaseLocation = 255;
 
     friend class SlangReflect;
 };

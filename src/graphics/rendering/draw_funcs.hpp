@@ -5,12 +5,12 @@
 namespace graphics
 {
 class Graphics;
-class GraphicsPipelineOld;
+class GraphicsPipeline;
 class DrawFunctions
 {
     public:
-        static void bindCameraDescriptor(const FrameContext &renderContext, VkDescriptorSet descriptorSet, const GraphicsPipelineOld* pipeline);
-        static void bindGlobalDescriptor(const FrameContext &renderContext, VkDescriptorSet descriptorSet, const GraphicsPipelineOld* pipeline);
+        static void bindCameraDescriptor(const FrameContext &renderContext, vk::DescriptorSet descriptorSet, const GraphicsPipeline* pipeline);
+        static void bindGlobalDescriptor(const FrameContext &renderContext, vk::DescriptorSet descriptorSet, const GraphicsPipeline* pipeline);
     private:
         static void renderMeshes(FrameContext& frameInfo, const std::vector<MeshRenderData> &renderQueue);
         static void renderGameObjectIDs(FrameContext& frameInfo, const std::vector<MeshRenderData> &renderQueue);

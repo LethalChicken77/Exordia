@@ -2,7 +2,7 @@
 
 Camera::Camera()
 {
-    CameraProperties properties = {0.01f, 100.0f, 90.0f};
+    CameraProperties properties{};
     setProperties(properties);
 }
 
@@ -63,7 +63,7 @@ void Camera::updateCamera()
     else
     {
         float fovY = 2.0f / (glm::tan(glm::radians(properties.vFov * 0.5f)));
-        if(properties.far != INFINITY)
+        if(!properties.infiniteFarPlane)
             projection = glm::mat4(
                 fovY / (aspectRatio), 0, 0, 0,
                 0, -fovY, 0, 0,

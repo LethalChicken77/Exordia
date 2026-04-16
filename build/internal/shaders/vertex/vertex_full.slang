@@ -9,3 +9,5 @@ struct VertexData
     [UNorm8] float3 Color : COLOR;
     float2 UV : TEXCOORD0;
 };
+
+#include "instance.slang"

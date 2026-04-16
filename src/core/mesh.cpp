@@ -19,6 +19,15 @@ MeshData::~MeshData()
     graphicsModule.DeregisterMesh(*this);
 }
 
+MeshData::MeshData(MeshData&& other)
+    : name(other.name),
+    vertices(other.vertices),
+    triangles(other.triangles),
+    graphicsHandle(other.graphicsHandle)
+{
+    other.graphicsHandle.Invalidate();
+}
+
 void MeshData::SetMesh(const std::vector<Vertex>& _vertices, const std::vector<uint32_t>& _indices)
 {
     vertices = _vertices;
@@ -60,34 +69,37 @@ float angleBetween(glm::vec3 v1, glm::vec3 v2)
 
 Mesh::Mesh(std::vector<Vertex> &vertices, const std::string& objectName)
 {
-    ptr = ObjectManager::Instantiate<MeshData>(objectName);
-    ptr->SetMesh(vertices, std::vector<uint32_t>{});
+    meshData = Ref<MeshData>(MeshData());
+    meshData->name = objectName;
+    meshData->SetMesh(vertices, std::vector<uint32_t>{});
     // graphicsModule.setGraphicsMesh(*this);
 }
 
 Mesh::Mesh(std::vector<Vertex> &vertices, std::vector<uint32_t> &indices, const std::string& objectName)
 {
-    ptr = ObjectManager::Instantiate<MeshData>(objectName);
-    ptr->SetMesh(vertices, indices);
+    meshData = Ref<MeshData>(MeshData());
+    meshData->name = objectName;
+    meshData->SetMesh(vertices, indices);
     // graphicsModule.setGraphicsMesh(*this);
 }
 
 Mesh::Mesh(std::vector<Vertex> &vertices, std::vector<Triangle> &triangles, const std::string& objectName)
 {
-    ptr = ObjectManager::Instantiate<MeshData>(objectName);
-    ptr->SetMesh(vertices, triangles);
+    meshData = Ref<MeshData>(std::move(MeshData()));
+    meshData->name = objectName;
+    meshData->SetMesh(vertices, triangles);
     // graphicsModule.setGraphicsMesh(*this);
 }
 
 void Mesh::generateNormals()
 {
-    if(!ptr)
+    if(!meshData)
     {
         Console::error("Cannot generate normals as mesh pointer is null", "Mesh");
     }
 
-    std::vector<Vertex> &vertices = ptr->vertices;
-    std::vector<Triangle> &triangles = ptr->triangles;
+    std::vector<Vertex> &vertices = meshData->vertices;
+    std::vector<Triangle> &triangles = meshData->triangles;
     if(triangles.size() == 0)
     {
         return;
@@ -135,13 +147,13 @@ void Mesh::generateNormals()
 
 void Mesh::generateTangents()
 {
-    if(!ptr)
+    if(!meshData)
     {
         Console::error("Cannot generate tangents as mesh pointer is null", "Mesh");
     }
 
-    std::vector<Vertex> &vertices = ptr->vertices;
-    std::vector<Triangle> &triangles = ptr->triangles;
+    std::vector<Vertex> &vertices = meshData->vertices;
+    std::vector<Triangle> &triangles = meshData->triangles;
     if(triangles.size() == 0)
     {
         Console::error("Cannot generate tangents as there are no triangles defined", "Mesh");

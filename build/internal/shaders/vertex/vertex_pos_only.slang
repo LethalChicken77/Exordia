@@ -5,3 +5,5 @@ struct VertexData
     uint VertexID : SV_VertexID;
     float3 Position : POSITION;
 };
+
+#include "instance.slang"

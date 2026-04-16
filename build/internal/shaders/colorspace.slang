@@ -121,3 +121,11 @@ public float3 ACESFilmCurve(float3 color)
     // Clamp to [0,1] for display
     return saturate(color);
 }
+
+
+/// Color helper functions
+
+public float luminance(float3 color)
+{
+    return dot(color, float3(0.299, 0.587, 0.114));
+}

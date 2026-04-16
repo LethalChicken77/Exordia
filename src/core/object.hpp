@@ -3,6 +3,7 @@
 #include <vector>
 #include <cstdint>
 #include "engine_types.hpp"
+#include "ref.hpp"
 
 namespace core
 {

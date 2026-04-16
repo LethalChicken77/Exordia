@@ -58,7 +58,8 @@ float4 fsMain(FIn input)
     float3 albedo = albedoMap.Sample(UV).xyz;
     float roughness = roughnessMap.Sample(UV).x; // Assume linear texture
     float metallic = saturate(metallicMap.Sample(UV).x * 1.2);
-    float specular = 0.1;//specularMap.Sample(UV).x;
+    float specular = 0.05;//specularMap.Sample(UV).x;
+    // float specular = specularMap.Sample(UV).x;
     float3 normalMapSample = normalMap.Sample(UV).xyz * 2.0 - 1.0;
 
     normalMapSample *= float3(1, 1, 1 / materialInfo.normalMapStrength);

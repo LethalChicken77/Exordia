@@ -2,8 +2,8 @@ import utils;
 import shading_models;
 import colorspace;
 
-import shaderInputs;
 import "vertex/vertex_full.slang";
+import shaderInputs;
 
 // Material Descriptor Set
 struct MaterialInfo
@@ -19,6 +19,7 @@ VOut vsMain(VertexData vertex, InstanceData instance)
 {
     VOut output;
     float4x4 model = transpose(instance.Model);
+    // float4x4 model = float4x4(1,0,0,0,0,1,0,0,0,0,1,0,0,0,0,1);
     output.FragPosition = mul(cameraData.viewProj, mul(model, float4(vertex.Position, 1.0)));
     output.Position = mul(model, float4(vertex.Position, 1.0)).xyz;
     // output.FragPosition = float4(vertex.Position, 1.0);

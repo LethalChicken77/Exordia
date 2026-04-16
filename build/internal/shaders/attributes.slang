@@ -1,6 +1,7 @@
 // Not functional yet, TODO: Slang reflection
 // Include using #include rather than import for preprocessor defines
 // #define RANGE(min, max) [Range(#min, #max)]
+#ifndef ATTRIBUTES_HEADER
 
 [__AttributeUsage(_AttributeTargets.Var)]
 struct UNorm8Attribute {};
@@ -39,3 +40,6 @@ struct RangeAttribute // Parse in reflection
 //     uint64_t min;
 //     uint64_t max;
 // }
+
+#define ATTRIBUTES_HEADER
+#endif
