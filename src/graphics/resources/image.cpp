@@ -284,13 +284,11 @@ void Image::SetData(const TextureData &data)
         return;
     }
     
-    Buffer stagingBuffer{
+    Buffer stagingBuffer = Buffer::CreateStagingBuffer(
         device,
         pixelSize,
-        pixelCount,
-        VK_BUFFER_USAGE_TRANSFER_SRC_BIT,
-        VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
-    };
+        pixelCount
+    );
     
     stagingBuffer.Map();
     stagingBuffer.WriteData((void *)data.GetDataPtr());
@@ -346,13 +344,12 @@ void Image::GetData(TextureData *data) const
         throw std::runtime_error("Texture data size does not match buffer size");
     }
     
-    Buffer stagingBuffer{
+    Buffer stagingBuffer = Buffer::CreateStagingBuffer(
         device,
         pixelSize,
         pixelCount,
-        VK_BUFFER_USAGE_TRANSFER_DST_BIT,
-        VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
-    };
+        false
+    );
     
     stagingBuffer.Map();
 

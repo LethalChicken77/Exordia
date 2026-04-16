@@ -19,8 +19,8 @@ GraphicsMaterial::GraphicsMaterial(const Material* _base, const GraphicsPipeline
             device,
             base->GetData().size(),
             1,
-            VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT,
-            VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
+            vk::BufferUsageFlagBits::eUniformBuffer,
+            vk::MemoryPropertyFlagBits::eHostVisible | vk::MemoryPropertyFlagBits::eHostCoherent,
             1
         );
     

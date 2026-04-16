@@ -146,6 +146,7 @@ target_include_directories(GameEngine PRIVATE "${CMAKE_SOURCE_DIR}/lib/stbimage"
 target_include_directories(GameEngine PRIVATE "${CMAKE_SOURCE_DIR}/lib/imgui-1.91.8")
 target_include_directories(GameEngine PRIVATE "${CMAKE_SOURCE_DIR}/lib/nativefiledialog-release_116/src/include")
 target_include_directories(GameEngine PRIVATE "${CMAKE_SOURCE_DIR}/lib/spirv-reflect")
+target_include_directories(GameEngine PRIVATE "${CMAKE_SOURCE_DIR}/lib/VulkanMemoryAllocator-Hpp")
 target_include_directories(GameEngine PRIVATE "${VULKAN_SDK}/Include")
 target_include_directories(GameEngine PRIVATE "${VULKAN_SDK}/Include/Volk")
 target_include_directories(GameEngine PRIVATE "${VULKAN_SDK}/Include/vulkan") # Needed for vulkan.hpp

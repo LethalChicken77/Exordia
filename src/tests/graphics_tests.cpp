@@ -12,10 +12,10 @@ namespace graphics::tests
     bool TestBufferCreation()
     {
         Console::log("Running Buffer Creation Test", "GraphicsTests");
-        constexpr VkDeviceSize instanceSize = 64;
+        constexpr vk::DeviceSize instanceSize = 64;
         constexpr uint32_t instanceCount = 10;
-        constexpr VkBufferUsageFlags usageFlags = VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT;
-        constexpr VkMemoryPropertyFlags memoryPropertyFlags = VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT;
+        constexpr vk::BufferUsageFlags usageFlags = vk::BufferUsageFlagBits::eUniformBuffer;
+        constexpr vk::MemoryPropertyFlags memoryPropertyFlags = vk::MemoryPropertyFlagBits::eHostVisible | vk::MemoryPropertyFlagBits::eHostCoherent;
 
         try
         {
@@ -44,8 +44,8 @@ namespace graphics::tests
             return false;
         }
 
-        VkResult result = testBuffer->Map();
-        if(result != VK_SUCCESS)
+        vk::Result result = testBuffer->Map();
+        if(result != vk::Result::eSuccess)
         {
             Console::error(std::format("Buffer Mapping Test Failed: {}", Debug::VkResultToString(result)), "GraphicsTests");
             return false;
@@ -61,8 +61,8 @@ namespace graphics::tests
         testBuffer = std::make_unique<Buffer>(
             sizeof(float),
             4,
-            VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT,
-            VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT
+            vk::BufferUsageFlagBits::eUniformBuffer,
+            vk::MemoryPropertyFlagBits::eHostVisible | vk::MemoryPropertyFlagBits::eHostCoherent
         );
         Console::log("Test buffer created", "Graphics");
         testBuffer->Map();

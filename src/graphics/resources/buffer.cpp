@@ -16,11 +16,11 @@ namespace graphics
 /// @param usageFlags Vulkan buffer usage flags
 /// @param minOffsetAlignment (Optional) Minimum offset alignment required by the device (default: 1)
 Buffer::Buffer(
-    VkDeviceSize _instanceSize,
+    vk::DeviceSize _instanceSize,
     uint32_t _instanceCount,
-    VkBufferUsageFlags _usageFlags,
-    VkMemoryPropertyFlags requiredMemoryProperties,
-    VkDeviceSize _minOffsetAlignment
+    vk::BufferUsageFlags _usageFlags,
+    vk::MemoryPropertyFlags requiredMemoryProperties,
+    vk::DeviceSize _minOffsetAlignment
 ) : Buffer(
         graphicsData->GetBackend().GetDevice(),
         _instanceSize,
@@ -37,11 +37,11 @@ Buffer::Buffer(
 /// @param minOffsetAlignment (Optional) Minimum offset alignment required by the device
 Buffer::Buffer(
     internal::Device &_device,
-    VkDeviceSize _instanceSize,
+    vk::DeviceSize _instanceSize,
     uint32_t _instanceCount,
-    VkBufferUsageFlags _usageFlags,
-    VkMemoryPropertyFlags requiredMemoryProperties,
-    VkDeviceSize _minOffsetAlignment) : device(_device)
+    vk::BufferUsageFlags _usageFlags,
+    vk::MemoryPropertyFlags requiredMemoryProperties,
+    vk::DeviceSize _minOffsetAlignment) : device(_device)
 {
     instanceSize = _instanceSize;
     instanceCount = _instanceCount;
@@ -52,23 +52,27 @@ Buffer::Buffer(
     // Console::debugf("Creating buffer: instance size: {}, aligned size: {}, instance count: {}, total size: {}", _instanceSize, instanceSize, instanceCount, bufferSize, "Buffer");
     // #endif
     
-    VkBufferCreateInfo bufferInfo{};
-    bufferInfo.sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO;
+    vk::BufferCreateInfo bufferInfo{};
     bufferInfo.size = bufferSize;
     bufferInfo.usage = usageFlags;
-    bufferInfo.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
+    bufferInfo.sharingMode = vk::SharingMode::eExclusive;
     
-    VmaAllocationCreateInfo allocCreateInfo = {};
-    allocCreateInfo.usage = VMA_MEMORY_USAGE_AUTO;
+    vma::AllocationCreateInfo allocCreateInfo = {};
+    allocCreateInfo.usage = vma::MemoryUsage::eAuto;
     allocCreateInfo.requiredFlags = requiredMemoryProperties;
-    if (requiredMemoryProperties & VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT) // Without this it crashes on a device local buffer
+    if (requiredMemoryProperties & vk::MemoryPropertyFlagBits::eHostVisible) // Without this it crashes on a device local buffer
     {
-        allocCreateInfo.flags = VMA_ALLOCATION_CREATE_HOST_ACCESS_RANDOM_BIT;
+        allocCreateInfo.flags = vma::AllocationCreateFlagBits::eHostAccessRandom;
     }
 
-    VK_CHECK(vmaCreateBuffer(device.GetAllocator(), &bufferInfo, &allocCreateInfo, &buffer, &bufferAllocation, &bufferAllocationInfo), "Failed to create buffer");
-    vmaGetAllocationInfo(device.GetAllocator(), bufferAllocation, &bufferAllocationInfo);
-    // Console::debugf("Created VkBuffer {}", (void*)buffer);
+    VK_CHECK(device.GetAllocator().createBuffer( 
+        &bufferInfo, 
+        &allocCreateInfo, 
+        &buffer, 
+        &bufferAllocation, 
+        &bufferAllocationInfo), "Failed to create buffer");
+    bufferAllocationInfo = device.GetAllocator().getAllocationInfo(bufferAllocation);
+    // Console::debugf("Created vk::Buffer {}", (void*)buffer);
 }
 
 Buffer::~Buffer() 
@@ -96,17 +100,71 @@ Buffer::Buffer(Buffer&& other)
 {
     other.buffer = VK_NULL_HANDLE;
     other.bufferAllocation = VK_NULL_HANDLE;
-    vmaGetAllocationInfo(device.GetAllocator(), bufferAllocation, &bufferAllocationInfo);
+    bufferAllocationInfo = device.GetAllocator().getAllocationInfo(bufferAllocation);
     bufferAllocationInfo.pMappedData = other.bufferAllocationInfo.pMappedData;
-    other.bufferAllocationInfo = {};
+    other.bufferAllocationInfo = vma::AllocationInfo{};
     other.bufferSize = 0;
 }
+
+Buffer Buffer::CreateStagingBuffer(
+        vk::DeviceSize instanceSize,
+        uint32_t instanceCount,
+        bool isSource,
+        vk::DeviceSize minOffsetAlignment)
+{
+    return CreateStagingBuffer(
+        graphicsData->GetBackend().GetDevice(),
+        instanceSize,
+        instanceCount,
+        isSource,
+        minOffsetAlignment
+    );
+}
+
+Buffer Buffer::CreateStagingBuffer(
+        internal::Device &device,
+        vk::DeviceSize instanceSize,
+        uint32_t instanceCount,
+        bool isSource,
+        vk::DeviceSize minOffsetAlignment)
+{
+    return Buffer(
+        device,
+        instanceSize,
+        instanceCount,
+        isSource ? vk::BufferUsageFlagBits::eTransferSrc : vk::BufferUsageFlagBits::eTransferDst,
+        vk::MemoryPropertyFlagBits::eHostVisible | vk::MemoryPropertyFlagBits::eHostCoherent,
+        minOffsetAlignment
+    );
+}
+
+// void Buffer::WriteDataStaged(void* data, size_t size)
+// {
+//     Buffer stagingBuffer = Buffer::CreateStagingBuffer(
+//         device,
+//         positionSize,
+//         vertexCount
+//     );
+
+//     stagingBuffer.Map();
+//     stagingBuffer.WriteData((void *)transforms.data(), bufferSize);
+
+//     std::unique_ptr<Buffer> instanceBuffer = std::make_unique<Buffer>(
+//         device,
+//         instanceSize,
+//         instanceCount,
+//         vk::BufferUsageFlagBits::eVertexBuffer | vk::BufferUsageFlagBits::eTransferDst,
+//         vk::MemoryPropertyFlagBits::eDeviceLocal
+//     );
+
+//     instanceBuffer->CopyFromBuffer(stagingBuffer, bufferSize);
+// }
 
 /// @brief Assigns a memory range of the buffer to CPU accessible memory
 /// @param size Size of the memory range to map. Pass VK_WHOLE_SIZE to map the complete buffer range.
 /// @param offset Offset in bytes from the beginning of the buffer
 /// @return Status of the map call
-VkResult Buffer::Map(VkDeviceSize size, VkDeviceSize offset)
+vk::Result Buffer::Map(vk::DeviceSize size, vk::DeviceSize offset)
 {
     if(bufferAllocationInfo.pMappedData)
     {
@@ -119,7 +177,7 @@ VkResult Buffer::Map(VkDeviceSize size, VkDeviceSize offset)
         Console::error(std::format("Failed to map buffer memory: {}", Debug::VkResultToString(result)), "Buffer");
     }
     bufferAllocationInfo.pMappedData = tempData;
-    return result;
+    return (vk::Result)result;
 }
 
 /// @brief Unmaps a previously mapped memory range
@@ -137,7 +195,7 @@ void Buffer::Unmap()
 /// @param data Pointer to the data to write from
 /// @param size Size of the data in bytes
 /// @param offset Offset in the buffer to start writing to in bytes
-void Buffer::WriteData(void* data, VkDeviceSize size, VkDeviceSize offset)
+void Buffer::WriteData(void* data, vk::DeviceSize size, vk::DeviceSize offset)
 {
     #ifndef DISABLE_VALIDATION
     if(data == nullptr)
@@ -173,7 +231,7 @@ void Buffer::WriteData(void* data, VkDeviceSize size, VkDeviceSize offset)
 /// @param data Pointer to the data to read into
 /// @param size Size of the data in bytes
 /// @param offset Offset in the buffer to start reading from in bytes
-void Buffer::ReadData(void* resultData, VkDeviceSize size, VkDeviceSize offset)
+void Buffer::ReadData(void* resultData, vk::DeviceSize size, vk::DeviceSize offset)
 {
     #ifndef DISABLE_VALIDATION
     if(resultData == nullptr)
@@ -209,18 +267,18 @@ void Buffer::ReadData(void* resultData, VkDeviceSize size, VkDeviceSize offset)
 /// @param size Size of the memory range to flush (default: VK_WHOLE_SIZE)
 /// @param offset Offset in bytes from beginning (default: 0)
 /// @return Status of the flush call
-VkResult Buffer::Flush(VkDeviceSize size, VkDeviceSize offset)
+void Buffer::Flush(vk::DeviceSize size, vk::DeviceSize offset)
 {    
-    return vmaFlushAllocation(device.GetAllocator(), bufferAllocation, offset, size);
+    device.GetAllocator().flushAllocation(bufferAllocation, offset, size);
 }
 
 /// @brief Get the descriptor info for the buffer
 /// @param size Size of the buffer in bytes (default: VK_WHOLE_SIZE)
 /// @param offset Offset in bytes from beginning (default: 0)
 /// @return Descriptor info struct
-VkDescriptorBufferInfo Buffer::DescriptorInfo(VkDeviceSize size, VkDeviceSize offset)
+vk::DescriptorBufferInfo Buffer::DescriptorInfo(vk::DeviceSize size, vk::DeviceSize offset) const noexcept
 {
-    return VkDescriptorBufferInfo{
+    return vk::DescriptorBufferInfo{
         buffer,
         offset,
         size,
@@ -231,9 +289,9 @@ VkDescriptorBufferInfo Buffer::DescriptorInfo(VkDeviceSize size, VkDeviceSize of
 /// @param size Size of the memory range to invalidate (default: VK_WHOLE_SIZE)
 /// @param offset Offset in bytes from beginning (default: 0)
 /// @return Result of the invalidate call
-VkResult Buffer::Invalidate(VkDeviceSize size, VkDeviceSize offset)
+void Buffer::Invalidate(vk::DeviceSize size, vk::DeviceSize offset)
 {
-    return vmaInvalidateAllocation(device.GetAllocator(), bufferAllocation, offset, size);
+    device.GetAllocator().invalidateAllocation(bufferAllocation, offset, size);
 }
 
 /// @brief Write data to the buffer at a specific index. Macro for WriteData.
@@ -257,16 +315,16 @@ void Buffer::ReadFromIndex(void* data, int index, uint32_t count)
 /// @brief Flush a memory range of the buffer at a specific index. Macro for Flush.
 /// @param index Index of the instance to flush
 /// @param count Number of instances to flush (default: 1)
-VkResult Buffer::FlushIndex(int index, uint32_t count)
+void Buffer::FlushIndex(int index, uint32_t count)
 {
-    return Flush(instanceSize * count, index * instanceSize);
+    Flush(instanceSize * count, index * instanceSize);
 }
 
 /// @brief Flush a memory range of the buffer at a specific index. Macro for DescriptorInfo.
 /// @param index Index of the instance to get descriptor for
 /// @param count Number of instances to include in descriptor (default: 1)
 /// @return Descriptor info struct
-VkDescriptorBufferInfo Buffer::DescriptorInfoForIndex(int index, uint32_t count)
+vk::DescriptorBufferInfo Buffer::DescriptorInfoForIndex(int index, uint32_t count) const noexcept
 {
     return DescriptorInfo(instanceSize, index * instanceSize);
 }
@@ -275,31 +333,31 @@ VkDescriptorBufferInfo Buffer::DescriptorInfoForIndex(int index, uint32_t count)
 /// @param index Index of the instance to invalidate
 /// @param count Number of instances to invalidate (default: 1)
 /// @return Result of the invalidate call
-VkResult Buffer::InvalidateIndex(int index, uint32_t count)
+void Buffer::InvalidateIndex(int index, uint32_t count)
 {
-    return Invalidate(instanceSize, index * instanceSize);
+    Invalidate(instanceSize, index * instanceSize);
 }
 
 /// @brief Copy the contents from another buffer into this buffer
 /// @param srcBuffer 
 /// @param size 
-void Buffer::CopyFromBuffer(const Buffer &srcBuffer, VkDeviceSize size) 
+void Buffer::CopyFromBuffer(const Buffer &srcBuffer, vk::DeviceSize size) 
 {
     if(&device != &srcBuffer.device)
     {
-        Console::error("Cannot copy buffer as source buffer does not belong to the same VkDevice", "Buffer");
+        Console::error("Cannot copy buffer as source buffer does not belong to the same vk::Device", "Buffer");
         return;
     }
     // TODO: More validation
     // TODO: Support offsets
 
-    VkCommandBuffer commandBuffer = device.BeginSingleTimeCommands();
+    vk::CommandBuffer commandBuffer = device.BeginSingleTimeCommands();
 
-    VkBufferCopy copyRegion{};
+    vk::BufferCopy copyRegion{};
     copyRegion.srcOffset = 0;  // Optional
     copyRegion.dstOffset = 0;  // Optional
     copyRegion.size = size;
-    vkCmdCopyBuffer(commandBuffer, srcBuffer.GetBuffer(), buffer, 1, &copyRegion);
+    commandBuffer.copyBuffer(srcBuffer.GetBuffer(), buffer, 1, &copyRegion);
 
     device.EndSingleTimeCommands(commandBuffer);
 }
@@ -311,18 +369,18 @@ void Buffer::CopyFromBuffer(const Buffer &srcBuffer, VkDeviceSize size)
 /// @param layerCount 
 void Buffer::CopyFromImage(const Image &srcImage, uint32_t width, uint32_t height, uint32_t layerCount) 
 {
-    VkBufferImageCopy region{};
+    vk::BufferImageCopy region{};
     region.bufferOffset = 0;
     region.bufferRowLength = 0;
     region.bufferImageHeight = 0;
 
-    region.imageSubresource.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
+    region.imageSubresource.aspectMask = vk::ImageAspectFlagBits::eColor;
     region.imageSubresource.mipLevel = 0;
     region.imageSubresource.baseArrayLayer = 0;
     region.imageSubresource.layerCount = layerCount;
 
-    region.imageOffset = {0, 0, 0};
-    region.imageExtent = {width, height, 1};
+    region.imageOffset = vk::Offset3D{0, 0, 0};
+    region.imageExtent = vk::Extent3D{width, height, 1};
 
     CopyFromImage(srcImage, width, height, layerCount, region);
 }
@@ -333,14 +391,14 @@ void Buffer::CopyFromImage(const Image &srcImage, uint32_t width, uint32_t heigh
 /// @param height 
 /// @param layerCount 
 /// @param region 
-void Buffer::CopyFromImage(const Image &srcImage, uint32_t width, uint32_t height, uint32_t layerCount, const VkBufferImageCopy &region) 
+void Buffer::CopyFromImage(const Image &srcImage, uint32_t width, uint32_t height, uint32_t layerCount, const vk::BufferImageCopy &region) 
 {
     if(&device != &srcImage.device)
     {
-        Console::error("Cannot copy buffer as source buffer does not belong to the same VkDevice", "Buffer");
+        Console::error("Cannot copy buffer as source buffer does not belong to the same vk::Device", "Buffer");
         return;
     }
-    VkCommandBuffer commandBuffer = device.BeginSingleTimeCommands();
+    vk::CommandBuffer commandBuffer = device.BeginSingleTimeCommands();
 
     vkCmdCopyImageToBuffer(
         commandBuffer,
@@ -348,11 +406,11 @@ void Buffer::CopyFromImage(const Image &srcImage, uint32_t width, uint32_t heigh
         VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL,
         buffer,
         1,
-        &region);
+        (VkBufferImageCopy *)&region);
     device.EndSingleTimeCommands(commandBuffer);
 }
 
-VkDeviceSize Buffer::getAlignment(VkDeviceSize instanceSize, VkDeviceSize minOffsetAlignment) 
+vk::DeviceSize Buffer::getAlignment(vk::DeviceSize instanceSize, vk::DeviceSize minOffsetAlignment) 
 {
     if (minOffsetAlignment > 0) 
     {

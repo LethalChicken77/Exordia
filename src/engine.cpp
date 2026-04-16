@@ -68,7 +68,7 @@ void Engine::init()
     gShader = gameData->shaderPool.New(goochShader, goochShader);
     sbShader = gameData->shaderPool.New(skyboxShader, skyboxShader);
     pbr = gameData->shaderPool.New(pbrShader, pbrShader);
-    sbShader->properties.depthWrite = DepthWrite::DISABLED;
+    sbShader->properties.depthWrite = DepthWrite::Disabled;
     sbShader->Update();
     // Shader* pbr = shaderPool.New(pbrShader, pbrShader);
 

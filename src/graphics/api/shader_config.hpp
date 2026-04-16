@@ -6,65 +6,65 @@ namespace graphics
 // API Agnostic shader info
 enum class ShaderType
 {
-    LIT = 0,
-    UNLIT = 1,
-    SPRITE_UNLIT = 2,
-    SPRITE_LIT = 3,
-    POST_PROCESSING = 4,
+    Lit = 0,
+    Unlit = 1,
+    SpriteUnlit = 2,
+    SpriteLit = 3,
+    PostProcessing = 4,
     UI = 5
 };
 
 enum class DrawMode
 {
-    FILL = 0,
-    WIREFRAME = 1,
-    POINTS = 2
+    Fill = 0,
+    Wireframe = 1,
+    Points = 2
 };
 
 enum class BlendMode
 {
-    OPAQUE = 0,
-    ALPHA = 1,
-    ADDITIVE = 2,
-    MULTIPLY = 3,
-    PREMULTIPLY = 4
+    Opaque = 0,
+    Alpha = 1,
+    Additive = 2,
+    Multiply = 3,
+    Premultiply = 4
 };
 
 enum class CullMode
 {
-    NONE = 0,
-    FRONT = 1,
-    BACK = 2,
-    BOTH = 3
+    None = 0,
+    Front = 1,
+    Back = 2,
+    Both = 3
 };
 
 enum class DepthWrite
 {
-    AUTO = 0,
-    ENABLED = 1,
-    DISABLED = 2
+    Auto = 0,
+    Enabled = 1,
+    Disabled = 2
 };
 
 enum class StencilOp
 {
-    KEEP = 0,
-    ZERO = 1,
-    REPLACE = 2,
-    INCREMENT_AND_CLAMP = 3,
-    DECREMENT_AND_CLAMP = 4,
-    INVERT = 5,
-    INCREMENT_AND_WRAP = 6,
-    DECREMENT_AND_WRAP = 7
+    Keep = 0,
+    Zero = 1,
+    Replace = 2,
+    IncrementAndClamp = 3,
+    DecrementAndClamp = 4,
+    Invert = 5,
+    IncrementAndWrap = 6,
+    DecrementAndWrap = 7
 };
 
 struct ShaderProperties
 {
-    ShaderType shaderType = ShaderType::LIT;
-    DrawMode drawMode = DrawMode::FILL;
-    BlendMode blendMode = BlendMode::ALPHA;
-    CullMode cullMode = CullMode::BACK;
+    ShaderType shaderType = ShaderType::Lit;
+    DrawMode drawMode = DrawMode::Fill;
+    BlendMode blendMode = BlendMode::Alpha;
+    CullMode cullMode = CullMode::Back;
     CompareOp depthTest = CompareOp::LessEqual;
-    DepthWrite depthWrite = DepthWrite::AUTO;
+    DepthWrite depthWrite = DepthWrite::Auto;
 
     bool alphaClipping = false;
     float alphaClippingThreshold = 0.5f;

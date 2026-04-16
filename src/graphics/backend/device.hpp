@@ -1,18 +1,6 @@
 #pragma once
 
 #include "physical_device.hpp"
-#ifdef DEBUG
-#define VMA_DEBUG_INITIALIZE_ALLOCATIONS 1
-#define VMA_LEAK_LOG_FORMAT(format, ...) do { \
-        printf((format), __VA_ARGS__); \
-        printf("\n"); \
-    } while(false)
-// #define VMA_DEBUG_LOG_FORMAT(format, ...) do { \
-//     printf((format), __VA_ARGS__); \
-//     printf("\n"); \
-// } while(false)
-#endif
-#include <vma/vk_mem_alloc.h>
 
 namespace graphics::internal
 {
@@ -46,7 +34,7 @@ public:
 
     const vk::Device &Get() const { return device; }
     PhysicalDevice &GetPhysicalDevice() { return pDevice; }
-    const VmaAllocator &GetAllocator() const { return allocator; }
+    const vma::Allocator &GetAllocator() const { return allocator; }
     const vk::CommandPool &GetCommandPool() const { return commandPool; }
     const vk::Queue &GetGraphicsQueue() const { return graphicsQueue; }
     const vk::Queue &GetPresentQueue() const { return presentQueue; }
@@ -56,13 +44,18 @@ public:
         vkGetDescriptorSetLayoutSizeEXT(device, layout, &layoutSize);
         return layoutSize; // NOTE: Layout size should fit in uint32_t, if not you're doing something wrong
     }
+
+    inline bool operator==(const Device& other)
+    {
+        return other.device == device; // Ensuring the same VkDevice should be sufficient
+    }
 private:
     vk::Device device;
     vk::Queue graphicsQueue;
     vk::Queue presentQueue;
     vk::CommandPool commandPool;
 
-    VmaAllocator allocator;
+    vma::Allocator allocator;
 
     PhysicalDevice &pDevice;
     void createLogicalDevice(bool enableValidationLayers);

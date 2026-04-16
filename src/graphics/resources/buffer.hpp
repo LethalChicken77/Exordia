@@ -12,18 +12,18 @@ class Buffer
 {
 public:
     Buffer(
-        VkDeviceSize instanceSize,
+        vk::DeviceSize instanceSize,
         uint32_t instanceCount,
-        VkBufferUsageFlags usageFlags,
-        VkMemoryPropertyFlags requiredMemoryProperties = 0,
-        VkDeviceSize minOffsetAlignment = 1);
+        vk::BufferUsageFlags usageFlags,
+        vk::MemoryPropertyFlags requiredMemoryProperties = {},
+        vk::DeviceSize minOffsetAlignment = 1);
     Buffer(
         internal::Device &device,
-        VkDeviceSize instanceSize,
+        vk::DeviceSize instanceSize,
         uint32_t instanceCount,
-        VkBufferUsageFlags usageFlags,
-        VkMemoryPropertyFlags requiredMemoryProperties = 0,
-        VkDeviceSize minOffsetAlignment = 1);
+        vk::BufferUsageFlags usageFlags,
+        vk::MemoryPropertyFlags requiredMemoryProperties = {},
+        vk::DeviceSize minOffsetAlignment = 1);
     ~Buffer();
 
     Buffer(const Buffer&) = delete;
@@ -32,53 +32,66 @@ public:
     Buffer(Buffer&&);
     Buffer& operator=(Buffer&&) = delete;
 
+    static Buffer CreateStagingBuffer(
+        vk::DeviceSize instanceSize,
+        uint32_t instanceCount,
+        bool isSource = true,
+        vk::DeviceSize minOffsetAlignment = 1);
+
+    static Buffer CreateStagingBuffer(
+        internal::Device &device,
+        vk::DeviceSize instanceSize,
+        uint32_t instanceCount,
+        bool isSource = true,
+        vk::DeviceSize minOffsetAlignment = 1);
+
+    // void WriteDataStaged(void* data, size_t size); // TODO: Implement
     
-    VkResult Map(VkDeviceSize size = VK_WHOLE_SIZE, VkDeviceSize offset = 0);
+    vk::Result Map(vk::DeviceSize size = VK_WHOLE_SIZE, vk::DeviceSize offset = 0);
     void Unmap();
 
-    void WriteData(void* data, VkDeviceSize size = VK_WHOLE_SIZE, VkDeviceSize offset = 0);
-    void ReadData(void* data, VkDeviceSize size = VK_WHOLE_SIZE, VkDeviceSize offset = 0);
-    VkResult Flush(VkDeviceSize size = VK_WHOLE_SIZE, VkDeviceSize offset = 0);
-    VkDescriptorBufferInfo DescriptorInfo(VkDeviceSize size = VK_WHOLE_SIZE, VkDeviceSize offset = 0);
-    VkResult Invalidate(VkDeviceSize size = VK_WHOLE_SIZE, VkDeviceSize offset = 0);
+    void WriteData(void* data, vk::DeviceSize size = VK_WHOLE_SIZE, vk::DeviceSize offset = 0);
+    void ReadData(void* data, vk::DeviceSize size = VK_WHOLE_SIZE, vk::DeviceSize offset = 0);
+    void Flush(vk::DeviceSize size = VK_WHOLE_SIZE, vk::DeviceSize offset = 0);
+    vk::DescriptorBufferInfo DescriptorInfo(vk::DeviceSize size = VK_WHOLE_SIZE, vk::DeviceSize offset = 0) const noexcept;
+    void Invalidate(vk::DeviceSize size = VK_WHOLE_SIZE, vk::DeviceSize offset = 0);
 
     void WriteToIndex(void* data, int index, uint32_t count = 1);
     void ReadFromIndex(void* data, int index, uint32_t count = 1);
-    VkResult FlushIndex(int index, uint32_t count = 1);
-    VkDescriptorBufferInfo DescriptorInfoForIndex(int index, uint32_t count = 1);
-    VkResult InvalidateIndex(int index, uint32_t count = 1);
+    void FlushIndex(int index, uint32_t count = 1);
+    vk::DescriptorBufferInfo DescriptorInfoForIndex(int index, uint32_t count = 1) const noexcept;
+    void InvalidateIndex(int index, uint32_t count = 1);
 
-    void CopyFromBuffer(const Buffer &srcBuffer, VkDeviceSize size);
+    void CopyFromBuffer(const Buffer &srcBuffer, vk::DeviceSize size);
     void CopyFromImage(const Image &srcImage, uint32_t width, uint32_t height, uint32_t layerCount);
-    void CopyFromImage(const Image &srcImage, uint32_t width, uint32_t height, uint32_t layerCount, const VkBufferImageCopy &region);
+    void CopyFromImage(const Image &srcImage, uint32_t width, uint32_t height, uint32_t layerCount, const vk::BufferImageCopy &region);
 
-    VkBuffer GetBuffer() const { return buffer; }
-    void* GetDataStart() const { return bufferAllocationInfo.pMappedData; }
-    uint32_t GetInstanceCount() const { return instanceCount; }
-    VkDeviceSize GetInstanceSize() const { return instanceSize; }
-    VkDeviceSize GetAlignmentSize() const { return alignmentSize; }
-    VkBufferUsageFlags GetUsageFlags() const { return usageFlags; }
-    VkMemoryPropertyFlags GetMemoryPropertyFlags() const { VkMemoryPropertyFlags flags;
-        vmaGetAllocationMemoryProperties(device.GetAllocator(), bufferAllocation, &flags); 
-        return flags;
+    vk::Buffer GetBuffer() const noexcept { return buffer; }
+    void* GetDataStart() const noexcept { return bufferAllocationInfo.pMappedData; }
+    uint32_t GetInstanceCount() const noexcept { return instanceCount; }
+    vk::DeviceSize GetInstanceSize() const noexcept { return instanceSize; }
+    vk::DeviceSize GetAlignmentSize() const noexcept { return alignmentSize; }
+    vk::BufferUsageFlags GetUsageFlags() const noexcept { return usageFlags; }
+    vk::MemoryPropertyFlags GetMemoryPropertyFlags() const {
+        return device.GetAllocator().getAllocationMemoryProperties(bufferAllocation);
     }
-    VkDeviceSize GetBufferSize() const { return bufferSize; }
-    VkDescriptorBufferInfo GetDescriptorInfo(size_t offset = 0, size_t range = VK_WHOLE_SIZE) const { return { buffer, offset, range }; }
+    vk::DeviceSize GetBufferSize() const { return bufferSize; }
+    vk::DescriptorBufferInfo GetDescriptorInfo(size_t offset = 0, size_t range = VK_WHOLE_SIZE) const { return { buffer, offset, range }; }
 private:
     internal::Device &device;
 
-    VkBuffer buffer = VK_NULL_HANDLE;
-    VmaAllocation bufferAllocation = VK_NULL_HANDLE;
-    VmaAllocationInfo bufferAllocationInfo;
+    vk::Buffer buffer = VK_NULL_HANDLE;
+    vma::Allocation bufferAllocation = VK_NULL_HANDLE;
+    vma::AllocationInfo bufferAllocationInfo;
 
-    VkDeviceSize bufferSize;
+    vk::DeviceSize bufferSize;
     uint32_t instanceCount;
-    VkDeviceSize instanceSize;
-    VkDeviceSize alignmentSize;
+    vk::DeviceSize instanceSize;
+    vk::DeviceSize alignmentSize;
     
-    VkBufferUsageFlags usageFlags;
+    vk::BufferUsageFlags usageFlags;
     
-    static VkDeviceSize getAlignment(VkDeviceSize instanceSize, VkDeviceSize minOffsetAlignment);
+    static vk::DeviceSize getAlignment(vk::DeviceSize instanceSize, vk::DeviceSize minOffsetAlignment);
 
     // Helper functions
 

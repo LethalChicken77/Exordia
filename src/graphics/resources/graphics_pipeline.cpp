@@ -285,14 +285,14 @@ void PipelineConfigInfo::SetShaderConfig(const graphics::ShaderProperties& shade
 {
     switch(shaderConfig.shaderType)
     {
-        case ShaderType::LIT:
-        case ShaderType::UNLIT:
-        case ShaderType::SPRITE_LIT:
-        case ShaderType::SPRITE_UNLIT:
+        case ShaderType::Lit:
+        case ShaderType::Unlit:
+        case ShaderType::SpriteLit:
+        case ShaderType::SpriteUnlit:
         case ShaderType::UI:
             pipelineType = PipelineType::Standard;
             break;
-        case ShaderType::POST_PROCESSING:
+        case ShaderType::PostProcessing:
             pipelineType = PipelineType::PostProcessing;
             break;
         default:
@@ -313,13 +313,13 @@ void PipelineConfigInfo::SetShaderConfig(const graphics::ShaderProperties& shade
     rasterizationInfo.rasterizerDiscardEnable = false;
     switch(shaderConfig.drawMode)
     {
-        case DrawMode::FILL:
+        case DrawMode::Fill:
             rasterizationInfo.polygonMode = vk::PolygonMode::eFill;
             break;
-        case DrawMode::WIREFRAME:
+        case DrawMode::Wireframe:
             rasterizationInfo.polygonMode = vk::PolygonMode::eLine;
             break;
-        case DrawMode::POINTS:
+        case DrawMode::Points:
             rasterizationInfo.polygonMode = vk::PolygonMode::ePoint;
             break;
         default:
@@ -330,16 +330,16 @@ void PipelineConfigInfo::SetShaderConfig(const graphics::ShaderProperties& shade
     rasterizationInfo.lineWidth = 1.0f;
     switch(shaderConfig.cullMode)
     {
-        case CullMode::NONE:
+        case CullMode::None:
             rasterizationInfo.cullMode = vk::CullModeFlagBits::eNone;
             break;
-        case CullMode::FRONT:
+        case CullMode::Front:
             rasterizationInfo.cullMode = vk::CullModeFlagBits::eFront;
             break;
-        case CullMode::BACK:
+        case CullMode::Back:
             rasterizationInfo.cullMode = vk::CullModeFlagBits::eBack;
             break;
-        case CullMode::BOTH:
+        case CullMode::Both:
             rasterizationInfo.cullMode = vk::CullModeFlagBits::eFrontAndBack;
             break;
         default:
@@ -369,7 +369,7 @@ void PipelineConfigInfo::SetShaderConfig(const graphics::ShaderProperties& shade
         vk::ColorComponentFlagBits::eA;
     switch(shaderConfig.blendMode)
     {
-        case BlendMode::OPAQUE:
+        case BlendMode::Opaque:
             colorBlendAttachment.blendEnable = false;
             colorBlendAttachment.srcColorBlendFactor = vk::BlendFactor::eOne;
             colorBlendAttachment.dstColorBlendFactor = vk::BlendFactor::eZero;
@@ -378,7 +378,7 @@ void PipelineConfigInfo::SetShaderConfig(const graphics::ShaderProperties& shade
             colorBlendAttachment.dstAlphaBlendFactor = vk::BlendFactor::eZero;
             colorBlendAttachment.alphaBlendOp = vk::BlendOp::eAdd;
             break;
-        case BlendMode::ALPHA:
+        case BlendMode::Alpha:
             colorBlendAttachment.blendEnable = true;
             colorBlendAttachment.srcColorBlendFactor = vk::BlendFactor::eSrcAlpha;
             colorBlendAttachment.dstColorBlendFactor = vk::BlendFactor::eOneMinusSrcAlpha;
@@ -387,7 +387,7 @@ void PipelineConfigInfo::SetShaderConfig(const graphics::ShaderProperties& shade
             colorBlendAttachment.dstAlphaBlendFactor = vk::BlendFactor::eOneMinusSrcAlpha;
             colorBlendAttachment.alphaBlendOp = vk::BlendOp::eAdd;
             break;
-        case BlendMode::ADDITIVE:
+        case BlendMode::Additive:
             colorBlendAttachment.blendEnable = true;
             colorBlendAttachment.srcColorBlendFactor = vk::BlendFactor::eOne;
             colorBlendAttachment.dstColorBlendFactor = vk::BlendFactor::eOne;
@@ -396,7 +396,7 @@ void PipelineConfigInfo::SetShaderConfig(const graphics::ShaderProperties& shade
             colorBlendAttachment.dstAlphaBlendFactor = vk::BlendFactor::eZero;
             colorBlendAttachment.alphaBlendOp = vk::BlendOp::eAdd;
             break;
-        case BlendMode::MULTIPLY:
+        case BlendMode::Multiply:
             colorBlendAttachment.blendEnable = true;
             colorBlendAttachment.srcColorBlendFactor = vk::BlendFactor::eDstColor;
             colorBlendAttachment.dstColorBlendFactor = vk::BlendFactor::eZero;
@@ -405,7 +405,7 @@ void PipelineConfigInfo::SetShaderConfig(const graphics::ShaderProperties& shade
             colorBlendAttachment.dstAlphaBlendFactor = vk::BlendFactor::eZero;
             colorBlendAttachment.alphaBlendOp = vk::BlendOp::eAdd;
             break;
-        case BlendMode::PREMULTIPLY:
+        case BlendMode::Premultiply:
             colorBlendAttachment.blendEnable = true;
             colorBlendAttachment.srcColorBlendFactor = vk::BlendFactor::eOne;
             colorBlendAttachment.dstColorBlendFactor = vk::BlendFactor::eOneMinusSrcAlpha;
@@ -458,18 +458,18 @@ void PipelineConfigInfo::SetShaderConfig(const graphics::ShaderProperties& shade
     }
     switch(shaderConfig.depthWrite)
     {
-        case DepthWrite::AUTO:
+        case DepthWrite::Auto:
             depthStencilInfo.depthWriteEnable = 
-                shaderConfig.blendMode == BlendMode::OPAQUE ||
-                !(shaderConfig.shaderType == ShaderType::SPRITE_LIT ||
-                shaderConfig.shaderType == ShaderType::SPRITE_UNLIT ||
+                shaderConfig.blendMode == BlendMode::Opaque ||
+                !(shaderConfig.shaderType == ShaderType::SpriteLit ||
+                shaderConfig.shaderType == ShaderType::SpriteUnlit ||
                 shaderConfig.shaderType == ShaderType::UI ||
-                shaderConfig.shaderType == ShaderType::POST_PROCESSING);
+                shaderConfig.shaderType == ShaderType::PostProcessing);
             break;
-        case DepthWrite::ENABLED:
+        case DepthWrite::Enabled:
             depthStencilInfo.depthWriteEnable = VK_TRUE;
             break;
-        case DepthWrite::DISABLED:
+        case DepthWrite::Disabled:
             depthStencilInfo.depthWriteEnable = VK_FALSE;
             break;
     }

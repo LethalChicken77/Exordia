@@ -1,6 +1,7 @@
 #define VMA_IMPLEMENTATION
 #include "device.hpp"
-#include <vma/vk_mem_alloc.h>
+
+#include "vk_mem_alloc.hpp"
 
 #include <set>
 #include <stdexcept>
@@ -36,12 +37,12 @@ vk::CommandBuffer Device::BeginSingleTimeCommands()
     allocInfo.commandBufferCount = 1;
 
     vk::CommandBuffer commandBuffer;
-    device.allocateCommandBuffers(&allocInfo, &commandBuffer);
+    VK_CHECK(device.allocateCommandBuffers(&allocInfo, &commandBuffer), "Failed to allocate single time command buffer");
 
     vk::CommandBufferBeginInfo beginInfo{};
     beginInfo.flags = vk::CommandBufferUsageFlagBits::eOneTimeSubmit;
 
-    commandBuffer.begin(&beginInfo);
+    VK_CHECK(commandBuffer.begin(&beginInfo), "Failed to begin single time command buffer");
     return commandBuffer;
 }
 
@@ -53,7 +54,7 @@ void Device::EndSingleTimeCommands(vk::CommandBuffer commandBuffer)
     submitInfo.commandBufferCount = 1;
     submitInfo.pCommandBuffers = &commandBuffer;
 
-    graphicsQueue.submit(1, &submitInfo, VK_NULL_HANDLE);
+    VK_CHECK(graphicsQueue.submit(1, &submitInfo, VK_NULL_HANDLE), "Failed to end single time command buffer");
     graphicsQueue.waitIdle();
 
     device.freeCommandBuffers(commandPool, 1, &commandBuffer);
@@ -95,18 +96,6 @@ void Device::createLogicalDevice(bool enableValidationLayers)
     createInfo.ppEnabledExtensionNames = deviceExtensions.data();
     createInfo.pNext = &features.featureChain.get<vk::PhysicalDeviceFeatures2>();//&atomicFloatFeatures; // Add the atomic float features to the device create info
 
-    // Might not really be necessary anymore because device specific validation layers
-    // have been deprecated
-    if(enableValidationLayers) 
-    {
-        createInfo.enabledLayerCount = static_cast<uint32_t>(validationLayers.size());
-        createInfo.ppEnabledLayerNames = validationLayers.data();
-    } 
-    else 
-    {
-        createInfo.enabledLayerCount = 0;
-    }
-
     if (pDevice.Get().createDevice(&createInfo, nullptr, &device) != vk::Result::eSuccess) 
     {
         throw std::runtime_error("Failed to create logical device");
@@ -132,21 +121,18 @@ void Device::createCommandPool()
 
 void Device::createAllocator(vk::Instance &instance)
 {
-    VmaVulkanFunctions vulkanFunctions = {};
+    vma::VulkanFunctions vulkanFunctions = {};
     vulkanFunctions.vkGetInstanceProcAddr = vkGetInstanceProcAddr;
     vulkanFunctions.vkGetDeviceProcAddr = vkGetDeviceProcAddr;
 
-    VmaAllocatorCreateInfo allocatorInfo = {};
+    vma::AllocatorCreateInfo allocatorInfo = {};
     allocatorInfo.vulkanApiVersion = VK_API_VERSION_1_4;
     allocatorInfo.instance = instance;
     allocatorInfo.physicalDevice = pDevice.Get();
     allocatorInfo.device = device;
     allocatorInfo.pVulkanFunctions = &vulkanFunctions;
 
-    if (vmaCreateAllocator(&allocatorInfo, &allocator) != VK_SUCCESS) 
-    {
-        throw std::runtime_error("Failed to create VMA allocator");
-    }
+    VK_CHECK(vma::createAllocator(&allocatorInfo, &allocator), "Failed to create VMA allocator");
 }
 
 void Device::vmaDebugHandler(void* pUserData, const char* format, va_list args)

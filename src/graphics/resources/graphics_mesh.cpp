@@ -103,15 +103,13 @@ void GraphicsMesh::createVertexBuffers(const core::MeshData* meshPtr)
     uint32_t vertexSize = sizeof(vertices2[0]); 
 
     {
-        VkDeviceSize bufferSize = positionSize * vertices.size();
-        Buffer stagingBuffer{
+        Buffer stagingBuffer = Buffer::CreateStagingBuffer(
             device,
             positionSize,
-            vertexCount,
-            VK_BUFFER_USAGE_TRANSFER_SRC_BIT,
-            VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT
-        };
+            vertexCount
+        );
     
+        vk::DeviceSize bufferSize = positionSize * vertices.size();
         stagingBuffer.Map();
         stagingBuffer.WriteData((void *)positions.data(), vertices.size() * positionSize);
     
@@ -119,31 +117,29 @@ void GraphicsMesh::createVertexBuffers(const core::MeshData* meshPtr)
             device,
             positionSize,
             vertices.size(),
-            VK_BUFFER_USAGE_VERTEX_BUFFER_BIT | VK_BUFFER_USAGE_TRANSFER_DST_BIT,
-            VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT
+            vk::BufferUsageFlagBits::eVertexBuffer | vk::BufferUsageFlagBits::eTransferDst,
+            vk::MemoryPropertyFlagBits::eDeviceLocal
         );
         positionBuffer->CopyFromBuffer(stagingBuffer, bufferSize);
     }
 
     {
-        VkDeviceSize bufferSize = vertexSize * vertices.size();
-        Buffer stagingBuffer{
+        Buffer stagingBuffer = Buffer::CreateStagingBuffer(
             device,
             vertexSize,
-            vertexCount,
-            VK_BUFFER_USAGE_TRANSFER_SRC_BIT,
-            VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT
-        };
-    
+            vertexCount
+        );
+        
+        vk::DeviceSize bufferSize = vertexSize * vertices.size();
         stagingBuffer.Map();
-        stagingBuffer.WriteData((void *)vertices2.data(), vertices.size() * vertexSize);
+        stagingBuffer.WriteData((void *)vertices2.data(), bufferSize);
     
         vertexBuffer = std::make_unique<Buffer>(
             device,
             vertexSize,
             vertices.size(),
-            VK_BUFFER_USAGE_VERTEX_BUFFER_BIT | VK_BUFFER_USAGE_TRANSFER_DST_BIT,
-            VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT
+            vk::BufferUsageFlagBits::eVertexBuffer | vk::BufferUsageFlagBits::eTransferDst,
+            vk::MemoryPropertyFlagBits::eDeviceLocal
         );
         vertexBuffer->CopyFromBuffer(stagingBuffer, bufferSize);
     }
@@ -165,17 +161,15 @@ void GraphicsMesh::createIndexBuffer(const core::MeshData* meshPtr)
     if(!useIndexBuffer)
         return;
 
-    VkDeviceSize bufferSize = sizeof(triangles[0].v0) * indexCount;
+    vk::DeviceSize bufferSize = sizeof(triangles[0].v0) * indexCount;
     
     uint32_t indexSize = sizeof(triangles[0].v0);
 
-    Buffer stagingBuffer{
+    Buffer stagingBuffer = Buffer::CreateStagingBuffer(
         device,
         indexSize,
-        indexCount,
-        VK_BUFFER_USAGE_TRANSFER_SRC_BIT,
-        VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
-    };
+        indexCount
+    );
 
     stagingBuffer.Map();
     stagingBuffer.WriteData((void *)triangles.data());
@@ -184,8 +178,8 @@ void GraphicsMesh::createIndexBuffer(const core::MeshData* meshPtr)
         device,
         indexSize,
         indexCount,
-        VK_BUFFER_USAGE_INDEX_BUFFER_BIT | VK_BUFFER_USAGE_TRANSFER_DST_BIT,
-        VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT
+        vk::BufferUsageFlagBits::eIndexBuffer | vk::BufferUsageFlagBits::eTransferDst,
+        vk::MemoryPropertyFlagBits::eDeviceLocal
     );
 
     indexBuffer->CopyFromBuffer(stagingBuffer, bufferSize);
@@ -284,13 +278,11 @@ std::unique_ptr<Buffer> MeshRenderData::CreateInstanceBuffer(internal::Device &d
     VkDeviceSize bufferSize = sizeof(transforms[0]) * instanceCount;
     uint32_t instanceSize = sizeof(transforms[0]);
 
-    Buffer stagingBuffer{
+    Buffer stagingBuffer = Buffer::CreateStagingBuffer(
         device,
         instanceSize,
-        instanceCount,
-        VK_BUFFER_USAGE_TRANSFER_SRC_BIT,
-        VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
-    };
+        instanceCount
+    );
 
     stagingBuffer.Map();
     stagingBuffer.WriteData((void *)transforms.data(), bufferSize);
@@ -299,8 +291,8 @@ std::unique_ptr<Buffer> MeshRenderData::CreateInstanceBuffer(internal::Device &d
         device,
         instanceSize,
         instanceCount,
-        VK_BUFFER_USAGE_VERTEX_BUFFER_BIT | VK_BUFFER_USAGE_TRANSFER_DST_BIT,
-        VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT
+        vk::BufferUsageFlagBits::eVertexBuffer | vk::BufferUsageFlagBits::eTransferDst,
+        vk::MemoryPropertyFlagBits::eDeviceLocal
     );
 
     instanceBuffer->CopyFromBuffer(stagingBuffer, bufferSize);
