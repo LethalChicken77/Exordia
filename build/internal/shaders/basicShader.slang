@@ -2,7 +2,8 @@ import utils;
 import shading_models;
 import colorspace;
 
-import "vertex/vertex_full.slang";
+import "vertex/vertex_no_tex.slang";
+import "vertex/instance.slang";
 import shaderInputs;
 
 // Material Descriptor Set
@@ -25,10 +26,11 @@ VOut vsMain(VertexData vertex, InstanceData instance)
     // output.FragPosition = float4(vertex.Position, 1.0);
     // output.Position = vertex.Position;
 
+    float3 rawNormal = UnpackOctahedral(vertex.Normal);
     float3x3 normalMatrix = transpose(adjugate(float3x3(model)));
-    output.Normal = normalize(mul(normalMatrix, vertex.Normal));
+    output.Normal = normalize(mul(normalMatrix, rawNormal));
     output.Color = vertex.Color;
-    output.UV = vertex.UV;
+    // output.UV = vertex.UV;
 
     return output;
 }

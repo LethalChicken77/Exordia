@@ -4,6 +4,7 @@ import colorspace;
 
 import shaderInputs;
 import "vertex/vertex_full.slang";
+import "vertex/instance.slang";
 
 // Material Descriptor Set
 struct MaterialInfo

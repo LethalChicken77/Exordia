@@ -42,7 +42,7 @@ bool MeshRegistry::Update(core::MeshData &meshData)
 
     Entry &entry = entries[handle.index];
 
-    entry.value->createBuffers(&meshData);
+    entry.value->RecreateBuffers();
 
     return true;
 }

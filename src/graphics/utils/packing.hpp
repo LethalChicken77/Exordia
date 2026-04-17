@@ -4,6 +4,19 @@
 namespace graphics::Packing
 {
 
+/// @brief Biased Sign function that doesn't return 0.
+/// @param x 
+/// @return -1 for negative, +1 for 0 or positive.
+inline float SignNotZero(float x)
+{
+    return x < 0.0f ? -1.0f : 1.0f;
+}
+
+inline glm::vec2 SignNotZero(glm::vec2 v)
+{
+    return {v.x < 0.0f ? -1.0f : 1.0f, v.y < 0.0f ? -1.0f : 1.0f};
+}
+
 /// @brief Pack a direction vector into an i8vec2. Assumes the vector is non-zero.
 /// @param v Vector to pack.
 /// @return Octahedral mapping of the vector v. Returns (0,0) if v is (0,0,0).
@@ -15,7 +28,7 @@ inline glm::i8vec2 PackOctahedral8(glm::vec3 v)
 
     if(v.z < 0.f)
     {
-        p = (glm::vec2(1.f) - glm::abs(glm::vec2(p.y, p.x))) * glm::sign(p);
+        p = (glm::vec2(1.f) - glm::abs(glm::vec2(p.y, p.x))) * SignNotZero(p);
     }
 
     return glm::i8vec2(glm::round(p * 127.f)); // 128 goes unused
@@ -32,7 +45,7 @@ inline glm::i16vec2 PackOctahedral16(glm::vec3 v)
 
     if(v.z < 0.f)
     {
-        p = (glm::vec2(1.f) - glm::abs(glm::vec2(p.y, p.x))) * glm::sign(p);
+        p = (glm::vec2(1.f) - glm::abs(glm::vec2(p.y, p.x))) * SignNotZero(p);
     }
 
     return glm::i16vec2(glm::round(p * 32767.f));

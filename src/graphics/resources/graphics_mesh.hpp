@@ -28,27 +28,29 @@ namespace graphics
         GraphicsMesh(const GraphicsMesh&) = delete;
         GraphicsMesh& operator=(const GraphicsMesh&) = delete;
 
-        void bind(vk::CommandBuffer commandBuffer, const std::unique_ptr<Buffer> &instanceBuffer) const; // TODO: Remove in favor of graphics.draw(Mesh)
-        void draw(vk::CommandBuffer commandBuffer, uint32_t instanceCount) const;
+        void Bind(vk::CommandBuffer commandBuffer, const VertexLayout& vertexLayout, const std::unique_ptr<Buffer> &instanceBuffer);
+        void Draw(vk::CommandBuffer commandBuffer, uint32_t instanceCount) const;
 
-        void createBuffers(const core::MeshData* meshPtr);
+        void RecreateBuffers();
 
     private:
-        internal::Device &device;
+        internal::Device &m_device;
 
-        uint32_t vertexCount = 0;
-        uint32_t indexCount = 0;
+        const core::MeshData* m_meshData;
+        uint32_t m_vertexCount = 0;
+        uint32_t m_indexCount = 0;
 
-        std::unique_ptr<Buffer> positionBuffer{};
-        std::unique_ptr<Buffer> vertexBuffer{};
-        std::vector<Buffer> vertexBuffers{};
-        std::unordered_map<VertexLayout, size_t, VertexLayout::Hash> vertexBufferIndex{};
-        bool useIndexBuffer = true;
-        MeshConfig config{};
-        std::unique_ptr<Buffer> indexBuffer{};
+        std::unique_ptr<Buffer> m_positionBuffer{};
+        // std::unique_ptr<Buffer> m_vertexBuffer{};
+        std::vector<Buffer> m_vertexBuffers{};
+        std::unordered_map<VertexLayout, uint32_t, VertexLayout::Hash> m_vertexBufferIndex{};
+        bool m_useIndexBuffer = true;
+        MeshConfig m_config{};
+        std::unique_ptr<Buffer> m_indexBuffer{};
 
-        void createVertexBuffers(const core::MeshData* meshPtr);
-        void createIndexBuffer(const core::MeshData* meshPtr);
+        void createPositionBuffer();
+        void createVertexBuffer(const VertexLayout& vertexLayout);
+        void createIndexBuffer();
         
         void loadModelFromObj(const std::string& filename);
     };

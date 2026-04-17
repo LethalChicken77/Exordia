@@ -10,6 +10,7 @@
 #include <array>
 
 #include "modules.hpp"
+#include "primitives/color.hpp"
 
 namespace core
 {
@@ -366,7 +367,7 @@ Mesh Mesh::createGrid(int width, int length, glm::vec2 dimensions, const std::st
                 {0, 1, 0},
                 {1, 0, 0, 1},
                 // {0, 0, 1},
-                {1, 1, 1},
+                Color{1.0f, 1.0f, 1.0f, 1.0f},
                 {x / (float)width, z / (float)length}
             };
             vertices.push_back(v);
@@ -502,10 +503,11 @@ Mesh Mesh::loadObj(const std::string& filename, const std::string& objectName, M
                     }
 
                     if (3 * posIdx + 2 < attrib.colors.size()) {
-                        v.color = {
-                            attrib.colors[3 * posIdx] * 255,
-                            attrib.colors[3 * posIdx + 1] * 255,
-                            attrib.colors[3 * posIdx + 2] * 255
+                        v.color = Color{
+                            attrib.colors[3 * posIdx],
+                            attrib.colors[3 * posIdx + 1],
+                            attrib.colors[3 * posIdx + 2],
+                            1.0f
                         };
                     }
 

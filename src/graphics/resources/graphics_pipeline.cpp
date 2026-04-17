@@ -11,6 +11,7 @@ GraphicsPipeline::GraphicsPipeline(internal::Device& device, const Shader &shade
     m_materialSetLayout(createDescriptorSetLayout(shader))
 {
     m_configInfo.SetShaderConfig(shader.properties);
+    m_vertexLayout = shader.GetVertexLayout();
     createPipelineLayout(shader);
     createPipeline(shader, cache);
 }

@@ -3,7 +3,8 @@ import shading_models;
 import colorspace; // TODO: Perform colorspace transforms in post-processing
 
 import shaderInputs;
-import "vertex/vertex_full.slang";
+import "vertex/vertex_no_tex.slang";
+import "vertex/instance.slang";
 
 // Material Descriptor Set
 struct MaterialInfo
@@ -25,7 +26,8 @@ VOut vsMain(VertexData vertex, InstanceData instance)
     output.Position = mul(model, float4(vertex.Position, 1.0)).xyz;
 
     float3x3 normalMatrix = transpose(adjugate(float3x3(model)));
-    output.Normal = normalize(mul(normalMatrix, vertex.Normal));
+    float3 rawNormal = UnpackOctahedral(vertex.Normal);
+    output.Normal = normalize(mul(normalMatrix, rawNormal));
 
     float3 cameraPos = cameraData.view[3].xyz;
     float3 viewDir = normalize(output.Position.xyz - cameraPos);
@@ -35,7 +37,6 @@ VOut vsMain(VertexData vertex, InstanceData instance)
     }
 
     output.Color = vertex.Color;
-    output.UV = vertex.UV;
 
     return output;
 }

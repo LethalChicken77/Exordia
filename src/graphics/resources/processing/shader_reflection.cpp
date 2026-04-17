@@ -50,6 +50,7 @@ void SlangReflect::reflectVertex(slang::EntryPointReflection* reflect, VertexLay
     reflect->getTypeLayout();
     // uint32_t weightsBufferoffset = 0;
     uint32_t locationBase = 0;
+    *vertLayout = VertexLayout();
     for(uint32_t i = 0; i < reflect->getParameterCount(); i++)
     {
         // Leaving this as a loop in case I need to parse instance layout
@@ -72,7 +73,6 @@ void SlangReflect::reflectVertex(slang::EntryPointReflection* reflect, VertexLay
 
             if(i == 1) 
             {
-                Console::logf("{}", location);
                 vertLayout->instanceBaseLocation = glm::min(vertLayout->instanceBaseLocation, (uint8_t)location);
                 continue; // Don't add instance parameters to vertex layout
             }
@@ -189,7 +189,7 @@ void SlangReflect::reflectVertex(slang::EntryPointReflection* reflect, VertexLay
         }
         if(location + 1 > locationBase) locationBase = location + 1;
     }
-    Console::log(vertLayout->ToString());
+    // Console::log(vertLayout->ToString());
 }
 
 }

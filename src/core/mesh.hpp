@@ -13,6 +13,7 @@
 #include "ref.hpp"
 #include "graphics/api/handles.hpp"
 #include "graphics/api/mesh_config.hpp"
+#include "primitives/color.hpp"
 
 namespace core
 {
@@ -30,13 +31,12 @@ namespace core
         
         struct Vertex
         {
-            glm::vec3 position{}; // 12
-            glm::vec3 normal{}; // 12
-            glm::vec4 tangent{}; // 16
-            // glm::vec3 bitangent{}; // 12
-            glm::i8vec3 color{255, 255, 255}; // 3
-            glm::vec2 texCoord{}; // 8
-            // 72
+            glm::vec3 position{};
+            glm::vec3 normal{};
+            glm::vec4 tangent{};
+            // glm::vec3 bitangent{};
+            Color color{1.0, 1.0, 1.0, 1.0};
+            glm::vec2 texCoord{};
         };
         struct VertexPos
         {

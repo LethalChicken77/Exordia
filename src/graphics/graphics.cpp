@@ -206,11 +206,11 @@ namespace graphics
                     nullptr
                 );
 
-                const GraphicsMesh* mesh = graphicsData->meshRegistry.Get(renderData.handle);
+                GraphicsMesh* mesh = graphicsData->meshRegistry.Get(renderData.handle);
                 if(mesh != nullptr)
                 {
-                    mesh->bind(renderContext.commandBuffer, renderData.instanceBuffer);
-                    mesh->draw(renderContext.commandBuffer, renderData.transforms.size());
+                    mesh->Bind(renderContext.commandBuffer, currentPipeline->GetVertexLayout(), renderData.instanceBuffer);
+                    mesh->Draw(renderContext.commandBuffer, renderData.transforms.size());
                 }
             }
 

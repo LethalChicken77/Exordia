@@ -148,52 +148,6 @@ struct PipelineConfigInfo
     }
 };
 
-class GraphicsPipelineOld // TODO: Rewrite entirely. Maybe merge with compute pipeline.
-{
-public:
-    GraphicsPipelineOld(internal::Device &device, id_t id, const Shader &shader, VkPipelineCache cache);
-    // GraphicsPipeline(const std::string& vertPath, const std::string& fragPath, const PipelineConfigInfo& configInfo, int id, VkPipelineLayout layout);
-    ~GraphicsPipelineOld();
-
-    GraphicsPipelineOld(const GraphicsPipelineOld&) = delete;
-    GraphicsPipelineOld& operator=(const GraphicsPipelineOld&) = delete;
-
-    void Bind(VkCommandBuffer commandBuffer);
-
-    id_t GetID() const { return ID; }
-    VkPipelineLayout GetPipelineLayout() const { return pipelineLayout; }
-    const DescriptorSetLayout &GetDescriptorSetLayout() const { return materialSetLayout; }
-
-private:
-    internal::Device &device;
-    VkPipeline graphicsPipeline = nullptr;
-    VkPipelineLayout pipelineLayout = nullptr;
-
-    PipelineConfigInfo configInfo;
-    std::vector<VkDynamicState> dynamicStateEnables {VK_DYNAMIC_STATE_VIEWPORT, VK_DYNAMIC_STATE_SCISSOR}; // TODO: Make configurable
-    VkPipelineRenderingCreateInfo pipelineRenderingCreateInfo;
-
-    id_t ID = -1;
-
-    DescriptorSetLayout materialSetLayout;
-    
-    VkShaderModule vertexShaderModule = nullptr;
-    VkShaderModule fragmentShaderModule = nullptr;
-
-    void createShaderModules(const Shader &shader);
-    void createShaderModule(const std::vector<uint32_t>& spvCode, VkShaderModule* shaderModule);
-    DescriptorSetLayout createDescriptorSetLayout(const Shader &shader);
-
-
-    void createStandardPipeline(VkPipelineCache cache);
-    // void createPostProcessingPipeline(VkPipelineCache cache);
-    // void createIDBufferPipeline(VkPipelineCache cache);
-    // void createGraphicsPipeline(const std::string& vertPath, const std::string& fragPath, const PipelineConfigInfo& configInfo, VkPipelineLayout layout);
-    void createStandardLayout();
-    // void createPostProcessingLayout();
-    // void createIDBufferLayout();
-};
-
 /// @brief Abstraction of a VkPipeline used for graphics. 
 /// Pipelines are immutable, so the pipeline must be destroyed and recreated to make changes.
 class GraphicsPipeline
@@ -210,12 +164,14 @@ public:
     void Bind(vk::CommandBuffer commandBuffer);
 
     VkPipelineLayout GetPipelineLayout() const { return m_pipelineLayout; }
+    const VertexLayout& GetVertexLayout() const { return m_vertexLayout; }
     const DescriptorSetLayout &GetDescriptorSetLayout() const { return m_materialSetLayout; }
 private:
     internal::Device& m_device;
 
     vk::PipelineLayout m_pipelineLayout = nullptr;
     vk::Pipeline m_pipeline = nullptr;
+    VertexLayout m_vertexLayout;
     DescriptorSetLayout m_materialSetLayout;
 
     PipelineConfigInfo m_configInfo;
