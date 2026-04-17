@@ -17,6 +17,7 @@ Features::Features()
     features2.features.shaderFloat64 = true;
     
     features11.uniformAndStorageBuffer16BitAccess = true;
+    features11.storageInputOutput16 = true;
     features12.shaderFloat16 = true;
     features12.uniformAndStorageBuffer8BitAccess = true;
     features12.shaderInt8 = true;
