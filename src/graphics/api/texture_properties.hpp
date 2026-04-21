@@ -93,6 +93,18 @@ enum class ChannelOrder : uint8_t
     ABGR = 2
 };
 
+enum class TextureShape : uint8_t
+{
+    s1D,
+    s2D,
+    s3D,
+    Cube,
+    Array1D,
+    Array2D,
+    Array3D,
+    ArrayCube
+};
+
 /// @brief Defines an image format as a set of properties.
 /// @note Treat packed formats as single channel, non-srgb, RGBA, Color images. The channel size should match the packed size.
 /// These types can be specified in TextureDataType as needed.
@@ -140,6 +152,7 @@ struct TextureConfig
     // Texture properties
     ImageFormat format{};
     Swizzle swizzle{};
+    TextureShape shape = TextureShape::s2D;
 
     // Sampler properties
     TextureWrapMode wrapU = TextureWrapMode::Repeat;

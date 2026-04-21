@@ -1,4 +1,6 @@
 #pragma once
+#include "var_layout.hpp"
+
 #include <cstdint>
 #include <vector>
 #include <unordered_map>
@@ -30,80 +32,14 @@ public:
         I_Model
     };
 
-    enum class AttrType : uint8_t
-    {
-        Invalid,
-        Float,
-        UInt,
-        SInt,
-        UNorm,
-        SNorm
-    };
-
-    struct AttrFormat
-    {
-        AttrType type = AttrType::Float; // Datatype of the attribute. Used for format selection.
-        uint8_t componentSize = 4;
-        uint8_t componentCount = 4;
-        uint8_t arrayCount = 1; // Used for matrix types.
-
-        /// @brief Get the size of the attribute.
-        /// @return Size in bytes.
-        inline uint32_t GetSize() const { return componentSize * componentCount * arrayCount; }
-        /// @brief Get the alignment of the attribute.
-        /// @return Alignment in bytes.
-        inline uint32_t GetAlignment(bool vecAlignment) const 
-        { 
-            if(vecAlignment)
-            {
-                if(componentCount == 3 && componentSize == 4) return 16; // Align vec3 as vec4
-                return componentSize * componentCount; 
-            }
-            else
-            {
-                return componentSize;
-            }
-        }
-        std::string ToString() const;
-
-        bool operator==(const AttrFormat& other) const
-        {
-            return 
-                type == other.type && 
-                componentSize == other.componentSize &&
-                componentCount == other.componentCount && 
-                arrayCount == other.arrayCount;
-        }
-
-        struct Hash
-        {
-            uint32_t operator()(const AttrFormat& a) const
-            {
-                uint32_t hash = 0;
-
-                auto Combine = [](uint32_t& h, uint32_t v)
-                {
-                    h ^= v + 0x9e3779b9u + (h << 6) + (h >> 2);
-                };
-
-                Combine(hash, (uint32_t)a.type);
-                Combine(hash, (uint32_t)a.componentSize);
-                Combine(hash, (uint32_t)a.componentCount);
-                Combine(hash, (uint32_t)a.arrayCount);
-
-                return hash;
-            }
-        };
-    };
-    
     struct Attribute
     {
         uint8_t location = 255; // Vulkan pipeline binding location.
         uint32_t offset = ~0u; // Offset in bytes into vertex buffer.
         AttrSemantic semantic = AttrSemantic::Other; // Meaning of the field. Used to separate vertex buffers.
-        AttrFormat format{};
+        TypeDescription format{};
 
-        uint32_t GetFormat() const; // Returns a VkFormat as a uint32_t. This is to avoid including the vulkan header.
+        inline uint32_t GetVkFormat() const noexcept { return format.GetVkFormat(); }
 
         std::string ToString() const;
 
@@ -129,7 +65,7 @@ public:
                 Combine(hash, (uint32_t)a.location);
                 Combine(hash, a.offset);
                 Combine(hash, (uint32_t)a.semantic);
-                AttrFormat::Hash formatHash;
+                TypeDescription::Hash formatHash;
                 Combine(hash, formatHash(a.format));
 
                 return hash;

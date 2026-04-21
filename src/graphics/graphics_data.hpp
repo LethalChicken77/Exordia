@@ -27,7 +27,16 @@ struct CameraUbo
     alignas(16) glm::mat4 view;
     alignas(16) glm::mat4 invView;
     alignas(16) glm::mat4 proj;
+    alignas(16) glm::mat4 invProj;
     alignas(16) glm::mat4 viewProj;
+    float nearPlane;
+    float farPlane;
+    float yFOV;
+    float xFOV;
+    float aspectRatio;
+    uint32_t orthographic;
+    uint32_t reversedDepth;
+    uint32_t infiniteFarPlane;
 };
 enum LightType
 {

@@ -294,13 +294,13 @@ public float3 pbrBRDF(
     float3 reflDir = reflect(viewDir, normal);
 
     // float3 F_diffuse = lerp(F0, F_L, 1.0 - roughness); // Effect on diffuse based on roughness
-    float3 F_L = SchlickFresnel(F0, normal, lightDir);             // Reflectance with respect to the light direction
-    float3 F_diffuse = saturate(lerp(F0, F_L, 1.0 - roughness)); // Effect on diffuse based on roughness
+    float3 F = SchlickFresnel(F0, normal, lightDir);             // Reflectance with respect to the light direction
+    float3 kD = (1.0 - metallic) * (1.0 - F);
     
-    float3 diffuse = (1 - metallic) * (1 - F_diffuse) * DiffEON(normal, lightDir, viewDir, roughness * roughness, albedo, true);
+    float3 diffuse = kD * DiffEON(normal, lightDir, viewDir, roughness, albedo, true);
     // float3 diffuse = (1 - metallic) * DiffFON(normal, lightDir, viewDir, roughness, albedo);
-    // float3 diffuse = (1 - metallic) * DiffOrenNayar(normal, lightDir, viewDir, roughness, albedo);
-    // float3 diffuse = (1 - metallic) * (1 - F_diffuse) * DiffBurley(normal, lightDir, viewDir, roughness) * albedo;
+    // float3 diffuse = kD * DiffOrenNayar(normal, lightDir, viewDir, roughness, albedo);
+    // float3 diffuse = kD * DiffBurley(normal, lightDir, viewDir, roughness) * albedo;
     // float3 diffuse = (1 - metallic) * DiffBurley(normal, lightDir, viewDir, roughness) * albedo;
     // float3 diffuse = (1 - metallic) * DiffLambertian(normal, lightDir) * albedo / PI;
     float3 specular = SpecCookTorrance(normal, lightDir, viewDir, roughness, F0);
@@ -323,13 +323,14 @@ public float3 pbrAmbient(
     float3 viewDir
 )
 {
+    // metallic = 1;
     F0 = lerp(F0, albedo, metallic); // Metals use albedo for F0
 
-    float3 F_V = saturate(SchlickFresnel(float3(length(F0)), normal, -viewDir)); // Reflectance with respect to the view direction
+    float3 F_V = saturate(SchlickFresnel(F0, normal, -viewDir)); // Reflectance with respect to the view direction
     F_V *= lerp(1.0, F0, metallic);
     float3 F_ambient = lerp(F0, F_V, (1.0 - roughness)); // Metallic term is more realistic, but looks worse without reflection map
 
-    float3 ambientDiffuse = ambientColor * albedo * (1.0 - F_ambient) * (1.0 - metallic);
+    float3 ambientDiffuse = ambientColor * albedo * (1.0 - F0.r) * (1.0 - metallic);
     float3 ambientSpecular = reflectSample * F_ambient;
 
     return ambientDiffuse + ambientSpecular;

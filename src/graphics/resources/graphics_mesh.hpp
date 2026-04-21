@@ -13,7 +13,7 @@
 #include "core/mesh.hpp"
 #include "engine_types.hpp"
 
-#include "graphics/api/vertex_layout.hpp"
+#include "graphics/resources/layouts/vertex_layout.hpp"
 
 namespace graphics
 {

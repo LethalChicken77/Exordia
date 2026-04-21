@@ -29,6 +29,7 @@ struct CameraProperties
 class Camera
 {
 public:
+    CameraProperties properties;
     
     Camera();
     Camera(const CameraProperties properties);
@@ -54,7 +55,6 @@ private:
     glm::mat4 projection;
     glm::mat4 view;
 
-    CameraProperties properties;
     float aspectRatio = 1; // Horizontal / Vertical
 
     void updateCamera();

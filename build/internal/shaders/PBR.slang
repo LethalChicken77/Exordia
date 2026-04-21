@@ -61,8 +61,10 @@ float4 fsMain(FIn input)
     float3 albedo = albedoMap.Sample(UV).xyz;
     float roughness = roughnessMap.Sample(UV).x; // Assume linear texture
     float metallic = saturate(metallicMap.Sample(UV).x * 1.2);
-    float specular = 0.05;//specularMap.Sample(UV).x;
-    // float specular = specularMap.Sample(UV).x;
+    // float specular = 0.05;//specularMap.Sample(UV).x;
+    float specular = specularMap.Sample(UV).x;
+    // specular = specular * specular;
+    specular = specular * 0.1;
     float3 normalMapSample = normalMap.Sample(UV).xyz * 2.0 - 1.0;
 
     normalMapSample *= float3(1, 1, 1 / materialInfo.normalMapStrength);
@@ -100,7 +102,11 @@ float4 fsMain(FIn input)
     outColor += pbrAmbient(albedo, roughness, metallic, specular, ambientColor, ambientColor, normal, viewDir);
     // outColor = PhongBRDF(albedo, 80, lightColor, ambientColor, normal, lightDir, viewDir);
 
+    float depth = length(input.Position - cameraPos);
+    float fog = pow(2.0, -depth * 0.0005);
+
     // outColor = albedo;
+    outColor = lerp(ambientColor * 4, outColor, fog);
     return float4(outColor, 1.0);
     // return float4(normalMap.Sample(UV).xyz, 1.0);
 }

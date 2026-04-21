@@ -37,10 +37,10 @@ void Shader::Compile()
             vertexShaderAsset->GetDataString(), 
             &tempVertSpirv,
             &tempFragSpirv,
-            nullptr,
+            &layout,
             &vertLayout);
             
-        Console::log(vertLayout.ToString());
+        // Console::log(layout.ToString());
     }
     else
     {
@@ -54,7 +54,7 @@ void Shader::Compile()
     {
         vertSpirv = tempVertSpirv;
         fragSpirv = tempFragSpirv;
-        layout = ShaderLayout(fragSpirv);
+        // layout = ShaderLayout(fragSpirv);
         graphicsModule.UpdateShader(*this);
     }
 }
@@ -67,9 +67,7 @@ void Shader::Update()
 
 void ComputeShader::Compile()
 {
-    spirv = shaderAsset->CompileSlang("main", SLANG_STAGE_VERTEX);
-
-    layout = ShaderLayout(spirv);
+    spirv = shaderAsset->CompileSlang("main", SLANG_STAGE_COMPUTE);
 }
 
 }; // namespace core

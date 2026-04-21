@@ -134,7 +134,16 @@ namespace graphics
         cameraState.view = camera.getView();
         cameraState.invView = glm::inverse(camera.getView());
         cameraState.proj = camera.getProjection();
+        cameraState.invProj = glm::inverse(camera.getProjection());
         cameraState.viewProj = camera.getViewProjection();
+        cameraState.nearPlane = camera.properties.near;
+        cameraState.farPlane = camera.properties.far;
+        cameraState.yFOV = camera.properties.vFov;
+        cameraState.xFOV = camera.properties.vFov * GetAspectRatio();
+        cameraState.aspectRatio = GetAspectRatio();
+        cameraState.orthographic = camera.properties.orthographic;
+        cameraState.reversedDepth = camera.properties.reversedDepth;
+        cameraState.infiniteFarPlane = camera.properties.infiniteFarPlane;
     }
 
     void Graphics::DrawMesh(const core::Mesh& meshData, const Material& material, const std::vector<glm::mat4>& modelMatrices, int instanceID)

@@ -52,19 +52,22 @@ void Engine::init()
     gameData->skyboxMesh = Mesh::createSkybox(10);
     graphicsModule.RegisterMesh(*gameData->skyboxMesh);
 
-    ShaderAsset *testShader = AssetManager::LoadAsset<ShaderAsset>("internal/shaders/basicShader.slang");
+    // ShaderAsset *testShader = AssetManager::LoadAsset<ShaderAsset>("internal/shaders/test_shader.slang");
+    // testShader->LoadData();
+    // graphics::Shader* ts = gameData->shaderPool.New(testShader, testShader);
+    ShaderAsset *basicShader = AssetManager::LoadAsset<ShaderAsset>("internal/shaders/basicShader.slang");
     ShaderAsset *goochShader = AssetManager::LoadAsset<ShaderAsset>("internal/shaders/goochShader.slang");
     ShaderAsset *pbrShader = AssetManager::LoadAsset<ShaderAsset>("internal/shaders/PBR.slang");
     ShaderAsset *skyboxShader = AssetManager::LoadAsset<ShaderAsset>("internal/shaders/skybox.slang");
 
-    testShader->LoadData();
+    basicShader->LoadData();
     goochShader->LoadData();
     pbrShader->LoadData();
     skyboxShader->LoadData();
 
     // Shader shader = Shader(testShader, testShader);
     // This is just to test memory pools, this will be replaced with a proper resource management system
-    shader = gameData->shaderPool.New(testShader, testShader);
+    shader = gameData->shaderPool.New(basicShader, basicShader);
     gShader = gameData->shaderPool.New(goochShader, goochShader);
     sbShader = gameData->shaderPool.New(skyboxShader, skyboxShader);
     pbr = gameData->shaderPool.New(pbrShader, pbrShader);
@@ -299,7 +302,7 @@ void Engine::run()
         // ImGui::End();
         // ImGui::PopStyleVar(2);
 
-        // Console::drawImGui();
+        Console::drawImGui();
         // ObjectManager::drawImGui();
         drawPerformancePanel(deltaTime, averageFrameTime.GetAverage());
         averageFrameTime.PushValue(deltaTime);

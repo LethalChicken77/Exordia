@@ -145,7 +145,7 @@ bool ShaderCompile::CompileSlangCombined(
     // Early return if no reflection is needed
     // if(vertexDest == nullptr && fragmentDest == nullptr) return true;
 
-    SlangReflect::GenerateLayouts(request, vertEP, fragEP, globalLayout, vertLayout);
+    SlangReflect::GenerateLayouts(request, vertEP, fragEP, globalLayout, vertLayout, VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT);
 
     return true;
 }

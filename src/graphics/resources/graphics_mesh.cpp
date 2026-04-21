@@ -122,20 +122,18 @@ void GraphicsMesh::createPositionBuffer()
 }
 
 using Semantic = VertexLayout::AttrSemantic;
-using Format = VertexLayout::AttrFormat;
-using Type = VertexLayout::AttrType;
 
 bool directionHelper(void* writeLocation, const VertexLayout::Attribute& attr, glm::vec3 dir)
 {
-    Format format = attr.format;
+    TypeDescription format = attr.format;
     uint32_t formatSize = format.GetSize();
-    VertexLayout::AttrType type = format.type;
-    if(formatSize == 12 && format.type == Type::Float)
+    DataType type = format.type;
+    if(formatSize == 12 && type == DataType::Float)
     {
         memcpy(writeLocation, &dir, formatSize);
         return true;
     }
-    else if(formatSize == 6 && format.type == Type::Float)
+    else if(formatSize == 6 && type == DataType::Float)
     {
         glm::u16vec3 halfBits = {
             PackFloatToHalf(dir.x),
@@ -145,7 +143,7 @@ bool directionHelper(void* writeLocation, const VertexLayout::Attribute& attr, g
         memcpy(writeLocation, &halfBits, formatSize);
         return true;
     }
-    else if(formatSize == 6 && format.type == Type::SNorm)
+    else if(formatSize == 6 && type == DataType::SNorm)
     {
         glm::i16vec3 snormVal = {
             dir.x * INT16_MAX,
@@ -155,13 +153,13 @@ bool directionHelper(void* writeLocation, const VertexLayout::Attribute& attr, g
         memcpy(writeLocation, &snormVal, formatSize);
         return true;
     }
-    else if(formatSize == 4 && format.type == Type::SNorm)
+    else if(formatSize == 4 && type == DataType::SNorm)
     {
         glm::i16vec2 octahedral = Packing::PackOctahedral16(dir);
         memcpy(writeLocation, &octahedral, formatSize);
         return true;
     }
-    else if(formatSize == 3 && format.type == Type::SNorm)
+    else if(formatSize == 3 && type == DataType::SNorm)
     {
         glm::i8vec3 snormVal = {
             dir.x * INT8_MAX,
@@ -171,7 +169,7 @@ bool directionHelper(void* writeLocation, const VertexLayout::Attribute& attr, g
         memcpy(writeLocation, &snormVal, formatSize);
         return true;
     }
-    else if(formatSize == 2 && format.type == Type::SNorm)
+    else if(formatSize == 2 && type == DataType::SNorm)
     {
         glm::i8vec2 octahedral = Packing::PackOctahedral8(dir);
         memcpy(writeLocation, &octahedral, formatSize);
@@ -183,15 +181,15 @@ bool directionHelper(void* writeLocation, const VertexLayout::Attribute& attr, g
 bool tangentHelper(void* writeLocation, const VertexLayout::Attribute& attr, glm::vec4 tangent)
 {
     uint32_t offset = attr.offset;
-    Format format = attr.format;
+    TypeDescription format = attr.format;
     uint32_t formatSize = format.GetSize();
-    VertexLayout::AttrType type = format.type;
-    if(formatSize == 16 && format.type == Type::Float)
+    DataType type = format.type;
+    if(formatSize == 16 && type == DataType::Float)
     {
         memcpy(writeLocation, &tangent, formatSize);
         return true;
     }
-    else if(formatSize == 8 && format.type == Type::Float)
+    else if(formatSize == 8 && type == DataType::Float)
     {
         glm::u16vec4 halfBits = {
             PackFloatToHalf(tangent.x),
@@ -202,7 +200,7 @@ bool tangentHelper(void* writeLocation, const VertexLayout::Attribute& attr, glm
         memcpy(writeLocation, &halfBits, formatSize);
         return true;
     }
-    else if(formatSize == 8 && format.type == Type::SNorm)
+    else if(formatSize == 8 && type == DataType::SNorm)
     {
         glm::i16vec4 snormVal = {
             tangent.x * INT16_MAX,
@@ -213,7 +211,7 @@ bool tangentHelper(void* writeLocation, const VertexLayout::Attribute& attr, glm
         memcpy(writeLocation, &snormVal, formatSize);
         return true;
     }
-    else if(formatSize == 6 && format.type == Type::SNorm)
+    else if(formatSize == 6 && type == DataType::SNorm)
     {
         glm::i16vec3 octahedral = {
             Packing::PackOctahedral16(tangent), 
@@ -221,7 +219,7 @@ bool tangentHelper(void* writeLocation, const VertexLayout::Attribute& attr, glm
         memcpy(writeLocation, &octahedral, formatSize);
         return true;
     }
-    else if(formatSize == 4 && format.type == Type::SNorm)
+    else if(formatSize == 4 && type == DataType::SNorm)
     {
         glm::i8vec4 snormVal = {
             tangent.x * INT8_MAX,
@@ -232,7 +230,7 @@ bool tangentHelper(void* writeLocation, const VertexLayout::Attribute& attr, glm
         memcpy(writeLocation, &snormVal, formatSize);
         return true;
     }
-    else if(formatSize == 3 && format.type == Type::SNorm)
+    else if(formatSize == 3 && type == DataType::SNorm)
     {
         glm::i8vec3 octahedral = {Packing::PackOctahedral8(tangent),
         tangent.w > 0 ? INT8_MAX : INT8_MIN};
@@ -245,15 +243,15 @@ bool tangentHelper(void* writeLocation, const VertexLayout::Attribute& attr, glm
 bool uvHelper(void* writeLocation, const VertexLayout::Attribute& attr, glm::vec2 uv)
 {
     uint32_t offset = attr.offset;
-    Format format = attr.format;
+    TypeDescription format = attr.format;
     uint32_t formatSize = format.GetSize();
-    VertexLayout::AttrType type = format.type;
-    if(formatSize == 8 && format.type == Type::Float)
+    DataType type = format.type;
+    if(formatSize == 8 && type == DataType::Float)
     {
         memcpy(writeLocation, &uv, formatSize);
         return true;
     }
-    else if(formatSize == 4 && format.type == Type::Float)
+    else if(formatSize == 4 && type == DataType::Float)
     {
         glm::u16vec2 halfBits = {
             PackFloatToHalf(uv.x),
@@ -268,21 +266,21 @@ bool uvHelper(void* writeLocation, const VertexLayout::Attribute& attr, glm::vec
 bool colorHelper(void* writeLocation, const VertexLayout::Attribute& attr, glm::vec4 color)
 {
     uint32_t offset = attr.offset;
-    Format format = attr.format;
+    TypeDescription format = attr.format;
     uint32_t formatSize = format.GetSize();
-    VertexLayout::AttrType type = format.type;
-    if(formatSize == 16 && format.type == Type::Float)
+    DataType type = format.type;
+    if(formatSize == 16 && type == DataType::Float)
     {
         memcpy(writeLocation, &color, formatSize);
         return true;
     }
-    else if(formatSize == 12 && format.type == Type::Float)
+    else if(formatSize == 12 && type == DataType::Float)
     {
         glm::vec3 col = glm::vec3(color.r, color.g, color.b);
         memcpy(writeLocation, &col, formatSize);
         return true;
     }
-    else if(formatSize == 8 && format.type == Type::Float)
+    else if(formatSize == 8 && type == DataType::Float)
     {
         glm::u16vec4 halfBits = {
             PackFloatToHalf(color.r),
@@ -293,7 +291,7 @@ bool colorHelper(void* writeLocation, const VertexLayout::Attribute& attr, glm::
         memcpy(writeLocation, &halfBits, formatSize);
         return true;
     }
-    else if(formatSize == 6 && format.type == Type::Float)
+    else if(formatSize == 6 && type == DataType::Float)
     {
         glm::u16vec3 halfBits = {
             PackFloatToHalf(color.r),
@@ -303,7 +301,7 @@ bool colorHelper(void* writeLocation, const VertexLayout::Attribute& attr, glm::
         memcpy(writeLocation, &halfBits, formatSize);
         return true;
     }
-    else if(formatSize == 8 && format.type == Type::UNorm)
+    else if(formatSize == 8 && type == DataType::UNorm)
     {
         glm::u16vec4 halfBits = {
             color.r * UINT16_MAX,
@@ -314,7 +312,7 @@ bool colorHelper(void* writeLocation, const VertexLayout::Attribute& attr, glm::
         memcpy(writeLocation, &halfBits, formatSize);
         return true;
     }
-    else if(formatSize == 6 && format.type == Type::UNorm)
+    else if(formatSize == 6 && type == DataType::UNorm)
     {
         glm::u16vec3 halfBits = {
             color.r * UINT16_MAX,
@@ -324,7 +322,7 @@ bool colorHelper(void* writeLocation, const VertexLayout::Attribute& attr, glm::
         memcpy(writeLocation, &halfBits, formatSize);
         return true;
     }
-    else if(formatSize == 4 && format.type == Type::UNorm)
+    else if(formatSize == 4 && type == DataType::UNorm)
     {
         glm::u8vec4 halfBits = {
             color.r * UINT8_MAX,
@@ -335,7 +333,7 @@ bool colorHelper(void* writeLocation, const VertexLayout::Attribute& attr, glm::
         memcpy(writeLocation, &halfBits, formatSize);
         return true;
     }
-    else if(formatSize == 3 && format.type == Type::UNorm)
+    else if(formatSize == 3 && type == DataType::UNorm)
     {
         glm::u8vec3 halfBits = {
             color.r * UINT8_MAX,
@@ -376,9 +374,9 @@ void GraphicsMesh::createVertexBuffer(const VertexLayout& vertexLayout)
                 continue;
             
             uint32_t offset = attr.offset;
-            Format format = attr.format;
+            TypeDescription format = attr.format;
             uint32_t formatSize = format.GetSize();
-            VertexLayout::AttrType type = format.type;
+            DataType type = format.type;
             void* writeLocation = bufferData.data() + stride * i + offset;
             switch(attr.semantic)
             {

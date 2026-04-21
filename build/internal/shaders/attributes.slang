@@ -1,4 +1,3 @@
-// Not functional yet, TODO: Slang reflection
 // Include using #include rather than import for preprocessor defines
 // #define RANGE(min, max) [Range(#min, #max)]
 #ifndef ATTRIBUTES_HEADER
@@ -11,6 +10,8 @@ struct SNorm8Attribute {};
 struct UNorm16Attribute {};
 [__AttributeUsage(_AttributeTargets.Var)]
 struct SNorm16Attribute {};
+[__AttributeUsage(_AttributeTargets.Var)]
+struct HalfAttribute {};
 
 [__AttributeUsage(_AttributeTargets.Var)]
 struct ColorAttribute{};

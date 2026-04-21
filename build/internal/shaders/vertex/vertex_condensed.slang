@@ -7,5 +7,5 @@ struct VertexData
     [SNorm16] float2 Normal : NORMAL;
     [SNorm16] float3 Tangent : TANGENT;
     [UNorm8] float3 Color : COLOR;
-    half2 UV : TEXCOORD0;
+    [Half] float2 UV : TEXCOORD0;
 };

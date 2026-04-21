@@ -1,7 +1,7 @@
 #pragma once
 #include "buffer.hpp"
 #include "graphics_pipeline.hpp"
-#include "graphics/api/shader_layout.hpp"
+#include "graphics/resources/layouts/shader_layout.hpp"
 #include "descriptors.hpp"
 
 namespace graphics

@@ -5,7 +5,7 @@
 #include "registries/texture_registry.hpp"
 
 #include "graphics/backend/device.hpp"
-#include "graphics/api/shader_layout.hpp"
+#include "graphics/resources/layouts/shader_layout.hpp"
 #include "graphics/api/handles.hpp"
 #include "graphics/api/resources/material.hpp"
 

@@ -104,7 +104,7 @@ std::vector<vk::VertexInputAttributeDescription> GraphicsPipeline::createVertexA
         attrDescription.binding = attr.semantic == VertexLayout::AttrSemantic::Position ? VERTEX_POSITION_BUFFER_BINDING : VERTEX_BUFFER_BINDING;
         attrDescription.location = attr.location;
         attrDescription.offset = attr.offset;
-        attrDescription.format = static_cast<vk::Format>(attr.GetFormat());
+        attrDescription.format = static_cast<vk::Format>(attr.format.GetVkFormat());
         attrDescriptions.push_back(attrDescription);
     }
     uint32_t instanceBase = layout.GetInstanceBaseLocation();
@@ -199,7 +199,7 @@ DescriptorSetLayout GraphicsPipeline::createDescriptorSetLayout(const Shader &sh
     for(const ShaderLayout::BindingInfo &bindingInfo : setInfo->bindings)
     {
         VkDescriptorType type{};
-        switch(bindingInfo.type)
+        switch(bindingInfo.type())
         {
             case BindingType::Sampler:
                 type = VK_DESCRIPTOR_TYPE_SAMPLER;
@@ -228,12 +228,12 @@ DescriptorSetLayout GraphicsPipeline::createDescriptorSetLayout(const Shader &sh
             case BindingType::StorageBuffer:
                 type = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER;
                 break;
-            case BindingType::DynamicUniformBuffer:
-                type = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER_DYNAMIC;
-                break;
-            case BindingType::DynamicStorageBuffer:
-                type = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER_DYNAMIC;
-                break;
+            // case BindingType::DynamicUniformBuffer: // TODO: Determine some other way, shaders don't give this info
+            //     type = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER_DYNAMIC;
+            //     break;
+            // case BindingType::DynamicStorageBuffer:
+            //     type = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER_DYNAMIC;
+            //     break;
             case BindingType::AccelerationStructure:
                 type = VK_DESCRIPTOR_TYPE_ACCELERATION_STRUCTURE_KHR;
                 break;
