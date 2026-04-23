@@ -309,8 +309,11 @@ void Engine::run()
         
         ImGui::End();
 
+
         bool imguiHovered = ImGui::IsWindowHovered(ImGuiHoveredFlags_AnyWindow);
         ImGui::Render();
+        ImGui::UpdatePlatformWindows();
+        ImGui::RenderPlatformWindowsDefault();
         // Input
         Input::processInput(graphicsModule.GetGLFWWindow());
         

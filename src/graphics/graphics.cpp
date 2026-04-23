@@ -246,6 +246,8 @@ namespace graphics
         ImGui::CreateContext();
         ImGuiIO& imguiIO = ImGui::GetIO();
         (void)imguiIO;
+        // imguiIO.ConfigFlags |= ImGuiConfigFlags_DockingEnable;
+        imguiIO.ConfigFlags |= ImGuiConfigFlags_ViewportsEnable;
         // Set style (optional)
         // ImGui::StyleColorsDark();
         ImGuiStyle& style = ImGui::GetStyle();
