@@ -8,11 +8,11 @@ namespace graphics
 {
 class Graphics;
 
-class FrameOrchestrator
+class FrameOrchestrator // TODO: Move to window
 {
 public:
     FrameOrchestrator();
-    FrameOrchestrator(internal::Device &device, Window &window);
+    FrameOrchestrator(internal::Device &device, Window *window);
     ~FrameOrchestrator();
 
     FrameOrchestrator(const FrameOrchestrator&) = delete;
@@ -61,7 +61,7 @@ public:
     }
 private:
     internal::Device &device;
-    Window &window;
+    Window *window = nullptr;
 
     std::unique_ptr<Swapchain> swapchain{};
     std::vector<vk::CommandBuffer> commandBuffers{};

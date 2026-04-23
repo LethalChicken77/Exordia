@@ -65,28 +65,30 @@ void Device::createLogicalDevice(bool enableValidationLayers)
 {
     Console::log("Creating logical device", "Device");
     // pDevice = &physicalDevice;
-    const PhysicalDevice::QueueFamilyIndices &indices = pDevice.GetQueueFamilyIndices();
+    
+    // TODO: Invesigate whether to create a temporary surface to query the present family
+    // const PhysicalDevice::QueueFamilyIndices &indices = pDevice.GetQueueFamilyIndices();
+    // std::vector<vk::DeviceQueueCreateInfo> queueCreateInfos;
+    // std::set<uint32_t> uniqueQueueFamilies = {indices.graphicsFamily, indices.presentFamily};
+
     std::vector<vk::DeviceQueueCreateInfo> queueCreateInfos;
-    std::set<uint32_t> uniqueQueueFamilies = {indices.graphicsFamily, indices.presentFamily};
+    std::vector<QueueFamily> uniqueQueueFamilies = pDevice.GetUniqueQueues();
 
     float queuePriority = 1.0f;
-    for (uint32_t queueFamily : uniqueQueueFamilies) {
+    for (QueueFamily queueFamily : uniqueQueueFamilies) 
+    {
         vk::DeviceQueueCreateInfo queueCreateInfo = {};
-        queueCreateInfo.queueFamilyIndex = queueFamily;
+        queueCreateInfo.queueFamilyIndex = queueFamily.index;
         queueCreateInfo.queueCount = 1;
         queueCreateInfo.pQueuePriorities = &queuePriority;
         queueCreateInfos.push_back(queueCreateInfo);
     }
 
+    
+
     // TODO: Properly check feature support and dynamically enable them
     // TODO: Add support for extension features
     
-    // Enable the feature for image float32 atomics
-    // VkPhysicalDeviceShaderAtomicFloatFeaturesEXT atomicFloatFeatures = {};
-    // atomicFloatFeatures.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_SHADER_ATOMIC_FLOAT_FEATURES_EXT;
-    // atomicFloatFeatures.shaderImageFloat32Atomics = VK_TRUE; // Enable float32 atomics on images
-    // atomicFloatFeatures.shaderImageFloat32AtomicAdd = VK_TRUE; // Enable float32 atomics on images
-
     vk::DeviceCreateInfo createInfo{};
     createInfo.queueCreateInfoCount = static_cast<uint32_t>(queueCreateInfos.size());
     createInfo.pQueueCreateInfos = queueCreateInfos.data();
@@ -101,16 +103,14 @@ void Device::createLogicalDevice(bool enableValidationLayers)
         throw std::runtime_error("Failed to create logical device");
     }
 
-    graphicsQueue = device.getQueue(indices.graphicsFamily, 0);
-    presentQueue = device.getQueue(indices.presentFamily, 0);
+    graphicsQueue = device.getQueue(pDevice.GetGraphicsFamily().index, 0);
+    presentQueue = device.getQueue(pDevice.GetPresentFamily().index, 0);
 }
 
 void Device::createCommandPool() 
 {
-    const PhysicalDevice::QueueFamilyIndices &indices = pDevice.GetQueueFamilyIndices();
-
     vk::CommandPoolCreateInfo poolInfo{};
-    poolInfo.queueFamilyIndex = indices.graphicsFamily;
+    poolInfo.queueFamilyIndex = pDevice.GetGraphicsFamily().index;
     poolInfo.flags = vk::CommandPoolCreateFlagBits::eTransient | vk::CommandPoolCreateFlagBits::eResetCommandBuffer;
 
     if(device.createCommandPool(&poolInfo, nullptr, &commandPool) != vk::Result::eSuccess) 

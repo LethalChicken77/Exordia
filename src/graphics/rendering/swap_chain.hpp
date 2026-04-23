@@ -46,6 +46,7 @@ public:
     {
         return swapchain.swapchainDepthFormat == swapchainDepthFormat && swapchain.swapchainImageFormat == swapchainImageFormat;
     }
+
 private:
     internal::Device &device;
     Window &window;
@@ -88,7 +89,7 @@ private:
     // void createFramebuffers();
 
     // Helper functions
-    vk::SurfaceFormatKHR chooseSwapSurfaceFormat(const std::vector<vk::SurfaceFormatKHR> &availableFormats);
+    static vk::SurfaceFormatKHR chooseSwapSurfaceFormat(const std::vector<vk::SurfaceFormatKHR> &availableFormats);
     vk::PresentModeKHR chooseSwapPresentMode(const std::set<vk::PresentModeKHR> &availablePresentModes);
     vk::Extent2D chooseSwapExtent(const vk::SurfaceCapabilitiesKHR &capabilities);
     vk::Format findDepthFormat();

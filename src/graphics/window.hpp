@@ -13,7 +13,8 @@ class Window
 public:
     bool open;
 
-    Window();
+    Window(uint32_t width, uint32_t height, const std::string& title);
+    Window(vk::Instance& instance, uint32_t width, uint32_t height, const std::string& title);
     ~Window();
 
     Window(const Window&) = delete;
@@ -34,16 +35,14 @@ public:
     void ResetWindowResizedFlag() { frameBufferResized = false; }
 
 
-    // TODO: Make callbacks work properly
+    // TODO: Events
     static void WindowRefreshCallback(GLFWwindow *window);
     static void FrameResizeCallback(GLFWwindow *window, int width, int height);
 
     static void SetOnRefreshCallback(std::function<void()> callback) { onRefreshCallback = callback; }
 
 private:
-    void init(uint32_t width, uint32_t height, const std::string& title);
-    void createSurface(VkInstance instance);
-    
+    vk::Instance& m_instance;
     uint32_t width;
     uint32_t height;
     bool frameBufferResized = false;
@@ -54,7 +53,8 @@ private:
     GLFWwindow *window;
     vk::SurfaceKHR surface;
 
-    friend class Graphics;
-    friend class internal::VulkanBackend;
+    void createSurface();
+    void setTitleBarColor();
+    void setIcons();
 };
 }

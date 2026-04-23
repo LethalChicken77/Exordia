@@ -30,7 +30,8 @@ GraphicsData::~GraphicsData()
     globalUBO.reset();
     cameraUBOs.clear();
     
-    renderer.Cleanup();
+    renderer.reset();
+    window.reset();
     backend.WaitForDevice();
     backend.Cleanup(this);
     Console::log("Destroyed graphics data", "GraphicsData");

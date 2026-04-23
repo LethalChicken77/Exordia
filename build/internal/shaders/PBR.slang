@@ -73,6 +73,11 @@ float4 fsMain(FIn input)
         normalMapSample.x * tangent + 
         normalMapSample.y * bitangent * input.Tangent.w + 
         normalMapSample.z * normal);
+        
+    // if (dot(normal, viewDir) > 0)
+    // {
+    //     normal = normalize(normal - viewDir * dot(normal, viewDir));
+    // }
 
     float3 reflectDir = reflect(viewDir, normal);
     float2 sphericalCoords = cartesianToSphericalNorm(reflectDir);

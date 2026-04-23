@@ -135,7 +135,7 @@ void Swapchain::createSwapchain(vk::SwapchainKHR oldSwapchain)
     Console::debug("Creating swapchain...", "Swapchain");
     #endif
     internal::PhysicalDevice &physicalDevice = device.GetPhysicalDevice();
-    internal::PhysicalDevice::SwapchainSupportDetails swapchainSupport = physicalDevice.GetSwapchainSupportDetails(&window.GetSurface());
+    internal::SwapchainSupportDetails swapchainSupport = physicalDevice.QuerySwapChainSupport(&window.GetSurface());
 
     vk::SurfaceFormatKHR surfaceFormat = chooseSwapSurfaceFormat(swapchainSupport.formats);
     vk::PresentModeKHR presentMode = chooseSwapPresentMode(swapchainSupport.presentModes);
@@ -157,10 +157,15 @@ void Swapchain::createSwapchain(vk::SwapchainKHR oldSwapchain)
     createInfo.imageArrayLayers = 1;
     createInfo.imageUsage = vk::ImageUsageFlagBits::eColorAttachment;
 
-    internal::PhysicalDevice::QueueFamilyIndices indices = physicalDevice.GetQueueFamilyIndices();
-    uint32_t queueFamilyIndices[] = {indices.graphicsFamily, indices.presentFamily};
+    internal::QueueFamily graphicsFamily = physicalDevice.GetGraphicsFamily();
+    internal::QueueFamily presentFamily = physicalDevice.GetPresentFamily();
+    if(!presentFamily.IsValid())
+    {
+        throw std::runtime_error("Failed to create swapchain as present family index is invalid.");
+    }
+    uint32_t queueFamilyIndices[] = {graphicsFamily.index, presentFamily.index};
 
-    if (indices.graphicsFamily != indices.presentFamily) 
+    if (graphicsFamily != presentFamily) 
     {
         createInfo.imageSharingMode = vk::SharingMode::eConcurrent;
         createInfo.queueFamilyIndexCount = 2;
@@ -311,6 +316,7 @@ vk::SurfaceFormatKHR Swapchain::chooseSwapSurfaceFormat(const std::vector<vk::Su
 {
     for (const vk::SurfaceFormatKHR &availableFormat : availableFormats) 
     {
+        // if (availableFormat.format == vk::Format::eB8G8R8A8Srgb && availableFormat.colorSpace == vk::ColorSpaceKHR::eSrgbNonlinear) 
         if (availableFormat.format == vk::Format::eB8G8R8A8Srgb && availableFormat.colorSpace == vk::ColorSpaceKHR::eSrgbNonlinear) 
         {
             return availableFormat;

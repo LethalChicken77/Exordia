@@ -38,11 +38,17 @@ static VKAPI_ATTR uint32_t VKAPI_CALL debugCallback(
 }
 
 
-void VulkanBackend::init(const std::string& appName, const std::string& engName, Window& window)
+void VulkanBackend::init(const std::string& appName, const std::string& engName)
 {
     Console::log("Creating Vulkan Backend", "VulkanBackend");
     applicationName = &appName;
     engineName = &engName;
+
+    // Initialize GLFW
+    if(!glfwInit())
+    {
+        throw std::runtime_error("Failed to initialize GLFW");
+    }
 
     // VK_CHECK(volkInitialize());
     VK_CHECK(volkInitialize(), "Failed to initialize Volk");
@@ -52,11 +58,11 @@ void VulkanBackend::init(const std::string& appName, const std::string& engName,
 #ifdef DEBUG
     setupDebugMessenger();
 #endif
-    window.createSurface(instance);
 
     features = Features();
 
-    physicalDevice.pickPhysicalDevice(instance, &window.GetSurface());
+    physicalDevice = PhysicalDevice(&instance);
+    physicalDevice.pickPhysicalDevice(instance);
     createDevice();
     volkLoadDevice(device.Get());
 }
@@ -82,9 +88,6 @@ void VulkanBackend::Cleanup(graphics::GraphicsData *_graphicsData)
     }
     if(instance != VK_NULL_HANDLE)
     {
-        if(_graphicsData->GetWindow().GetSurface() != VK_NULL_HANDLE)
-            vkDestroySurfaceKHR(instance, _graphicsData->GetWindow().GetSurface(), nullptr);
-
         vkDestroyInstance(instance, nullptr);
     }
 
@@ -204,6 +207,7 @@ std::vector<const char *> VulkanBackend::getRequiredExtensions()
 {
     uint32_t glfwExtensionCount = 0;
     const char **glfwExtensions;
+    
     glfwExtensions = glfwGetRequiredInstanceExtensions(&glfwExtensionCount);
 
     std::vector<const char *> extensions(glfwExtensions, glfwExtensions + glfwExtensionCount);

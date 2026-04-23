@@ -12,15 +12,15 @@
 namespace graphics::internal
 {
 
-PhysicalDevice::PhysicalDevice() {}
+PhysicalDevice::PhysicalDevice(vk::Instance* _instance) : instance(_instance) {}
 
 void PhysicalDevice::init(vk::Instance instance, vk::SurfaceKHR* surface)
 {
-    pickPhysicalDevice(instance, surface);
+    pickPhysicalDevice(instance);
     // vkGetPhysicalDeviceMemoryProperties(physicalDevice, &memoryProperties);
 }
 
-void PhysicalDevice::pickPhysicalDevice(vk::Instance instance, vk::SurfaceKHR* surface)
+void PhysicalDevice::pickPhysicalDevice(vk::Instance instance)
 {
     uint32_t deviceCount = 0;
     vkEnumeratePhysicalDevices(instance, &deviceCount, nullptr);
@@ -35,7 +35,7 @@ void PhysicalDevice::pickPhysicalDevice(vk::Instance instance, vk::SurfaceKHR* s
     for (const VkPhysicalDevice &device : devices) 
     {
         physicalDevice = device;
-        if (findDeviceCapabilities(surface)) 
+        if (isDeviceAdequate()) 
         {
             break;
         }
@@ -54,25 +54,19 @@ void PhysicalDevice::pickPhysicalDevice(vk::Instance instance, vk::SurfaceKHR* s
     Console::log("Physical device: " + std::string(properties.properties.deviceName), "PhysicalDevice");
 }
 
-bool PhysicalDevice::findDeviceCapabilities(vk::SurfaceKHR* surface) 
+bool PhysicalDevice::isDeviceAdequate() 
 {
-    queueFamilyIndices = findQueueFamilies(surface);
-
+    // Note: We're ignoring the present queue family to avoid a dependency on surfaces.
+    // This shouldn't be an issue as almost any device that can render can present.
+    queryGraphicsFamily();
+    
     bool extensionsSupported = checkDeviceExtensionSupport();
-
-    bool swapChainAdequate = false;
-    if (extensionsSupported) 
-    {
-        swapchainSupport = querySwapChainSupport(surface);
-        swapChainAdequate = !swapchainSupport.formats.empty() && !swapchainSupport.presentModes.empty();
-    }
 
     Features testFeatures = features;
     physicalDevice.getFeatures2(&features.featureChain.get<vk::PhysicalDeviceFeatures2>());
 
     // TODO: Deal with feature checks dynamically
-    return queueFamilyIndices.isComplete() && extensionsSupported && swapChainAdequate;
-        // && testFeatures == features; // TODO: Throw if invalid features instead of disabling them
+    return extensionsSupported && testFeatures == features && graphicsFamily.IsValid() && presentFamily.IsValid(); // TODO: Throw if invalid features instead of disabling them
 }
 
 bool PhysicalDevice::checkDeviceExtensionSupport() 
@@ -91,37 +85,44 @@ bool PhysicalDevice::checkDeviceExtensionSupport()
     return requiredExtensions.empty();
 }
 
-PhysicalDevice::QueueFamilyIndices PhysicalDevice::findQueueFamilies(vk::SurfaceKHR* surface) 
+void PhysicalDevice::queryGraphicsFamily() 
 {
-    QueueFamilyIndices indices;
+    graphicsFamily = QueueFamily{};
 
     uint32_t queueFamilyCount = 0;
     std::vector<vk::QueueFamilyProperties> queueFamilies = physicalDevice.getQueueFamilyProperties();
 
+    bool idealFound = false;
+    presentFamily = QueueFamily{};
     int i = 0;
     for (const VkQueueFamilyProperties &queueFamily : queueFamilies) 
     {
-        if (queueFamily.queueCount > 0 && queueFamily.queueFlags & VK_QUEUE_GRAPHICS_BIT) 
+        bool presentSupport = glfwGetPhysicalDevicePresentationSupport(*instance, physicalDevice, i);
+        if (queueFamily.queueCount > 0 && queueFamily.queueFlags & VK_QUEUE_GRAPHICS_BIT && presentSupport) 
         {
-            indices.graphicsFamily = i;
-            indices.graphicsFamilyHasValue = true;
+            graphicsFamily.index = i;
+            presentFamily.index = i;
+            idealFound = true;
         }
-        bool presentSupport = physicalDevice.getSurfaceSupportKHR(i, *surface);
-        if (queueFamily.queueCount > 0 && presentSupport)
+        else if (queueFamily.queueCount > 0 && queueFamily.queueFlags & VK_QUEUE_GRAPHICS_BIT) 
         {
-            indices.presentFamily = i;
-            indices.presentFamilyHasValue = true;
+            graphicsFamily.index = i;
         }
-        if (indices.isComplete())
+        else if(presentSupport)
+        {
+            presentFamily.index = i;
+        }
+
+        if(idealFound)
+        {
             break;
+        }
 
         i++;
     }
-
-    return indices;
 }
 
-PhysicalDevice::SwapchainSupportDetails PhysicalDevice::querySwapChainSupport(vk::SurfaceKHR* surface) 
+SwapchainSupportDetails PhysicalDevice::QuerySwapChainSupport(vk::SurfaceKHR* surface) 
 {
     SwapchainSupportDetails details{};
     details.capabilities = physicalDevice.getSurfaceCapabilitiesKHR(*surface);

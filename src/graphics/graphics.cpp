@@ -19,9 +19,9 @@ namespace graphics
     {
         Console::log("Initializing graphics module", "Graphics");
         graphicsData = std::make_unique<GraphicsData>();
-        graphicsData->window.init(800, 600, engName + " - " + appName);
-        graphicsData->backend.init(appName, engName, graphicsData->window);
-        graphicsData->renderer.init();
+        graphicsData->backend.init(appName, engName);
+        graphicsData->window = std::make_unique<Window>(800, 600, engName + " - " + appName);
+        graphicsData->renderer = std::make_unique<FrameOrchestrator>(graphicsData->backend.GetDevice(), graphicsData->window.get());
         graphicsData->pipelineRegistry.init();
         graphicsData->textureRegistry.Init();
         
@@ -159,7 +159,7 @@ namespace graphics
 
     void Graphics::DrawFrame()
     {
-        FrameOrchestrator &renderer = graphicsData->renderer;
+        FrameOrchestrator &renderer = *graphicsData->renderer;
         VkExtent2D extent = renderer.GetExtent();
         if(extent.width <= 0 || extent.height <= 0) return; // Don't draw frame if minimized
 
@@ -265,7 +265,7 @@ namespace graphics
         ImGui_ImplGlfw_InitForVulkan(GetGLFWWindow(), true);
 
         internal::Device &device = GetDevice();
-        const Swapchain &swapchain = graphicsData->renderer.GetSwapchain();
+        const Swapchain &swapchain = graphicsData->renderer->GetSwapchain();
         // containers.imguiDescriptorSets = std::vector<VkDescriptorSet>(SwapChain::MAX_FRAMES_IN_FLIGHT);
         graphicsData->imguiDescriptorPool = DescriptorPool::Builder(device)
             .SetMaxSets(Swapchain::MAX_FRAMES_IN_FLIGHT)
@@ -287,7 +287,7 @@ namespace graphics
         initInfo.Instance = graphicsData->backend.GetInstance();
         initInfo.PhysicalDevice = device.GetPhysicalDevice().Get();
         initInfo.Device = device.Get();
-        initInfo.QueueFamily = device.GetPhysicalDevice().GetQueueFamilyIndices().graphicsFamily;
+        initInfo.QueueFamily = device.GetPhysicalDevice().GetGraphicsFamily().index;
         initInfo.Queue = device.GetGraphicsQueue();
         initInfo.PipelineCache = VK_NULL_HANDLE;
         initInfo.DescriptorPool = graphicsData->imguiDescriptorPool->GetPool();
@@ -301,6 +301,7 @@ namespace graphics
         initInfo.PipelineInfoMain.PipelineRenderingCreateInfo = {};
         initInfo.PipelineInfoMain.PipelineRenderingCreateInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_RENDERING_CREATE_INFO;
         initInfo.PipelineInfoMain.PipelineRenderingCreateInfo.colorAttachmentCount = 1;
+        // TODO: Don't render directly to the swapchain, each window gets its own
         initInfo.PipelineInfoMain.PipelineRenderingCreateInfo.pColorAttachmentFormats = (VkFormat*)&swapchain.GetImageFormat();
         initInfo.PipelineInfoMain.PipelineRenderingCreateInfo.depthAttachmentFormat = (VkFormat)swapchain.GetDepthFormat();
         initInfo.PipelineInfoMain.PipelineRenderingCreateInfo.stencilAttachmentFormat = VK_FORMAT_UNDEFINED;
@@ -330,14 +331,14 @@ namespace graphics
     {
         VkRenderingAttachmentInfo colorAttachment = {};
         colorAttachment.sType = VK_STRUCTURE_TYPE_RENDERING_ATTACHMENT_INFO;
-        colorAttachment.imageView = graphicsData->renderer.GetSwapchain().GetImageView(context.imageIndex);
+        colorAttachment.imageView = graphicsData->renderer->GetSwapchain().GetImageView(context.imageIndex);
         colorAttachment.imageLayout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
         colorAttachment.loadOp = VK_ATTACHMENT_LOAD_OP_LOAD;
         colorAttachment.storeOp = VK_ATTACHMENT_STORE_OP_STORE;
 
         VkRenderingInfo renderingInfo = {};
         renderingInfo.sType = VK_STRUCTURE_TYPE_RENDERING_INFO;
-        renderingInfo.renderArea = {{0,0}, graphicsData->renderer.GetExtent()};
+        renderingInfo.renderArea = {{0,0}, graphicsData->renderer->GetExtent()};
         renderingInfo.layerCount = 1;
         renderingInfo.colorAttachmentCount = 1;
         renderingInfo.pColorAttachments = &colorAttachment;

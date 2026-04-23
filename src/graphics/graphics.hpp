@@ -54,11 +54,11 @@ class Graphics
         //     graphicsData->pipelineRegistry.ReloadPipelines();
         // }
 
-        Window &GetWindow() { return graphicsData->GetWindow(); }
-        GLFWwindow* GetGLFWWindow() { return graphicsData->GetWindow().GetWindow(); }
-        float GetAspectRatio() const { return graphicsData->GetWindow().GetAspectRatio(); }
+        Window* GetWindow() const { return graphicsData->GetWindow(); }
+        GLFWwindow* GetGLFWWindow() const { return graphicsData->GetWindow()->GetWindow(); }
+        float GetAspectRatio() const { return graphicsData->GetWindow()->GetAspectRatio(); }
 
-        bool IsOpen() const { return graphicsData->GetWindow().IsOpen(); }
+        bool IsOpen() const { return graphicsData->GetWindow()->IsOpen(); }
         inline internal::Device &GetDevice() { return graphicsData->GetBackend().GetDevice(); }
         void GraphicsInitImgui();
     private:

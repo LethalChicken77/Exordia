@@ -62,9 +62,7 @@ class GraphicsData
 {
 private:
 // Declaration order matters here
-    Window window;
     internal::VulkanBackend backend;
-    FrameOrchestrator renderer{backend.GetDevice(), window};
 
 public:
     ~GraphicsData();
@@ -72,8 +70,8 @@ public:
     inline internal::Device &GetDevice() { return backend.GetDevice(); }
     inline const internal::PhysicalDevice &GetPhysicalDevice() const { return backend.GetPhysicalDevice(); }
     inline const VkPhysicalDeviceProperties2 &GetDeviceProperties() const { return backend.GetPhysicalDevice().GetProperties(); }
-    Window &GetWindow() { return window; }
-    GLFWwindow *GetGLFWWindow() { return window.GetWindow(); }
+    Window *GetWindow() const { return window.get(); }
+    GLFWwindow *GetGLFWWindow() { return window != nullptr ? window->GetWindow() : nullptr; }
     
     const bool REVERSED_DEPTH = true;
 
@@ -101,6 +99,8 @@ public:
     // Global pool
     // Default textures, shaders, materials
 
+    std::unique_ptr<Window> window{};
+    std::unique_ptr<FrameOrchestrator> renderer{};
 private:
     // PipelineManager pipelineManager{backend.GetDevice()};
 

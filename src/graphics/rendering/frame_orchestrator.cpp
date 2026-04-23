@@ -11,16 +11,14 @@ FrameOrchestrator::FrameOrchestrator() : FrameOrchestrator(graphicsData->GetBack
 /// @brief Create a renderer with specified device and window
 /// @param device Device to use for rendering
 /// @param window Window to render to
-FrameOrchestrator::FrameOrchestrator(internal::Device &_device, Window &_window) : device(_device), window(_window){}
-
-FrameOrchestrator::~FrameOrchestrator()
-{
-}
-
-void FrameOrchestrator::init()
+FrameOrchestrator::FrameOrchestrator(internal::Device &_device, Window *_window) : device(_device), window(_window)
 {
     RecreateSwapchain();
     createCommandBuffers();
+}
+
+FrameOrchestrator::~FrameOrchestrator()
+{
 }
 
 void FrameOrchestrator::Cleanup()
@@ -84,9 +82,9 @@ void FrameOrchestrator::EndFrame()
     #endif
 
     vk::Result result = swapchain->SubmitCommandBuffers({&currentCommandBuffer, 1}, &currentImageIndex);
-    if(result == vk::Result::eErrorOutOfDateKHR || result == vk::Result::eSuboptimalKHR || window.WindowResized())
+    if(result == vk::Result::eErrorOutOfDateKHR || result == vk::Result::eSuboptimalKHR || window->WindowResized())
     {
-        window.ResetWindowResizedFlag();
+        window->ResetWindowResizedFlag();
         RecreateSwapchain();
         if(result == vk::Result::eErrorOutOfDateKHR || result == vk::Result::eSuboptimalKHR) // Allows me to use VK_CHECK to print unhandled errors
             result = vk::Result::eSuccess;
@@ -160,11 +158,11 @@ void FrameOrchestrator::EndRenderDynamic(const FrameContext& context, const Pass
 
 void FrameOrchestrator::RecreateSwapchain()
 {
-    vk::Extent2D extent = window.GetExtent();
+    vk::Extent2D extent = window->GetExtent();
     Console::log(std::format("Recreating swap chain with extent {}x{}", extent.width, extent.height), "FrameOrchestrator");
     while(extent.width == 0 || extent.height == 0)
     {
-        extent = window.GetExtent();
+        extent = window->GetExtent();
         glfwWaitEvents();
     }
 
@@ -175,7 +173,7 @@ void FrameOrchestrator::RecreateSwapchain()
         Console::log("Recreating swap chain", "Graphics");
         swapchain = std::make_unique<Swapchain>(
             graphicsData->GetBackend().GetDevice(),
-            graphicsData->GetWindow(),
+            *graphicsData->GetWindow(),
             SwapchainSettings{}
         );
     }
@@ -185,7 +183,7 @@ void FrameOrchestrator::RecreateSwapchain()
         Console::log("Resizing swap chain", "FrameOrchestrator");
         swapchain = std::make_unique<Swapchain>(
             graphicsData->GetBackend().GetDevice(),
-            graphicsData->GetWindow(),
+            *graphicsData->GetWindow(),
             SwapchainSettings{},
             oldSwapchain->GetSwapchain()
         );

@@ -8,34 +8,44 @@
 namespace graphics::internal
 {
 
+struct SwapchainSupportDetails {
+    vk::SurfaceCapabilitiesKHR capabilities;
+    std::vector<vk::SurfaceFormatKHR> formats;
+    std::set<vk::PresentModeKHR> presentModes;
+};
+
+struct QueueFamily {
+    uint32_t index = ~0u;
+    bool IsValid() { return index != ~0u; }
+    bool operator==(const QueueFamily other) const
+    {
+        return index == other.index;
+    }
+};
+
 class VulkanBackend;
 /// Container for a physical device.
 /// Includes functions for initializing device information.
 class PhysicalDevice
 {
 public:
-    struct SwapchainSupportDetails {
-        vk::SurfaceCapabilitiesKHR capabilities;
-        std::vector<vk::SurfaceFormatKHR> formats;
-        std::set<vk::PresentModeKHR> presentModes;
-    };
-
-    struct QueueFamilyIndices {
-        uint32_t graphicsFamily;
-        uint32_t presentFamily;
-        bool graphicsFamilyHasValue = false;
-        bool presentFamilyHasValue = false;
-        bool isComplete() { return graphicsFamilyHasValue && presentFamilyHasValue; }
-    };
 
     const vk::PhysicalDevice &Get() const { return physicalDevice; }
     const vk::PhysicalDeviceProperties2 &GetProperties() const { return properties; }
     const vk::PhysicalDeviceLimits GetLimits() const { return properties.properties.limits; }
-    const QueueFamilyIndices &GetQueueFamilyIndices() const { return queueFamilyIndices; }
-    SwapchainSupportDetails &GetSwapchainSupportDetails(vk::SurfaceKHR* surface) { 
-        swapchainSupport = querySwapChainSupport(surface);
-        return swapchainSupport;
+    inline QueueFamily GetGraphicsFamily() const { return graphicsFamily; };
+    inline QueueFamily GetPresentFamily() const { return presentFamily; };
+    inline std::vector<QueueFamily> GetUniqueQueues() const 
+    {
+        if(graphicsFamily == presentFamily)
+            return {graphicsFamily};
+        else
+            return {graphicsFamily, presentFamily};
     }
+
+    SwapchainSupportDetails QuerySwapChainSupport(vk::SurfaceKHR* surface);
+
+
     uint32_t FindMemoryType(uint32_t typeFilter, vk::MemoryPropertyFlags properties) const;
 
     vk::Format FindSupportedFormat(const std::vector<vk::Format> &candidates, vk::ImageTiling tiling, vk::FormatFeatureFlags features) const;
@@ -45,24 +55,26 @@ public:
     
     
 private:
-    PhysicalDevice();
+    PhysicalDevice() = default;
+    PhysicalDevice(vk::Instance* _instance);
 
+    vk::Instance* instance = nullptr;
     vk::PhysicalDevice physicalDevice = VK_NULL_HANDLE;
-
     vk::PhysicalDeviceProperties2 properties{};
+    QueueFamily graphicsFamily{};
+    QueueFamily presentFamily{};
 
-    QueueFamilyIndices queueFamilyIndices{};
-    SwapchainSupportDetails swapchainSupport{};
     // VkPhysicalDeviceMemoryProperties memoryProperties{};
+    void pickPhysicalDevice(vk::Instance instance);
 
     void init(vk::Instance instance, vk::SurfaceKHR* surface);
-    void pickPhysicalDevice(vk::Instance instance, vk::SurfaceKHR* surface);
-    bool findDeviceCapabilities(vk::SurfaceKHR* surface);
-    
-    // Utilities
+
+    /// @brief Check if the physical device supports the requested extensions and features.
+    bool isDeviceAdequate();
+    /// @brief Check if the requested extensions are supported.
     bool checkDeviceExtensionSupport();
-    QueueFamilyIndices findQueueFamilies(vk::SurfaceKHR* surface);
-    SwapchainSupportDetails querySwapChainSupport(vk::SurfaceKHR* surface);
+    /// @brief Check if the graphics family is adequate.
+    void queryGraphicsFamily();
 
     friend class VulkanBackend;
 };

@@ -30,7 +30,7 @@ public:
 
     void init();
     void close();
-    bool isOpen() const { return graphicsModule.GetWindow().IsOpen(); }
+    bool isOpen() const { return graphicsModule.GetWindow()->IsOpen(); }
 
     void run();
 
