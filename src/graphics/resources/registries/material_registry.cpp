@@ -13,7 +13,7 @@ MaterialRegistry::MaterialRegistry(const PipelineRegistry& _pipelineRegistry, co
 /// @return Handle for new mesh, invalid on failure
 MaterialHandle MaterialRegistry::Register(Material &material, DescriptorPool &pool)
 {
-    if(material.graphicsHandle.IsValid()) return material.graphicsHandle; // Material is already registered
+    if(Update(material)) return material.graphicsHandle;
 
     GraphicsPipeline* pipeline = pipelineRegistry.Get(material.shader->graphicsHandle);
     if(pipeline == nullptr)
@@ -54,13 +54,20 @@ MaterialHandle MaterialRegistry::Register(Material &material, DescriptorPool &po
 /// @return True on success, false on failure
 bool MaterialRegistry::Update(Material &material)
 {
+    if(!IsValid(material.graphicsHandle)) return false;
+    
     MaterialHandle &handle = material.graphicsHandle;
-    if(!material.graphicsHandle.IsValid()) return false;
+
+    GraphicsPipeline* pipeline = pipelineRegistry.Get(material.shader->graphicsHandle);
+    if(pipeline == nullptr)
+    {
+        Console::error("Failed to update graphics material: Invalid pipeline", "GraphicsMaterial");
+        return {};
+    }
 
     Entry &entry = entries[handle.index];
+    entry.value->UpdateMaterial(&material, *pipeline, textureRegistry);
 
-    // Update Material TODO: Implement
-    // entry.value
 
     return true;
 }

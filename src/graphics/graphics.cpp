@@ -42,17 +42,18 @@ namespace graphics
 
         graphicsData->globalDescriptorPool = DescriptorPool::Builder(graphicsData->GetBackend().GetDevice())
             .AddPoolSize(VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, 1)
-            .SetPoolFlags(VK_DESCRIPTOR_SET_LAYOUT_CREATE_UPDATE_AFTER_BIND_POOL_BIT)
+            .SetPoolFlags(VK_DESCRIPTOR_POOL_CREATE_UPDATE_AFTER_BIND_BIT)
             .SetMaxSets(2)
             .Build();
         graphicsData->cameraDescriptorPool = DescriptorPool::Builder(graphicsData->GetBackend().GetDevice())
             .AddPoolSize(VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, Swapchain::MAX_FRAMES_IN_FLIGHT)
-            .SetPoolFlags(VK_DESCRIPTOR_SET_LAYOUT_CREATE_UPDATE_AFTER_BIND_POOL_BIT)
+            .SetPoolFlags(VK_DESCRIPTOR_POOL_CREATE_UPDATE_AFTER_BIND_BIT)
             .SetMaxSets(Swapchain::MAX_FRAMES_IN_FLIGHT)
             .Build();
         graphicsData->materialDescriptorPool = DescriptorPool::Builder(graphicsData->GetBackend().GetDevice())
-            .AddPoolSize(VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, 1)
-            .SetPoolFlags(VK_DESCRIPTOR_SET_LAYOUT_CREATE_UPDATE_AFTER_BIND_POOL_BIT)
+            .AddPoolSize(VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, 128)
+            .AddPoolSize(VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, 128)
+            .SetPoolFlags(VK_DESCRIPTOR_POOL_CREATE_UPDATE_AFTER_BIND_BIT | VK_DESCRIPTOR_POOL_CREATE_FREE_DESCRIPTOR_SET_BIT)
             .SetMaxSets(EXO_MAX_MATERIALS)
             .Build();
         // BufferLayout s{};
@@ -205,15 +206,16 @@ namespace graphics
                 DrawFunctions::bindCameraDescriptor(renderContext, graphicsData->cameraDescriptorSets[renderContext.frameIndex], currentPipeline);
                 DrawFunctions::bindGlobalDescriptor(renderContext, graphicsData->globalDescriptorSet, currentPipeline);
 
-                renderContext.commandBuffer.bindDescriptorSets(
-                    vk::PipelineBindPoint::eGraphics,
-                    vk::PipelineLayout(currentPipeline->GetPipelineLayout()), // Temporary until pipeline rewrite is finished 
-                    2,
-                    1,
-                    (vk::DescriptorSet*)localDescriptorSets.data(), 
-                    0,
-                    nullptr
-                );
+                if(!mat->IsEmpty())
+                    renderContext.commandBuffer.bindDescriptorSets(
+                        vk::PipelineBindPoint::eGraphics,
+                        currentPipeline->GetPipelineLayout(),
+                        2,
+                        1,
+                        (vk::DescriptorSet*)localDescriptorSets.data(), 
+                        0,
+                        nullptr
+                    );
 
                 GraphicsMesh* mesh = graphicsData->meshRegistry.Get(renderData.handle);
                 if(mesh != nullptr)

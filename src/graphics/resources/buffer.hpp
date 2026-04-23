@@ -75,7 +75,7 @@ public:
     vk::MemoryPropertyFlags GetMemoryPropertyFlags() const {
         return device.GetAllocator().getAllocationMemoryProperties(bufferAllocation);
     }
-    vk::DeviceSize GetBufferSize() const { return bufferSize; }
+    vk::DeviceSize GetSize() const { return bufferSize; }
     vk::DescriptorBufferInfo GetDescriptorInfo(size_t offset = 0, size_t range = VK_WHOLE_SIZE) const { return { buffer, offset, range }; }
 private:
     internal::Device &device;

@@ -1,5 +1,7 @@
 #include "material.hpp"
 #include "texture_data.hpp"
+#include "imgui.h"
+#include "modules.hpp"
 
 using graphics::ShaderParameter;
 using graphics::BufferLayout;
@@ -7,10 +9,16 @@ using graphics::BufferLayout;
 namespace graphics
 {
 
-Material::Material(const Shader *_shader) 
-    : shader(_shader)
+Material::Material(const Shader *_shader, const std::string_view _name) 
+    : shader(_shader),
+    name(_name)
 {
-    Update();
+    UpdateLayout();
+}
+
+Material::~Material()
+{
+    graphicsModule.DeregisterMaterial(*this);
 }
 
 /// @brief Assign a texture to a material via a texture handle.
@@ -30,6 +38,7 @@ void Material::SetTexture(const std::string &name, TextureHandle handle)
     }
 
     textureBindings[textureIndex.at(name)].handle = handle;
+    UpdateValues();
 }
 
 void Material::SetTexture(const std::string &name, const TextureData& texture)
@@ -40,7 +49,7 @@ void Material::SetTexture(const std::string &name, const TextureData& texture)
 /// @brief Create data buffers and index.
 /// Migrates old values if possible.
 /// @note Values will only be migrated if both the name and type match the old version.
-void Material::Update()
+void Material::UpdateLayout()
 {
     materialLayout = shader->GetLayoutPtr();
     std::vector<std::byte> oldData = data;
@@ -104,6 +113,14 @@ void Material::Update()
             }
         }
     }
+
+    UpdateValues();
+}
+
+void Material::UpdateValues()
+{
+    // Console::debugf("Updating material: {}", name);
+    graphicsModule.RegisterMaterial(*this);
 }
 
 bool Material::validateLayout() const noexcept
@@ -132,11 +149,118 @@ const ShaderParameter* Material::getShaderParameter(const std::string& paramName
     if(!dataMap.contains(paramName))
     {
         // Console::warnf("Shader layout for material {} has changed, updating layout.", name, paramName);
-        Update();
+        UpdateLayout();
         return nullptr;
     }
     return param;
 }
 
+ImGuiDataType typeToImguiTypeScalar(TypeDescription td)
+{
+    switch(td.type)
+    {
+        case DataType::UInt:
+            switch(td.componentSize)
+            {
+                case 1:
+                    return ImGuiDataType_U8;
+                case 2:
+                    return ImGuiDataType_U16;
+                case 4:
+                default:
+                    return ImGuiDataType_U32;
+                case 8:
+                    return ImGuiDataType_U64;
+            }
+        case DataType::SInt:
+            switch(td.componentSize)
+            {
+                case 1:
+                    return ImGuiDataType_S8;
+                case 2:
+                    return ImGuiDataType_S16;
+                case 4:
+                default:
+                    return ImGuiDataType_S32;
+                case 8:
+                    return ImGuiDataType_S64;
+            }
+        default:
+        case DataType::Float:
+            switch(td.componentSize)
+            {
+                case 2:
+                    return ImGuiDataType_Float;
+                case 4:
+                default:
+                    return ImGuiDataType_Float;
+                case 8:
+                    return ImGuiDataType_Double;
+            }
+    }
+}
+
+bool Material::drawImGuiParam(const ShaderParameter& param)
+{
+    std::byte* dest = data.data() + param.offset;
+    const char* paramName = param.name.c_str();
+    bool dirty = false;
+    switch(param.type.type)
+    {
+    case DataType::Bool:
+        dirty |= ImGui::Checkbox(paramName, reinterpret_cast<bool*>(dest));
+        break;
+    case DataType::UInt:
+    case DataType::SInt:
+        dirty |= ImGui::DragScalarN(paramName, typeToImguiTypeScalar(param.type), reinterpret_cast<void*>(dest), param.type.componentCount);
+        break;
+    case DataType::Float:
+        if(param.type.componentSize == 2)
+        {
+            float tempFloat = UnpackHalfToFloat(*reinterpret_cast<uint16_t*>(dest));
+            dirty |= ImGui::DragScalarN(paramName, ImGuiDataType_Float, reinterpret_cast<void*>(dest), param.type.componentCount, 0.01f);
+            *reinterpret_cast<uint16_t*>(dest) = PackFloatToHalf(tempFloat);
+        }
+        else
+            dirty |= ImGui::DragScalarN(paramName, typeToImguiTypeScalar(param.type), reinterpret_cast<void*>(dest), param.type.componentCount, 0.01f);
+        break;
+    default:
+        ImGui::Text("%s", param.name.c_str());
+        break;
+    }
+    return dirty;
+}
+
+void Material::DrawImGui()
+{
+    ImGui::Text("%s", name.c_str());
+    if(!validateLayout())
+    {
+        UpdateLayout();
+        return;
+    }
+    if(materialLayout == nullptr) 
+    {
+        ImGui::Text("Material layout is null.");
+        return;
+    }
+    bool dirty = false;
+    for(const ShaderLayout::BindingInfo& binding : materialLayout->GetMaterialDescriptorSet()->bindings)
+    {
+        if(binding.type.IsBuffer())
+        {
+            const BufferLayout& buffLayout = materialLayout->GetBufferLayouts()[binding.bufferIndex];
+            for(const ShaderParameter& param : buffLayout.GetParameters())
+            {
+                dirty |= drawImGuiParam(param);
+            }
+        }
+        else if(binding.type.IsImage())
+        {
+
+        }
+    }
+    if(dirty) UpdateValues();
+}
 
 } // namespace core

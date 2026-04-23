@@ -1,6 +1,7 @@
 import utils;
 import shading_models;
 import colorspace;
+import attributes;
 
 import "vertex/vertex_no_tex.slang";
 import "vertex/instance.slang";
@@ -9,9 +10,9 @@ import shaderInputs;
 // Material Descriptor Set
 struct MaterialInfo
 {
-    float4 color;
-    float roughness;
-    float metallic;
+    [Color] float4 color;
+    [Range(0,1)] float roughness;
+    [Range(0,1)] float metallic;
 };
 [[vk::binding(0, 2)]] ConstantBuffer<MaterialInfo> materialInfo;
 

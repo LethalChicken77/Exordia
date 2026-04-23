@@ -1,7 +1,7 @@
-#include "attributes.slang"
+import attributes;
 
-struct VertexData
+public struct VertexData
 {
-    uint VertexID : SV_VertexID;
-    float3 Position : POSITION;
+    public uint VertexID : SV_VertexID;
+    public float3 Position : POSITION;
 };

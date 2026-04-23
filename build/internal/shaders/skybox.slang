@@ -3,15 +3,15 @@ import constants;
 import colorspace;
 
 import shaderInputs;
-import "vertex/vertex_full.slang";
+import "vertex/vertex_pos_only.slang";
 import "vertex/instance.slang";
 
 // Material Descriptor Set
-struct MaterialInfo
-{
-    float4 color;
-};
-[[vk::binding(0, 2)]] ConstantBuffer<MaterialInfo> materialInfo;
+// struct MaterialInfo
+// {
+//     float4 color;
+// };
+// [[vk::binding(0, 2)]] ConstantBuffer<MaterialInfo> materialInfo;
 
 [shader("vertex")]
 VOut vsMain(VertexData vertex, InstanceData instance)
@@ -24,7 +24,7 @@ VOut vsMain(VertexData vertex, InstanceData instance)
 
     // float3x3 normalMatrix = inverse(transpose(float3x3(pushConstants.model)));
     // output.Normal = normalize(mul(normalMatrix, input.Normal));
-    output.Color = vertex.Color;
+    // output.Color = vertex.Color;
     // output.UV = input.UV;
 
     return output;

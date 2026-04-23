@@ -1,9 +1,9 @@
-#include "attributes.slang"
+import attributes;
 
-struct VertexData
+public struct VertexData
 {
-    uint VertexID : SV_VertexID;
-    float3 Position : POSITION;
-    [SNorm16] float2 Normal : NORMAL;
-    [UNorm8] float3 Color : COLOR;
+    public uint VertexID : SV_VertexID;
+    public float3 Position : POSITION;
+    [SNorm16] public float2 Normal : NORMAL;
+    [UNorm8] public float3 Color : COLOR;
 };

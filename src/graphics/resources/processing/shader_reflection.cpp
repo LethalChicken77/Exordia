@@ -48,7 +48,7 @@ void SlangReflect::reflectLayout(slang::VariableLayoutReflection* reflect, Shade
     for(uint32_t i = 0; i < typeLayout->getFieldCount(); i++)
     {
         slang::VariableLayoutReflection* globalVar = typeLayout->getFieldByIndex(i);
-Console::debugf("{}", globalVar->getName());
+// Console::debugf("{}", globalVar->getName());
         uint32_t set = globalVar->getBindingSpace();
         uint32_t binding = globalVar->getBindingIndex();
         DescriptorSetInfo *currentInfo = nullptr;
@@ -97,9 +97,9 @@ Console::debugf("{}", globalVar->getName());
         slang::VariableLayoutReflection* fields = globalVar->getTypeLayout()->getElementVarLayout();
         switch(varKind)
         {
-        case slang::TypeReflection::Kind::ConstantBuffer:
-            bindingInfo.type = BindingType::UniformBuffer;
+            case slang::TypeReflection::Kind::ConstantBuffer:
             {
+                bindingInfo.type = BindingType::UniformBuffer;
                 BufferLayout bufferLayout = reflectBuffer(fields);
                 if(varCategory == slang::ParameterCategory::PushConstantBuffer)
                 {
@@ -117,121 +117,119 @@ Console::debugf("{}", globalVar->getName());
                     }
                     globalLayout->bufferLayouts.push_back(bufferLayout);
                 }
+                break;
             }
-            break;
-        case slang::TypeReflection::Kind::ShaderStorageBuffer:
-            bindingInfo.type = BindingType::StorageBuffer;
+            case slang::TypeReflection::Kind::ShaderStorageBuffer:
             {
+                bindingInfo.type = BindingType::StorageBuffer;
                 BufferLayout bufferLayout = reflectBuffer(fields);
                 bindingInfo.bufferIndex = globalLayout->bufferLayouts.size();
                 globalLayout->bufferLayouts.push_back(bufferLayout);
+                break;
             }
-            break;
-        case slang::TypeReflection::Kind::Resource:
+            case slang::TypeReflection::Kind::Resource:
             {
                 SlangResourceShape varShapeNoFlags = (SlangResourceShape)(varShape & ~SLANG_RESOURCE_EXT_SHAPE_MASK);
                 SlangResourceShape varShapeFlags = (SlangResourceShape)(varShape & SLANG_RESOURCE_EXT_SHAPE_MASK);
                 switch(varShapeNoFlags)
                 {
                     case SLANG_STRUCTURED_BUFFER:
-                        {
-                            bindingInfo.type = BindingType::StorageBuffer;
-                            BufferLayout bufferLayout = reflectBuffer(fields);
-                            bindingInfo.bufferIndex = globalLayout->bufferLayouts.size();
-                            globalLayout->bufferLayouts.push_back(bufferLayout);
-                        }
+                    {
+                        bindingInfo.type = BindingType::StorageBuffer;
+                        BufferLayout bufferLayout = reflectBuffer(fields);
+                        bindingInfo.bufferIndex = globalLayout->bufferLayouts.size();
+                        globalLayout->bufferLayouts.push_back(bufferLayout);
                         break;
+                    }
                     case SLANG_TEXTURE_1D:
-                        {
-                            if(varShapeFlags & SLANG_TEXTURE_COMBINED_FLAG)
-                                bindingInfo.type = BindingType::CombinedImageSampler;
-                            else
-                                bindingInfo.type = BindingType::StorageImage;
-                            TextureLayout textureLayout{};
-                            textureLayout.shape = TextureShape::Cube;
-                            bindingInfo.textureIndex = globalLayout->textureLayouts.size();
-                            globalLayout->textureLayouts.push_back(textureLayout);
-                        }
+                    {
+                        if(varShapeFlags & SLANG_TEXTURE_COMBINED_FLAG)
+                            bindingInfo.type = BindingType::CombinedImageSampler;
+                        else
+                            bindingInfo.type = BindingType::StorageImage;
+                        TextureLayout textureLayout{};
+                        textureLayout.shape = TextureShape::Cube;
+                        bindingInfo.textureIndex = globalLayout->textureLayouts.size();
+                        globalLayout->textureLayouts.push_back(textureLayout);
                         break;
+                    }
                     case SLANG_TEXTURE_2D:
-                        {
-                            if(varShapeFlags & SLANG_TEXTURE_COMBINED_FLAG)
-                                bindingInfo.type = BindingType::CombinedImageSampler;
-                            else
-                                bindingInfo.type = BindingType::StorageImage;
-                            TextureLayout textureLayout{};
-                            textureLayout.shape = TextureShape::Cube;
-                            bindingInfo.textureIndex = globalLayout->textureLayouts.size();
-                            globalLayout->textureLayouts.push_back(textureLayout);
-                        }
+                    {
+                        if(varShapeFlags & SLANG_TEXTURE_COMBINED_FLAG)
+                            bindingInfo.type = BindingType::CombinedImageSampler;
+                        else
+                            bindingInfo.type = BindingType::StorageImage;
+                        TextureLayout textureLayout{};
+                        textureLayout.shape = TextureShape::Cube;
+                        bindingInfo.textureIndex = globalLayout->textureLayouts.size();
+                        globalLayout->textureLayouts.push_back(textureLayout);
                         break;
+                    }
                     case SLANG_TEXTURE_3D:
-                        {
-                            if(varShapeFlags & SLANG_TEXTURE_COMBINED_FLAG)
-                                bindingInfo.type = BindingType::CombinedImageSampler;
-                            else
-                                bindingInfo.type = BindingType::StorageImage;
-                            TextureLayout textureLayout{};
-                            textureLayout.shape = TextureShape::Cube;
-                            bindingInfo.textureIndex = globalLayout->textureLayouts.size();
-                            globalLayout->textureLayouts.push_back(textureLayout);
-                        }
+                    {
+                        if(varShapeFlags & SLANG_TEXTURE_COMBINED_FLAG)
+                            bindingInfo.type = BindingType::CombinedImageSampler;
+                        else
+                            bindingInfo.type = BindingType::StorageImage;
+                        TextureLayout textureLayout{};
+                        textureLayout.shape = TextureShape::Cube;
+                        bindingInfo.textureIndex = globalLayout->textureLayouts.size();
+                        globalLayout->textureLayouts.push_back(textureLayout);
                         break;
+                    }
                     case SLANG_TEXTURE_CUBE:
-                        {
-                            if(varShapeFlags & SLANG_TEXTURE_COMBINED_FLAG)
-                                bindingInfo.type = BindingType::CombinedImageSampler;
-                            else
-                                bindingInfo.type = BindingType::StorageImage;
-                            TextureLayout textureLayout{};
-                            textureLayout.shape = TextureShape::Cube;
-                            bindingInfo.textureIndex = globalLayout->textureLayouts.size();
-                            globalLayout->textureLayouts.push_back(textureLayout);
-                        }
+                    {
+                        if(varShapeFlags & SLANG_TEXTURE_COMBINED_FLAG)
+                            bindingInfo.type = BindingType::CombinedImageSampler;
+                        else
+                            bindingInfo.type = BindingType::StorageImage;
+                        TextureLayout textureLayout{};
+                        textureLayout.shape = TextureShape::Cube;
+                        bindingInfo.textureIndex = globalLayout->textureLayouts.size();
+                        globalLayout->textureLayouts.push_back(textureLayout);
                         break;
+                    }
                     case SLANG_TEXTURE_BUFFER:
-                        {
-                            if(varAccess == SlangResourceAccess::SLANG_RESOURCE_ACCESS_READ)
-                                bindingInfo.type = BindingType::UniformTexelBuffer;
-                            else if(varAccess == SlangResourceAccess::SLANG_RESOURCE_ACCESS_READ_WRITE)
-                                bindingInfo.type = BindingType::StorageTexelBuffer;
-                            
-                            BufferLayout bufferLayout{};
-                            ShaderParameter param{};
-                            param.name = "";
-                            param.type = reflectNumeric(globalVar->getTypeLayout()->getResourceResultType());
-                            param.offset = 0;
-                            bufferLayout.parameterIndex.insert_or_assign("", 0);
-                            bufferLayout.parameters.push_back(param);
-                            bindingInfo.bufferIndex = globalLayout->bufferLayouts.size();
-                            globalLayout->bufferLayouts.push_back(bufferLayout);
-                        }
+                    {
+                        if(varAccess == SlangResourceAccess::SLANG_RESOURCE_ACCESS_READ)
+                            bindingInfo.type = BindingType::UniformTexelBuffer;
+                        else if(varAccess == SlangResourceAccess::SLANG_RESOURCE_ACCESS_READ_WRITE)
+                            bindingInfo.type = BindingType::StorageTexelBuffer;
+                        
+                        BufferLayout bufferLayout{};
+                        ShaderParameter param{};
+                        param.name = "";
+                        param.type = reflectNumeric(globalVar->getTypeLayout()->getResourceResultType());
+                        param.offset = 0;
+                        bufferLayout.parameterIndex.insert_or_assign("", 0);
+                        bufferLayout.parameters.push_back(param);
+                        bindingInfo.bufferIndex = globalLayout->bufferLayouts.size();
+                        globalLayout->bufferLayouts.push_back(bufferLayout);
                         break;
+                    }
                     case SLANG_ACCELERATION_STRUCTURE:
-                        {
-                            bindingInfo.type = BindingType::AccelerationStructure;
-                        }
+                    {
+                        bindingInfo.type = BindingType::AccelerationStructure;
+                    }
                     default:
                         break; // Unhandled
                 }
+                break;
             }
-            // if(varShape == SLANG_TEXTURE_1D || varShape == SLANG_TEXTURE_2D || varShape == SLANG_TEXTURE_)
-            // bindingInfo.type = BindingType::CombinedImageSampler;
-            break;
-        case slang::TypeReflection::Kind::SamplerState:
+            case slang::TypeReflection::Kind::SamplerState:
             {
                 bindingInfo.type = BindingType::Sampler;
                 TextureLayout textureLayout{};
-                Console::debugf("Sampler shape: {}", (uint32_t)varShape);
+// Console::debugf("Sampler shape: {}", (uint32_t)varShape);
                 // textureLayout.shape = TextureShape::Cube;
                 bindingInfo.textureIndex = globalLayout->textureLayouts.size();
                 globalLayout->textureLayouts.push_back(textureLayout);
+                break;
             }
-            break;
-        case slang::TypeReflection::Kind::DynamicResource: // TODO: Handle bindless resources
-        default:
-            Console::warnf("Unhandled global var kind: {}", (uint32_t)varKind);
-            break;
+            case slang::TypeReflection::Kind::DynamicResource: // TODO: Handle bindless resources
+            default:
+                Console::warnf("Unhandled global var kind: {}", (uint32_t)varKind);
+                break;
         }
         if(currentInfo != nullptr)
         {
@@ -262,6 +260,7 @@ BufferLayout SlangReflect::reflectBuffer(slang::VariableLayoutReflection* fields
 
 TypeDescription SlangReflect::reflectNumeric(slang::TypeReflection* type)
 {
+    // slang::UserAttribute* attr = type->findUserAttributeByName("Range");
     TypeDescription td{};
     td.componentCount = type->getColumnCount();
     td.rowCount = type->getRowCount();
@@ -365,6 +364,22 @@ std::vector<ShaderParameter> SlangReflect::reflectStruct(slang::VariableLayoutRe
         case slang::TypeReflection::Kind::Vector:
         case slang::TypeReflection::Kind::Matrix:
             param.type = reflectNumeric(field->getType());
+            {
+                uint32_t attributeCount = field->getVariable()->getUserAttributeCount();
+                for(uint32_t i = 0; i < attributeCount; i++)
+                {
+                    slang::UserAttribute* attr = field->getVariable()->getUserAttributeByIndex(i);
+                    std::string attrName = attr->getName();
+                    if(attrName == "Range")
+                    {
+                        float min = 0;
+                        float max = 0;
+                        attr->getArgumentValueFloat(0, &min);
+                        attr->getArgumentValueFloat(1, &max);
+                        Console::debugf("Range attribute: {}, {}", min, max);
+                    }
+                }
+            }
             break;
         case slang::TypeReflection::Kind::Array:
             param.type = reflectArray(field);

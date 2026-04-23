@@ -56,3 +56,58 @@ constexpr uint16_t PackFloatToHalf(double value)
     else
         return sign; // underflow
 }
+
+constexpr float UnpackHalfToFloat(uint16_t h)
+{
+    uint32_t sign = (uint32_t)(h & 0x8000u) << 16;
+    uint32_t exp  = (h >> 10) & 0x1Fu;
+    uint32_t mant = h & 0x03FFu;
+
+    uint32_t fbits;
+
+    if (exp == 0)
+    {
+        if (mant == 0)
+        {
+            // ±0
+            fbits = sign;
+        }
+        else
+        {
+            // subnormal → normalize
+            exp = 1;
+            while ((mant & 0x0400u) == 0)
+            {
+                mant <<= 1;
+                exp--;
+            }
+
+            mant &= 0x03FFu;
+            exp = exp + (127 - 15);
+            mant <<= 13;
+
+            fbits = sign | (exp << 23) | mant;
+        }
+    }
+    else if (exp == 31)
+    {
+        // Inf / NaN
+        fbits = sign | 0x7F800000u | (mant << 13);
+    }
+    else
+    {
+        // normal
+        exp = exp + (127 - 15);
+        mant <<= 13;
+
+        fbits = sign | (exp << 23) | mant;
+    }
+
+    return std::bit_cast<float>(fbits);
+}
+
+constexpr double UnpackHalfToDouble(uint16_t h)
+{
+    float f = UnpackHalfToFloat(h);
+    return static_cast<double>(f);
+}

@@ -163,7 +163,7 @@ public:
 
     void Bind(vk::CommandBuffer commandBuffer);
 
-    VkPipelineLayout GetPipelineLayout() const { return m_pipelineLayout; }
+    vk::PipelineLayout GetPipelineLayout() const { return m_pipelineLayout; }
     const VertexLayout& GetVertexLayout() const { return m_vertexLayout; }
     const DescriptorSetLayout &GetDescriptorSetLayout() const { return m_materialSetLayout; }
 private:

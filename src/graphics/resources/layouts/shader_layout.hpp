@@ -22,6 +22,14 @@ class SpirvReflect;
 
 struct ShaderParameter
 {
+    struct Metadata
+    {
+        bool useMin = false;
+        float min = 0;
+        bool useMax = false;
+        float max = 1;
+        bool isColor = false;
+    };
     std::string name;
     uint32_t offset;
     TypeDescription type;
@@ -99,19 +107,19 @@ public:
             Invalid = 255
         } type = Invalid;
 
-        inline bool IsBuffer()
+        inline bool IsBuffer() const noexcept
         {
             return type == UniformBuffer || type == StorageBuffer;
         }
-        inline bool IsImage()
+        inline bool IsImage() const noexcept
         {
             return type == SampledImage || type == CombinedImageSampler || type == StorageImage || type == InputAttachment;
         }
-        inline bool IsTexelBuffer()
+        inline bool IsTexelBuffer() const noexcept
         {
             return type == UniformTexelBuffer || type == StorageTexelBuffer;
         }
-        inline bool IsSampler()
+        inline bool IsSampler() const noexcept
         {
             return type == SampledImage || type == Sampler;
         }
@@ -140,6 +148,10 @@ public:
         // uint32_t minBindingSize = 0; // Maybe include for validation
         // NOTE: May want to store image dimensionality for validation
         // TODO: look into descriptor binding flags (VK_EXT_descriptor_indexing)
+        bool operator==(const BindingInfo& other) const
+        {
+            return set == other.set && binding == other.binding && type == other.type;
+        }
     };
 
     struct PushConstantRange
@@ -152,6 +164,11 @@ public:
     {
         uint32_t id = ~0u;
         std::vector<BindingInfo> bindings{};
+
+        bool operator==(const DescriptorSetInfo& other) const
+        {
+            return id == other.id && bindings == other.bindings;
+        }
     };
 
     ShaderLayout() = default;
@@ -191,6 +208,9 @@ public:
         }
         return nullptr; 
     }
+
+    const std::vector<BufferLayout>& GetBufferLayouts() const { return bufferLayouts; }
+    const std::vector<TextureLayout>& GetTextureLayouts() const { return textureLayouts; }
 
     std::string ToString() const;
 private:

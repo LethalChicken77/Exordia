@@ -106,21 +106,20 @@ void Engine::init()
     if(texs != nullptr) thS = graphicsModule.RegisterTexture(*texsP);
     if(texn != nullptr) thN = graphicsModule.RegisterTexture(*texnP);
 
-    graphics::Material *yella = gameData->materials.New(Material(shader));
-    graphics::Material *blue = gameData->materials.New(Material(shader));
-    graphics::Material *pbrMat = gameData->materials.New(Material(pbr));
-    graphics::Material *skyboxMat = gameData->materials.New(Material(sbShader));
+    graphics::Material *yella = gameData->materials.New(shader, "Yeller");
+    graphics::Material *blue = gameData->materials.New(shader, "Bloo");
+    graphics::Material *pbrMat = gameData->materials.New(pbr, "Justin Pbr");
+    graphics::Material *skyboxMat = gameData->materials.New(sbShader, "Skybox");
+    // skyboxMat->UpdateValues();
     int64_t testVal = 69;
     // mat.SetInt("test", testVal);
     yella->SetVector("color", glm::vec4(1.f, 0.8f, 0.3f, 1.0f));
     yella->SetFloat("roughness", 0.2f);
     yella->SetFloat("metallic", 0.0f);
-    yella->name = "Yella";
 
     blue->SetVector("color", glm::vec4(0.2f, 0.5f, 0.8f, 1.0f));
     blue->SetFloat("roughness", 0.7f);
     blue->SetFloat("metallic", 0.0f);
-    blue->name = "Blue";
     // blue->SetVector("coolColor", glm::vec4(0.15f, 0.2f, 0.4f, 1.0f));
     // blue->SetVector("warmColor", glm::vec4(0.9f, 0.9f, 0.8f, 1.0f));
     // blue->SetVector("outlineColor", glm::vec4(0.1f, 0.05f, 0.0f, 1.0f));
@@ -138,21 +137,14 @@ void Engine::init()
     pbrMat->SetTexture("metallicMap", thM);
     pbrMat->SetTexture("specularMap", thS);
     pbrMat->SetTexture("normalMap", thN);
-    pbrMat->name = "PBR Mat";
 
     gameData->skyboxMaterial = skyboxMat;
-    skyboxMat->name = "Skybox";
     // mat2.SetVector("color", glm::vec4(1));
     // mat2.SetFloat("normalMapStrength", 1.0f);
     // mat2.SetTexture("albedoMap", );
     // mat2.SetTexture("roughnessMap", );
     // mat2.SetTexture("metallicMap", );
     // mat2.SetTexture("normalMap", );
-
-    graphicsModule.RegisterMaterial(*yella);
-    graphicsModule.RegisterMaterial(*blue);
-    graphicsModule.RegisterMaterial(*pbrMat);
-    graphicsModule.RegisterMaterial(*skyboxMat);
 
     graphicsModule.GraphicsInitImgui();
     // ImGui::GetIO().ConfigFlags |= ImGuiConfigFlags_DockingEnable;
@@ -307,14 +299,15 @@ void Engine::run()
         drawPerformancePanel(deltaTime, averageFrameTime.GetAverage());
         averageFrameTime.PushValue(deltaTime);
 
-        // ImGui::Begin("Material Properties");
+        ImGui::Begin("Material Properties");
 
+        gameData->materials.Get(0)->DrawImGui();
         // for(Material &mat : Shared::materials)
         // {
         //     mat.drawImGui();
         // }
         
-        // ImGui::End();
+        ImGui::End();
 
         bool imguiHovered = ImGui::IsWindowHovered(ImGuiHoveredFlags_AnyWindow);
         ImGui::Render();

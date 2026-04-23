@@ -33,7 +33,7 @@ class Graphics
         }
         inline void DeregisterShader(Shader &shader) { graphicsData->pipelineRegistry.Deregister(shader); }
 
-        void RegisterMaterial(Material &mat) 
+        void RegisterMaterial(Material& mat) 
         { 
             graphicsData->materialRegistry.Register(mat, *graphicsData->materialDescriptorPool); // TODO: Deal with descriptor pools differently
         }

@@ -1,11 +1,11 @@
-#include "attributes.slang"
+import attributes;
 
-struct VertexData
+public struct VertexData
 {
-    uint VertexID : SV_VertexID;
-    float3 Position : POSITION;
-    float3 Normal : NORMAL;
-    float4 Tangent : TANGENT;
-    [UNorm8] float3 Color : COLOR;
-    float2 UV : TEXCOORD0;
+    public uint VertexID : SV_VertexID;
+    public float3 Position : POSITION;
+    public float3 Normal : NORMAL;
+    public float4 Tangent : TANGENT;
+    [UNorm8] public float3 Color : COLOR;
+    public float2 UV : TEXCOORD0;
 };
