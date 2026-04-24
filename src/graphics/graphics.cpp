@@ -247,7 +247,8 @@ namespace graphics
         ImGuiIO& imguiIO = ImGui::GetIO();
         (void)imguiIO;
         // imguiIO.ConfigFlags |= ImGuiConfigFlags_DockingEnable;
-        imguiIO.ConfigFlags |= ImGuiConfigFlags_ViewportsEnable;
+        // imguiIO.ConfigFlags |= ImGuiConfigFlags_ViewportsEnable;
+        // imguiIO.ConfigFlags |= ImGuiConfigFlags_IsSRGB;
         // Set style (optional)
         // ImGui::StyleColorsDark();
         ImGuiStyle& style = ImGui::GetStyle();
@@ -307,6 +308,8 @@ namespace graphics
         initInfo.PipelineInfoMain.PipelineRenderingCreateInfo.pColorAttachmentFormats = (VkFormat*)&swapchain.GetImageFormat();
         initInfo.PipelineInfoMain.PipelineRenderingCreateInfo.depthAttachmentFormat = (VkFormat)swapchain.GetDepthFormat();
         initInfo.PipelineInfoMain.PipelineRenderingCreateInfo.stencilAttachmentFormat = VK_FORMAT_UNDEFINED;
+
+        initInfo.PipelineInfoForViewports = {};
 
         // For multisampling, probably won't use
         //initInfo.PipelineRenderingCreateInfo.rasterizationSamples = VK_SAMPLE_COUNT_1_BIT;

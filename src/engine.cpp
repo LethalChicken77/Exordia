@@ -219,6 +219,15 @@ void Engine::update(double deltaTime)
         pbr->Compile();
     }
 
+    if(core::Input::getKeyDown(GLFW_KEY_F10))
+    {
+        graphicsModule.GetWindow()->ToggleFullscreenBorderless();
+    }
+    if(core::Input::getKeyDown(GLFW_KEY_F11))
+    {
+        graphicsModule.GetWindow()->ToggleFullscreen();
+    }
+
     // TODO: Reimplement object selection
     // if(core::Input::getButtonDown(GLFW_MOUSE_BUTTON_LEFT) && !core::Input::getButton(GLFW_MOUSE_BUTTON_RIGHT))
     // {

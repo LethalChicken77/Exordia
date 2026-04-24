@@ -21,7 +21,7 @@ Window::Window(uint32_t _width, uint32_t _height, const std::string& title)
 {}
 Window::Window(vk::Instance& instance, uint32_t _width, uint32_t _height, const std::string& title)
     : m_instance(instance),
-    width(_width), height(_height),
+    m_width(_width), m_height(_height),
     name(title)
 {
     Console::log("Initializing window: " + title, "Window");
@@ -30,15 +30,27 @@ Window::Window(vk::Instance& instance, uint32_t _width, uint32_t _height, const 
     glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
     glfwWindowHint(GLFW_RESIZABLE, GLFW_TRUE);
 
-    window = glfwCreateWindow(640, 480, name.c_str(), NULL, NULL);
+    m_width = 640;
+    m_height = 480;
+
+    GLFWmonitor* primaryMonitor = glfwGetPrimaryMonitor();
+    const GLFWvidmode* vidMode = glfwGetVideoMode(primaryMonitor);
+
+    m_posX = (vidMode->width - m_width) / 2.0;
+    m_posY = (vidMode->height - m_height) / 2.0;
+
+    window = glfwCreateWindow(m_width, m_height, name.c_str(), NULL, NULL);
+    glfwSetWindowPos(window, m_posX, m_posY);
     setTitleBarColor();
     setIcons();
+    updateWindowedVals();
 
-    // GLFWmonitor* primary = glfwGetPrimaryMonitor();
-    // const GLFWvidmode* mode = glfwGetVideoMode(primary);
-    // glfwSetWindowMonitor(window, primary, 0, 0, mode->width, mode->height, mode->refreshRate);
     glfwSetWindowUserPointer(window, this);
     glfwSetFramebufferSizeCallback(window, FrameResizeCallback);
+    glfwSetWindowPosCallback(window, WindowMoveCallback);
+    glfwSetWindowMaximizeCallback(window, WindowMaximizeCallback);
+    glfwSetWindowIconifyCallback(window, WindowMinimizeCallback);
+    glfwSetWindowFocusCallback(window, WindowFocusCallback);
     // glfwSetWindowRefreshCallback(window, windowRefreshCallback);
 
     if (!window) 
@@ -91,9 +103,9 @@ void Window::WindowRefreshCallback(GLFWwindow *_window)
     int width, height;
     glfwGetFramebufferSize(windowPtr->window, &width, &height);
 
-    windowPtr->frameBufferResized = true;
-    windowPtr->width = width;
-    windowPtr->height = height;
+    windowPtr->m_frameBufferResized = true;
+    windowPtr->m_width = width;
+    windowPtr->m_height = height;
 
     if(windowPtr->onRefreshCallback)
     {
@@ -104,11 +116,124 @@ void Window::WindowRefreshCallback(GLFWwindow *_window)
 void Window::FrameResizeCallback(GLFWwindow *_window, int width, int height)
 {
     Window *windowPtr = reinterpret_cast<Window*>(glfwGetWindowUserPointer(_window));
-    windowPtr->frameBufferResized = true;
-    windowPtr->width = width;
-    windowPtr->height = height;
+    
+    windowPtr->m_frameBufferResized = true;
+    windowPtr->m_width = width;
+    windowPtr->m_height = height;
+
+    if(windowPtr->m_mode != WindowMode::Windowed) return;
+
+    windowPtr->m_wWidth = width;
+    windowPtr->m_wHeight = height;
+    windowPtr->updateWindowedVals();
 }
 
+void Window::WindowMoveCallback(GLFWwindow *_window, int posX, int posY)
+{
+    Window *windowPtr = reinterpret_cast<Window*>(glfwGetWindowUserPointer(_window));
+    
+    windowPtr->m_posX = posX;
+    windowPtr->m_posY = posY;
+    
+    if(windowPtr->m_mode == WindowMode::Windowed)
+    {
+        windowPtr->updateWindowedVals();
+    }
+
+}
+
+void Window::WindowMaximizeCallback(GLFWwindow *_window, int val)
+{
+    Window *windowPtr = reinterpret_cast<Window*>(glfwGetWindowUserPointer(_window));
+    
+    windowPtr->m_maximized = val;
+}
+
+void Window::WindowMinimizeCallback(GLFWwindow *_window, int val)
+{
+    Window *windowPtr = reinterpret_cast<Window*>(glfwGetWindowUserPointer(_window));
+    
+    windowPtr->m_minimized = val;
+}
+
+void Window::WindowFocusCallback(GLFWwindow *_window, int val)
+{
+    Window *windowPtr = reinterpret_cast<Window*>(glfwGetWindowUserPointer(_window));
+    
+    windowPtr->m_focused = val;
+    if(windowPtr->m_mode == WindowMode::Borderless)
+    {
+        if(!val)
+            glfwIconifyWindow(_window);
+        else
+            glfwRestoreWindow(_window);
+    }
+}
+
+void Window::SetWindowMode(WindowMode mode)
+{
+    m_mode = mode;
+    // GLFWmonitor* primary = glfwGetPrimaryMonitor();
+    // const GLFWvidmode* mode = glfwGetVideoMode(primary);
+    // glfwSetWindowMonitor(window, primary, 0, 0, mode->width, mode->height, mode->refreshRate);
+    switch(m_mode)
+    {
+        case WindowMode::Windowed:
+            m_posX = m_wPosX;
+            m_posY = m_wPosY;
+            m_width = m_wWidth;
+            m_height = m_wHeight;
+            glfwSetWindowMonitor(window, NULL, m_posX, m_posY, m_width, m_height, GLFW_DONT_CARE);
+            glfwSetWindowAttrib(window, GLFW_DECORATED, GLFW_TRUE);
+            glfwSetWindowAttrib(window, GLFW_FLOATING, GLFW_FALSE);
+            m_frameBufferResized = true;
+            break;
+        case WindowMode::Borderless:
+        {
+            GLFWmonitor* monitor = glfwGetPrimaryMonitor(); // TODO: Find monitor with most overlap
+            const GLFWvidmode* mode = glfwGetVideoMode(monitor);
+            glfwSetWindowAttrib(window, GLFW_DECORATED, GLFW_FALSE);
+            glfwSetWindowAttrib(window, GLFW_FLOATING, GLFW_TRUE);
+            glfwSetWindowMonitor(window, NULL, 0, 0, mode->width, mode->height, GLFW_DONT_CARE);
+            m_posX = 0;
+            m_posY = 0;
+            m_width = mode->width;
+            m_height = mode->height;
+            m_frameBufferResized = true;
+            break;
+        }
+        case WindowMode::Fullscreen:
+        {
+            GLFWmonitor* monitor = glfwGetPrimaryMonitor(); // TODO: Find monitor with most overlap
+            const GLFWvidmode* mode = glfwGetVideoMode(monitor);
+            glfwSetWindowAttrib(window, GLFW_DECORATED, GLFW_FALSE);
+            glfwSetWindowAttrib(window, GLFW_FLOATING, GLFW_FALSE);
+            glfwSetWindowMonitor(window, monitor, 0, 0, mode->width, mode->height, mode->refreshRate);
+            m_posX = 0;
+            m_posY = 0;
+            m_width = mode->width;
+            m_height = mode->height;
+            m_frameBufferResized = true;
+            break;
+        }
+    }
+}
+
+void Window::ToggleFullscreenBorderless()
+{
+    if(m_mode == WindowMode::Borderless)
+        SetWindowMode(WindowMode::Windowed);
+    else
+        SetWindowMode(WindowMode::Borderless);
+}
+
+void Window::ToggleFullscreen()
+{
+    if(m_mode == WindowMode::Fullscreen)
+        SetWindowMode(WindowMode::Windowed);
+    else
+        SetWindowMode(WindowMode::Fullscreen);
+}
 
 #ifdef _WIN32
 COLORREF titleBarColor = RGB(0x19, 0x15, 0x14);
@@ -165,6 +290,14 @@ void Window::setIcons()
     // Free image memory
     stbi_image_free(pixelsSmall);
     stbi_image_free(pixelsLarge);
+}
+
+void Window::updateWindowedVals()
+{
+    m_wPosX = m_posX;
+    m_wPosY = m_posY;
+    m_wWidth = m_width;
+    m_wHeight = m_height;
 }
 
 } // namespace graphics
