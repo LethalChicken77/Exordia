@@ -321,8 +321,8 @@ void Engine::run()
 
         bool imguiHovered = ImGui::IsWindowHovered(ImGuiHoveredFlags_AnyWindow);
         ImGui::Render();
-        ImGui::UpdatePlatformWindows();
-        ImGui::RenderPlatformWindowsDefault();
+        // ImGui::UpdatePlatformWindows();
+        // ImGui::RenderPlatformWindowsDefault();
         // Input
         Input::processInput(graphicsModule.GetGLFWWindow());
         

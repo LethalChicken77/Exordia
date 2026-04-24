@@ -30,9 +30,6 @@ Window::Window(vk::Instance& instance, uint32_t _width, uint32_t _height, const 
     glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
     glfwWindowHint(GLFW_RESIZABLE, GLFW_TRUE);
 
-    m_width = 640;
-    m_height = 480;
-
     GLFWmonitor* primaryMonitor = glfwGetPrimaryMonitor();
     const GLFWvidmode* vidMode = glfwGetVideoMode(primaryMonitor);
 

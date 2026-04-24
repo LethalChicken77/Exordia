@@ -20,7 +20,7 @@ namespace graphics
         Console::log("Initializing graphics module", "Graphics");
         graphicsData = std::make_unique<GraphicsData>();
         graphicsData->backend.init(appName, engName);
-        graphicsData->window = std::make_unique<Window>(800, 600, engName + " - " + appName);
+        graphicsData->window = std::make_unique<Window>(1000, 600, engName + " - " + appName);
         graphicsData->renderer = std::make_unique<FrameOrchestrator>(graphicsData->backend.GetDevice(), graphicsData->window.get());
         graphicsData->pipelineRegistry.init();
         graphicsData->textureRegistry.Init();
