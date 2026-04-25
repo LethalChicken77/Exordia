@@ -328,7 +328,8 @@ public float3 pbrAmbient(
 
     float3 F_V = saturate(SchlickFresnel(F0, normal, -viewDir)); // Reflectance with respect to the view direction
     F_V *= lerp(1.0, F0, metallic);
-    float3 F_ambient = lerp(F0, F_V, (1.0 - roughness)); // Metallic term is more realistic, but looks worse without reflection map
+    float alpha = roughness * roughness;
+    float3 F_ambient = lerp(F0, F_V, (1.0 - roughness) * (1.0 - roughness) * (1.0 - roughness) * (1.0 - roughness)); // Metallic term is more realistic, but looks worse without reflection map
 
     float3 ambientDiffuse = ambientColor * albedo * (1.0 - F0.r) * (1.0 - metallic);
     float3 ambientSpecular = reflectSample * F_ambient;

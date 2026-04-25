@@ -6,19 +6,71 @@
 namespace graphics
 {
 
-enum class DataType : uint8_t
+class DataType
 {
-    Invalid,
-    Float,
-    UInt, 
-    SInt,
-    UNorm,
-    SNorm,
-    
-    Bool,
-    Struct
-};} // namespace graphics
-extern std::string ToString(graphics::DataType type);
+public:
+    enum _DataType : uint8_t
+    {
+        Invalid,
+        Float,
+        UInt, 
+        SInt,
+        UNorm,
+        SNorm,
+        
+        Bool,
+        Struct
+    } type;
+
+    inline bool IsIntegral() const noexcept
+    {
+        return type == UInt || type == SInt || type == UNorm || type == SNorm || type == Bool;
+    }
+
+    inline bool IsFloat() const noexcept
+    {
+        return type == Float;
+    }
+
+    DataType() = default;
+    DataType(_DataType t) : type(t) {};
+
+    bool operator==(DataType other) const { return type == other.type; }
+    bool operator==(_DataType other) const { return type == other; }
+    _DataType operator()() const noexcept { return type; }
+    operator _DataType() const noexcept { return type; }
+    explicit operator uint32_t() const noexcept { return static_cast<uint32_t>(type); }
+
+    constexpr const char* ToString() const
+    {
+        switch(type)
+        {
+            case DataType::Invalid:
+                return "Invalid";
+            case DataType::UInt:
+                return "UInt";
+            case DataType::SInt:
+                return "SInt";
+            case DataType::UNorm:
+                return "UNorm";
+            case DataType::SNorm:
+                return "SNorm";
+            case DataType::Float:
+                return "Float";
+            case DataType::Bool:
+                return "Bool";
+            case DataType::Struct:
+                return "Struct";
+        }
+        return "How";
+    }
+};
+
+inline bool operator==(DataType::_DataType lhs, const DataType& rhs)
+{
+    return lhs == rhs.type;
+}
+} // namespace graphics
 
 namespace graphics{
 struct TypeDescription

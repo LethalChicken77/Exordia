@@ -31,7 +31,7 @@ public:
     Material(const Shader *shader, const std::string_view name = "New Material");
     ~Material();
 
-    void UpdateLayout();
+    void UpdateLayout(bool updateVals = true);
     void UpdateValues();
 
     const uint32_t GetBufferSize() const { return data.size(); }
@@ -88,6 +88,8 @@ public:
     inline void SetVector(const std::string &name, glm::dvec4 val) { return setFloat<glm::dvec4>(name, val); }
 
     inline void SetColor(const std::string &name, Color val) { return setFloat<glm::vec3>(name, (glm::vec3)val); }
+    inline void SetColor3(const std::string &name, Color val) { return setFloat<glm::vec3>(name, (glm::vec3)val); }
+    inline void SetColor4(const std::string &name, Color val) { return setFloat<glm::vec4>(name, (glm::vec4)val); }
 
     void SetMat2x2(std::string_view name, glm::mat2x2 val);
     void SetMat3x3(std::string_view name, glm::mat3x3 val);
@@ -115,12 +117,16 @@ private:
     bool validateLayout() const noexcept;
     const ShaderParameter* getShaderParameter(const std::string& paramName, const BufferLayout* materialInfoLayout);
 
+    /// @brief Write an integral value to the buffer
+    /// @tparam T Source type
+    /// @param paramName Shader parameter to find
+    /// @param value Value to cast into the buffer
     template<typename T>
     void setIntegral(const std::string& paramName, T value)
     {
         static_assert(
             std::is_integral_v<T> || IsVecInt<T>, 
-            "Material::setInt requires int or bool type"
+            "Material::setIntegral requires int or bool type"
         );
         
         if(!validateLayout()) 
@@ -130,12 +136,50 @@ private:
         const ShaderParameter *param = getShaderParameter(paramName, materialInfoLayout);
         if(param == nullptr)
             return;
+        
+        setIntegralParam<T>(param, value);
+
+        UpdateValues();
+    }
+
+    /// @brief Write a float value to the buffer
+    /// @tparam T Source type
+    /// @param paramName Shader parameter to find
+    /// @param value Value to cast into the buffer
+    template<typename T>
+    void setFloat(const std::string& paramName, T value)
+    {
+        static_assert(
+            std::is_floating_point_v<T> || IsVecFloat<T>, 
+            "Material::setFloat requires floating point type"
+        );
+        
+        if(!validateLayout()) 
+            return;
+        const BufferLayout* materialInfoLayout = materialLayout->GetMaterialLayout();
+
+        const ShaderParameter *param = getShaderParameter(paramName, materialInfoLayout);
+        if(param == nullptr)
+            return;
+        setFloatParam<T>(param, value);
+        UpdateValues();
+    }
+    // glm::packHalf2x16()
+    template<typename T>
+    void setIntegralParam(const ShaderParameter* param, T value)
+    {
+        static_assert(
+            std::is_integral_v<T> || IsVecInt<T>, 
+            "Material::setIntegralParam requires int or bool type"
+        );
+        const std::string& paramName = param->name;
+
         const TypeDescription& typeInfo = param->type;
         if(typeInfo.type != DataType::Bool &&
             typeInfo.type != DataType::SInt &&
             typeInfo.type != DataType::UInt)
         {
-            Console::warnf("Cannot set value of integral type to field {} of type {}", paramName, ToString(typeInfo.type));
+            Console::warnf("Cannot set value of integral type to field {} of type {}", paramName, typeInfo.type.ToString());
             return;
         }
         DataIndex index = dataMap.at(paramName);
@@ -151,7 +195,7 @@ private:
 
         if(componentCount != typeInfo.componentCount)
         {
-            Console::errorf("Type component count does not match template function setIntegral. Type: {}", ToString(typeInfo.type));
+            Console::errorf("Type component count does not match template function setIntegral count {}. Param: {}", componentCount, param->ToString());
             return;
         }
 
@@ -201,28 +245,21 @@ private:
                     return;
             }
         }
-        UpdateValues();
     }
 
     template<typename T>
-    void setFloat(const std::string& paramName, T value)
+    void setFloatParam(const ShaderParameter* param, T value)
     {
         static_assert(
             std::is_floating_point_v<T> || IsVecFloat<T>, 
-            "Material::setFloat requires floating point type"
+            "Material::setFloatParam requires floating point type"
         );
+        const std::string& paramName = param->name;
         
-        if(!validateLayout()) 
-            return;
-        const BufferLayout* materialInfoLayout = materialLayout->GetMaterialLayout();
-
-        const ShaderParameter *param = getShaderParameter(paramName, materialInfoLayout);
-        if(param == nullptr)
-            return;
         const TypeDescription& typeInfo = param->type;
         if(typeInfo.type != DataType::Float)
         {
-            Console::warnf("Cannot set value of floating point type to field {} of type {}", paramName, ToString(typeInfo.type));
+            Console::warnf("Cannot set value of floating point type to field {} of type {}", paramName, typeInfo.type.ToString());
             return;
         }
         DataIndex index = dataMap.at(paramName);
@@ -238,7 +275,7 @@ private:
 
         if(componentCount != typeInfo.componentCount)
         {
-            Console::errorf("Type component count does not match template function setFloat. Type: {}", ToString(typeInfo.type));
+            Console::errorf("Type component count does not match template function setFloat count {}. Param: {}", componentCount, param->ToString());
             return;
         }
 
@@ -283,9 +320,7 @@ private:
                     return;
             }
         }
-        UpdateValues();
     }
-    // glm::packHalf2x16()
 
     bool drawImGuiParam(const ShaderParameter& param);
 };

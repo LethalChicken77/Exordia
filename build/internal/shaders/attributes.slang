@@ -13,6 +13,9 @@ public struct SNorm16Attribute {};
 public struct HalfAttribute {};
 
 [__AttributeUsage(_AttributeTargets.Var)]
+public struct DefaultAttribute{};
+
+[__AttributeUsage(_AttributeTargets.Var)]
 public struct ColorAttribute{};
 
 // Range attributes

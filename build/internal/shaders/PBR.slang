@@ -110,8 +110,27 @@ float4 fsMain(FIn input)
     float depth = length(input.Position - cameraPos);
     float fog = pow(2.0, -depth * 0.0005);
 
-    // outColor = albedo;
-    outColor = lerp(ambientColor * 4, outColor, fog);
+    float3 fogColor = ambientColor * 4;
+    outColor = lerp(fogColor, outColor, fog);
+
+    // float3 luma = luminance(outColor);
+    // float3 chroma = outColor / luma;
+    // outColor = round(outColor * 16) / 16;
+    // outColor *= chroma;
+
+    // float luma = luminance(outColor);
+    // float3 chroma = outColor / luma;
+    // float steps = 8;
+    // luma = pow(round(sqrt(luma) * steps) / steps, 2.0);
+    // float chromaSteps = 3;
+    // chroma = pow(round(sqrt(chroma) * chromaSteps) / chromaSteps, 2.0);
+    // outColor = chroma * luma;
+
+    // outColor = chroma * 0.25;
+
+    // outColor = outColor / luminance(outColor) * 0.25;
+    // outColor = outColor / (outColor.x + outColor.y + outColor.z) * 0.25;
+    // outColor = float3(luminance(outColor));
     return float4(outColor, 1.0);
     // return float4(normalMap.Sample(UV).xyz, 1.0);
 }

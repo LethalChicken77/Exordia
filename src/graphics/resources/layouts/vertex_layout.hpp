@@ -42,7 +42,7 @@ public:
         inline uint32_t GetVkFormat() const noexcept { return format.GetVkFormat(); }
 
         std::string ToString() const;
-
+ 
         bool operator==(const Attribute& other) const
         {
             return 

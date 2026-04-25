@@ -2,8 +2,6 @@
 #include "spirv_reflect.h"
 #include "utils/console.hpp"
 #include "graphics/backend/vulkan_include.h"
-#include <unordered_map>
-#include <regex>
 #include <sstream>
 
 namespace graphics
@@ -29,30 +27,6 @@ namespace graphics
 
 //     Invalid = 255
 // };
-
-constexpr std::string ShaderLayout::BindingType::ToString() const
-{
-    switch(type)
-    {
-    case BindingType::UniformBuffer: return "UniformBuffer";
-    case BindingType::StorageBuffer: return "StorageBuffer";
-    // case BindingType::DynamicUniformBuffer: return "DynamicUniformBuffer";
-    // case BindingType::DynamicStorageBuffer: return "DynamicStorageBuffer";
-
-    case BindingType::SampledImage: return "SampledImage";
-    case BindingType::CombinedImageSampler: return "CombinedImageSampler";
-    case BindingType::StorageImage: return "StorageImage";
-    case BindingType::Sampler: return "Sampler";
-    case BindingType::UniformTexelBuffer: return "UniformTexelBuffer";
-    case BindingType::StorageTexelBuffer: return "StorageTexelBuffer";
-    case BindingType::InputAttachment: return "InputAttachment";
-
-    case BindingType::AccelerationStructure: return "AccelerationStructure";
-    case BindingType::InlineUniformBlock: return "InlineUniformBlock";
-    default:
-    case BindingType::Invalid: return "Invalid";
-    }
-}
 
 std::string ShaderParameter::ToString() const
 {

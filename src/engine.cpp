@@ -113,11 +113,11 @@ void Engine::init()
     // skyboxMat->UpdateValues();
     int64_t testVal = 69;
     // mat.SetInt("test", testVal);
-    yella->SetVector("color", glm::vec4(1.f, 0.8f, 0.3f, 1.0f));
+    yella->SetColor3("color", Color(1.f, 0.8f, 0.3f));
     yella->SetFloat("roughness", 0.2f);
     yella->SetFloat("metallic", 0.0f);
 
-    blue->SetVector("color", glm::vec4(0.2f, 0.5f, 0.8f, 1.0f));
+    blue->SetColor3("color", Color(0.2f, 0.5f, 0.8f));
     blue->SetFloat("roughness", 0.7f);
     blue->SetFloat("metallic", 0.0f);
     // blue->SetVector("coolColor", glm::vec4(0.15f, 0.2f, 0.4f, 1.0f));

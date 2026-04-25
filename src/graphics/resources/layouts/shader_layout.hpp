@@ -22,17 +22,22 @@ class SpirvReflect;
 
 struct ShaderParameter
 {
-    struct Metadata
+    struct MetaData
     {
         bool useMin = false;
         float min = 0;
         bool useMax = false;
         float max = 1;
         bool isColor = false;
+
+        // Default vals
+        int64_t defaultInt = 0;
+        float defaultFloat = 0;
     };
-    std::string name;
-    uint32_t offset;
-    TypeDescription type;
+    std::string name{};
+    uint32_t offset{};
+    TypeDescription type{};
+    MetaData metaData{};
 
     std::string ToString() const;
 };
@@ -129,10 +134,32 @@ public:
 
         bool operator==(BindingType other) const { return type == other.type; }
         bool operator==(_BindingType other) const { return type == other; }
-        _BindingType operator()() const { return type; }
-        operator _BindingType() { return type; }
+        _BindingType operator()() const noexcept { return type; }
+        operator _BindingType() const noexcept { return type; }
 
-        constexpr std::string ToString() const;
+        constexpr const char* ToString() const
+        {
+            switch(type)
+            {
+            case BindingType::UniformBuffer: return "UniformBuffer";
+            case BindingType::StorageBuffer: return "StorageBuffer";
+            // case BindingType::DynamicUniformBuffer: return "DynamicUniformBuffer";
+            // case BindingType::DynamicStorageBuffer: return "DynamicStorageBuffer";
+
+            case BindingType::SampledImage: return "SampledImage";
+            case BindingType::CombinedImageSampler: return "CombinedImageSampler";
+            case BindingType::StorageImage: return "StorageImage";
+            case BindingType::Sampler: return "Sampler";
+            case BindingType::UniformTexelBuffer: return "UniformTexelBuffer";
+            case BindingType::StorageTexelBuffer: return "StorageTexelBuffer";
+            case BindingType::InputAttachment: return "InputAttachment";
+
+            case BindingType::AccelerationStructure: return "AccelerationStructure";
+            case BindingType::InlineUniformBlock: return "InlineUniformBlock";
+            default:
+            case BindingType::Invalid: return "Invalid";
+            }
+        }
     };
 
     struct BindingInfo

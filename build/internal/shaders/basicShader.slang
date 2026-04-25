@@ -10,9 +10,11 @@ import shaderInputs;
 // Material Descriptor Set
 struct MaterialInfo
 {
-    [Color] float4 color;
-    [Range(0,1)] float roughness;
-    [Range(0,1)] float metallic;
+    [Color] float3 color;
+    [Range(0,1)] float roughness = 0.4;
+    [Range(0,1)] float metallic = 0.0;
+    [Range(0,1)] float specular = 0.04; // Typical for dielectrics
+    int test = 5;
 };
 [[vk::binding(0, 2)]] ConstantBuffer<MaterialInfo> materialInfo;
 
@@ -48,7 +50,7 @@ float4 fsMain(FIn input)
     float3 ambientColor = globalData.ambientLight;// = invLinearToSRGB(float3(0.04f, 0.08f, 0.2f));
 
     float3 albedo = SRGBToLinear(input.Color) * SRGBToLinear(materialInfo.color.xyz);
-    float3 F0 = float3(0.04f); // Typical for dielectrics
+    float3 F0 = materialInfo.specular;
 
     float3 outColor = float3(0);
     for (int i = 0; i < globalData.numLights; i++)

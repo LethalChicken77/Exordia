@@ -262,7 +262,11 @@ TypeDescription SlangReflect::reflectNumeric(slang::TypeReflection* type)
 {
     // slang::UserAttribute* attr = type->findUserAttributeByName("Range");
     TypeDescription td{};
+    // if(type->getKind() == slang::TypeReflection::Kind::Vector)
+    //     td.componentCount = type->getElementCount();
+    // else
     td.componentCount = type->getColumnCount();
+
     td.rowCount = type->getRowCount();
     slang::TypeReflection::ScalarType scalarType = type->getScalarType();
     switch(scalarType)
@@ -376,8 +380,42 @@ std::vector<ShaderParameter> SlangReflect::reflectStruct(slang::VariableLayoutRe
                         float max = 0;
                         attr->getArgumentValueFloat(0, &min);
                         attr->getArgumentValueFloat(1, &max);
-                        Console::debugf("Range attribute: {}, {}", min, max);
+                        param.metaData.min = min;
+                        param.metaData.useMin = true;
+                        param.metaData.max = max;
+                        param.metaData.useMax = true;
                     }
+                    if(attrName == "Min")
+                    {
+                        float min = 0;
+                        attr->getArgumentValueFloat(0, &min);
+                        param.metaData.min = min;
+                        param.metaData.useMin = true;
+                    }
+                    if(attrName == "Max")
+                    {
+                        float max = 0;
+                        attr->getArgumentValueFloat(0, &max);
+                        param.metaData.max = max;
+                        param.metaData.useMax = true;
+                    }
+                    else if(attrName == "Color")
+                    {
+                        param.metaData.isColor = true;
+                    }
+                }
+
+                if(field->getVariable()->hasDefaultValue())
+                {
+                    if(param.type.type.IsIntegral())
+                    {
+                        field->getVariable()->getDefaultValueInt(&param.metaData.defaultInt);
+                    }
+                    else if(param.type.type == DataType::Float)
+                    {
+                        field->getVariable()->getDefaultValueFloat(&param.metaData.defaultFloat);
+                    }
+                    // Console::debugf("{} default: {}", field->getName(), param.metaData.defaultFloat);
                 }
             }
             break;

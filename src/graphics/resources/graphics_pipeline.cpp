@@ -185,7 +185,7 @@ void GraphicsPipeline::createPipeline(const Shader &shader, vk::PipelineCache ca
     vk::ResultValue<vk::Pipeline> createResult = m_device.Get().createGraphicsPipeline(cache, pipelineInfo);
     VK_CHECK(createResult.result, "Failed to create graphics pipeline. (Skill issue?)");
     m_pipeline = createResult.value;
-    Console::log("Created graphics pipeline successfully.");
+    // Console::log("Created graphics pipeline successfully.");
 }
 
 using BindingType = ShaderLayout::BindingType;

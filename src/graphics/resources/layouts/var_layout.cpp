@@ -1,43 +1,20 @@
-#include "vertex_layout.hpp"
+#include "var_layout.hpp"
 #include "console.hpp"
 #include "graphics/backend/vulkan_include.h"
 #include <string>
 #include <sstream>
+#include <unordered_map>
 
-std::string ToString(graphics::DataType type)
-{
-    switch(type)
-    {
-        case graphics::DataType::Invalid:
-            return "Invalid";
-        case graphics::DataType::UInt:
-            return "UInt";
-        case graphics::DataType::SInt:
-            return "SInt";
-        case graphics::DataType::UNorm:
-            return "UNorm";
-        case graphics::DataType::SNorm:
-            return "SNorm";
-        case graphics::DataType::Float:
-            return "Float";
-        case graphics::DataType::Bool:
-            return "Bool";
-        case graphics::DataType::Struct:
-            return "Struct";
-    }
-    return "How";
-}
 
 namespace graphics
 {
 
-using DT = DataType;
-
 std::string TypeDescription::ToString() const
 {
-    return std::format("{{DataType: {}, \tCSize: {}, \tCCount: {}, \tRCount: {} \tACount: {}}}", ::ToString(type), componentSize, componentCount, rowCount, arrayCount);
+    return std::format("{{DataType: {}, \tCSize: {}, \tCCount: {}, \tRCount: {} \tACount: {}}}", type.ToString(), componentSize, componentCount, rowCount, arrayCount);
 }
 
+using DT = DataType;
 uint32_t TypeDescription::GetVkFormat() const
 {
     // AttrType type = AttrType::Float; // Datatype of the attribute. Used for format selection.
