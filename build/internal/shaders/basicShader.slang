@@ -77,6 +77,7 @@ float4 fsMain(FIn input)
 
         float3 lightColor = currentLight.color * currentLight.intensity * attenuation;
         outColor += pbrBRDF(albedo, materialInfo.roughness, materialInfo.metallic, F0, lightColor, normal, lightDir, viewDir);
+        // break;
         // outColor += PhongBRDF(albedo, 80, lightColor * 0.25, float3(0,0,0), normal, lightDir, viewDir);
     }
     outColor += pbrAmbient(albedo, materialInfo.roughness, materialInfo.metallic, F0, ambientColor, ambientColor, normal, viewDir);

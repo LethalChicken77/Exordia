@@ -288,16 +288,19 @@ public float3 pbrBRDF(
     float3 viewDir
 )
 {
+    // roughness = 0.99;
     // float3 F0 = (ior - 1.0) * (ior - 1.0) / ((ior + 1.0) * (ior + 1.0));
     F0 = lerp(F0, albedo, metallic); // Metals use albedo for F0
     float alpha = roughness * roughness;
     float3 reflDir = reflect(viewDir, normal);
 
     // float3 F_diffuse = lerp(F0, F_L, 1.0 - roughness); // Effect on diffuse based on roughness
-    float3 F = SchlickFresnel(F0, normal, lightDir);             // Reflectance with respect to the light direction
+    float3 F = SchlickFresnel(F0, normal, lightDir); // Reflectance with respect to the light direction
+    float diffuseScale = 1 - (roughness * roughness);
+    // float3 kD = (1.0 - metallic) * (1.0 - F * diffuseScale);
     float3 kD = (1.0 - metallic) * (1.0 - F);
     
-    float3 diffuse = kD * DiffEON(normal, lightDir, viewDir, roughness, albedo, true);
+    float3 diffuse = kD * DiffEON(normal, lightDir, viewDir, roughness, albedo, false);
     // float3 diffuse = kD * DiffFON(normal, lightDir, viewDir, roughness, albedo);
     // float3 diffuse = kD * DiffOrenNayar(normal, lightDir, viewDir, roughness, albedo);
     // float3 diffuse = kD * DiffBurley(normal, lightDir, viewDir, roughness) * albedo;
@@ -308,6 +311,7 @@ public float3 pbrBRDF(
     // specular *= specTint;
     
     return lightColor * (diffuse + specular);
+    // return float3(kD * ceil(DiffLambertian(normal, lightDir)));
 }
 
 public float3 pbrAmbient(
@@ -323,6 +327,7 @@ public float3 pbrAmbient(
     float3 viewDir
 )
 {
+    // return float3(0);
     // metallic = 1;
     F0 = lerp(F0, albedo, metallic); // Metals use albedo for F0
 

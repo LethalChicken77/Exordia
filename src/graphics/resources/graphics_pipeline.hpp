@@ -60,6 +60,7 @@ struct PipelineConfigInfo
         vk::DynamicState::ePrimitiveRestartEnable,
         // vk::DynamicState::ePolygonModeEXT, // Can be overridden
 
+
         // Look into:
         // VK_DYNAMIC_STATE_PRIMITIVE_RESTART_ENABLE,
         // VK_DYNAMIC_STATE_LINE_STIPPLE

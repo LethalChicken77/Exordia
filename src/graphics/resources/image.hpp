@@ -141,6 +141,9 @@ public:
         range.layerCount = 1;
         return range;
     }
+    uint32_t GetWidth() const { return width; }
+    uint32_t GetHeight() const { return height; }
+    uint32_t GetDepth() const { return depth; }
 
 
     /// @brief Get Vulkan descriptor for this image. Does not include a sampler.

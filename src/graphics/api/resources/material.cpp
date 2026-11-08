@@ -224,7 +224,8 @@ ImGuiDataType typeToImguiTypeScalar(TypeDescription td)
 bool Material::drawImGuiParam(const ShaderParameter& param)
 {
     std::byte* dest = data.data() + param.offset;
-    const char* paramName = param.name.c_str();
+    std::string baseParamName = param.name + "##" + std::to_string((uint64_t)this);
+    const char* paramName = baseParamName.c_str();
     bool dirty = false;
     switch(param.type.type)
     {
@@ -271,7 +272,7 @@ bool Material::drawImGuiParam(const ShaderParameter& param)
     {
         if(param.type.componentSize == 8)
         {
-            double min = std::numeric_limits<double>::min();
+            double min = std::numeric_limits<double>::lowest();
             double max = std::numeric_limits<double>::max();
             if(param.metaData.useMin)
             {
@@ -301,7 +302,7 @@ bool Material::drawImGuiParam(const ShaderParameter& param)
                     UnpackHalfToFloat(reinterpret_cast<uint16_t*>(dest)[i]) :
                     reinterpret_cast<float*>(dest)[i];
             }
-            float min = std::numeric_limits<float>::min();
+            float min = std::numeric_limits<float>::lowest();
             float max = std::numeric_limits<float>::max();
             float* minP = &min;
             float* maxP = &max;

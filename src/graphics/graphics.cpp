@@ -112,6 +112,11 @@ namespace graphics
                 .WriteBuffer(0, bufferInfo)
                 .Build(graphicsData->cameraDescriptorSets[i]);
         }
+
+        // internal::Device &device,
+        // vk::DeviceSize width,
+        // vk::DeviceSize height,
+        // const ImageProperties &properties = {},
     }
 
     Graphics::~Graphics()

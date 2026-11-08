@@ -1,4 +1,5 @@
 module colorspace;
+import constants;
 
 float SRGBToLinear(float value)
 {
@@ -128,4 +129,118 @@ public float3 ACESFilmCurve(float3 color)
 public float luminance(float3 color)
 {
     return dot(color, float3(0.299, 0.587, 0.114));
+}
+
+public float3 RGBtoHSV(float3 rgb)
+{
+    float Cmax = max(max(rgb.x, rgb.y), rgb.z);
+    float Cmin = min(min(rgb.x, rgb.y), rgb.z);
+    float delta = Cmax - Cmin;
+
+    float value = Cmax;
+
+    float saturation = Cmax <= EPSILON ? 0 : delta / Cmax;
+    float hue = 0;
+    if(delta > EPSILON)
+    {
+        if(rgb.x >= rgb.y && rgb.x >= rgb.z)
+            hue = (((rgb.y - rgb.z) / delta));
+        else if(rgb.y >= rgb.x && rgb.y >= rgb.z)
+            hue = (((rgb.z - rgb.x) / delta) + 2);
+        else if(rgb.z >= rgb.y && rgb.z >= rgb.x)
+            hue = (((rgb.x - rgb.y) / delta) + 4);
+            
+        hue *= 60;
+
+        if(hue < 0) 
+            hue += 360;
+    }
+
+    return float3(hue, saturation, value);
+}
+
+public float3 HSVtoRGB(float3 hsv)
+{
+    float C = hsv.z * hsv.y;
+    float Hprime = hsv.x / 60.0;
+    Hprime = Hprime - floor(Hprime / 6.0) * 6.0;
+    float X = C * (1 - abs(Hprime % 2.0 - 1.0));
+
+    float3 result = float3(0);
+    if(Hprime < 1)
+        result = float3(C, X, 0);
+    else if(Hprime < 2)
+        result = float3(X, C, 0);
+    else if(Hprime < 3)
+        result = float3(0, C, X);
+    else if(Hprime < 4)
+        result = float3(0, X, C);
+    else if(Hprime < 5)
+        result = float3(X, 0, C);
+    else if(Hprime < 6)
+        result = float3(C, 0, X);
+    
+    float m = hsv.z - C;
+    return float3(result.x + m, result.y + m, result.z + m);
+}
+
+public float3 OklabToOklch(float3 oklab)
+{
+    float lightness = oklab.x;
+    float chroma = sqrt(oklab.y * oklab.y + oklab.z * oklab.z);
+    float hue = atan2(oklab.z, oklab.y) * RADtoDEG;
+    return float3(lightness, chroma, hue);
+}
+
+public float3 OklchToOklab(float3 oklch)
+{
+    float lightness = oklch.x;
+    float a = cos(oklch.z * DEGtoRAD) * oklch.y;
+    float b = sin(oklch.z * DEGtoRAD) * oklch.y;
+    return float3(lightness, a, b);
+}
+
+public float3 LinearToOklch(float3 linear)
+{
+    return OklabToOklch(LinearToOklab(linear));
+}
+
+public float3 OklchToLinear(float3 oklch)
+{
+    return OklabToLinear(OklchToOklab(oklch));
+}
+
+public float3 tint(float3 baseColor, float3 tintColor, float intensity)
+{
+    float3 oklab = LinearToOklab(baseColor);
+    float3 oklch = OklabToOklch(oklab);
+    float chroma = oklch.y;
+
+    float3 tintOklch = OklabToOklch(LinearToOklab(tintColor));
+    float tintSaturation = RGBtoHSV(tintColor).y;
+    float3 tintResult = float3(oklch.x * tintOklch.x, oklch.y * tintSaturation, tintOklch.z);
+    tintResult = OklchToOklab(tintResult);
+
+    float3 result = lerp(oklab, tintResult, intensity);
+
+    result = OklabToLinear(result);
+    return result;
+}
+
+public float3 desaturate(float3 baseColor, float strength)
+{
+    float3 oklch = LinearToOklch(baseColor);
+    oklch = float3(oklch.x, oklch.y * (1 - strength), oklch.z);
+    return OklchToLinear(oklch);
+}
+
+public float3 resaturate(float3 baseColor, float strength)
+{
+    float3 oklch = LinearToOklch(baseColor);
+    float3 hsv = RGBtoHSV(baseColor);
+    float3 chromalimiter = HSVtoRGB(float3(hsv.x, 1.0, hsv.z));
+    float maxChroma = LinearToOklch(chromalimiter).y * 1.2;
+
+    oklch = float3(oklch.x, clamp(oklch.y * strength, -maxChroma, maxChroma), oklch.z);
+    return OklchToLinear(oklch);
 }

@@ -5,11 +5,14 @@ import colorspace; // TODO: Perform colorspace transforms in post-processing
 import shaderInputs;
 import "vertex/vertex_condensed.slang";
 import "vertex/instance.slang";
+import attributes;
+import constants;
 
 // Material Descriptor Set
 struct MaterialInfo
 {
-    float4 color;
+    [Color] float4 tint;
+    float saturation = 1.0;
     float normalMapStrength;
     float2 UVOffset = float2(0,0);
     float2 UVScale = float2(1,1);
@@ -59,17 +62,19 @@ float4 fsMain(FIn input)
     float3 ambientColor = globalData.ambientLight;//invLinearToSRGB(float3(0.04f, 0.08f, 0.2f));
     float2 UV = input.UV;
 
-    // float3 albedo = SRGBToLinear(input.Color * materialInfo.color.xyz * albedoMap.Sample(UV).xyz);
+    // float3 albedo = SRGBToLinear(materialInfo.color.xyz) * albedoMap.Sample(UV).xyz;
     float3 albedo = albedoMap.Sample(UV).xyz;
+    albedo = resaturate(albedo, materialInfo.saturation);
+    albedo = tint(albedo, SRGBToLinear(materialInfo.tint.xyz), materialInfo.tint.w);
     float roughness = roughnessMap.Sample(UV).x; // Assume linear texture
     float metallic = saturate(metallicMap.Sample(UV).x * 1.2);
     // float specular = 0.05;//specularMap.Sample(UV).x;
     float specular = specularMap.Sample(UV).x;
     // specular = specular * specular;
-    specular = specular * 0.1;
+    // specular = specular * 0.1;
     float3 normalMapSample = normalMap.Sample(UV).xyz * 2.0 - 1.0;
 
-    normalMapSample *= float3(1, 1, 1 / materialInfo.normalMapStrength);
+    normalMapSample *= float3(materialInfo.normalMapStrength, materialInfo.normalMapStrength, 1);
     normalMapSample = normalize(normalMapSample);
     normal = normalize(
         normalMapSample.x * tangent + 
@@ -105,6 +110,7 @@ float4 fsMain(FIn input)
         float3 lightColor = currentLight.color * currentLight.intensity * attenuation;
         lightColor = lightColor;
         outColor += pbrBRDF(albedo, roughness, metallic, specular, lightColor, normal, lightDir, viewDir);
+        // break;
     }
     outColor += pbrAmbient(albedo, roughness, metallic, specular, ambientColor, ambientColor, normal, viewDir);
     // outColor = PhongBRDF(albedo, 80, lightColor, ambientColor, normal, lightDir, viewDir);
@@ -113,7 +119,7 @@ float4 fsMain(FIn input)
     float fog = pow(2.0, -depth * 0.0001);
 
     float3 fogColor = ambientColor * 4;
-    outColor = lerp(fogColor, outColor, fog);
+    // outColor = lerp(fogColor, outColor, fog);
 
     // float3 luma = luminance(outColor);
     // float3 chroma = outColor / luma;
@@ -133,6 +139,11 @@ float4 fsMain(FIn input)
     // outColor = outColor / luminance(outColor) * 0.25;
     // outColor = outColor / (outColor.x + outColor.y + outColor.z) * 0.25;
     // outColor = float3(luminance(outColor));
+    // if(input.Position.x > 0 && input.Position.z > 0 && input.Position.x < 1 && input.Position.z < 1)
+    //     outColor = HSVtoRGB(float3(0, saturate(input.Position.x), saturate(input.Position.z)));
+
+    // outColor = HSVtoRGB(float3(atan2(input.Position.z, input.Position.x) * 180 / PI, saturate(length(input.Position.zx) * 0.1), 0.5));
+    // outColor = OklabToLinear(OklchToOklab(float3(0.7, clamp(length(input.Position.zx) * 0.1, 0, 0.4), atan2(input.Position.z, input.Position.x) * RADtoDEG)));
     // outColor = albedo;
     return float4(outColor, 1.0);
     // return float4(normalMap.Sample(UV).xyz, 1.0);
