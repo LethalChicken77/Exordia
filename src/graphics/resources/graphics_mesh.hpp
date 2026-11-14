@@ -55,10 +55,10 @@ namespace graphics
         void loadModelFromObj(const std::string& filename);
     };
     
-    struct MeshRenderData
+    struct MeshDrawInfo
     {
-        MeshRenderData(MeshHandle handle, const glm::mat4& _transform, MaterialHandle materialHandle = {}, id_t objID = -1);
-        MeshRenderData(MeshHandle handle, const std::vector<glm::mat4>& _transform, MaterialHandle materialHandle = {}, id_t objID = -1);
+        MeshDrawInfo(MeshHandle handle, const glm::mat4& _transform, MaterialHandle materialHandle = {}, id_t objID = -1);
+        MeshDrawInfo(MeshHandle handle, const std::vector<glm::mat4>& _transform, MaterialHandle materialHandle = {}, id_t objID = -1);
 
         MeshHandle handle;
         uint32_t objectID;
@@ -66,7 +66,8 @@ namespace graphics
         std::vector<glm::mat4> transforms{};
         std::unique_ptr<Buffer> instanceBuffer{};
 
-        std::unique_ptr<Buffer> CreateInstanceBuffer(internal::Device &device, const std::vector<glm::mat4> &transforms);
+    private:
+        std::unique_ptr<Buffer> createInstanceBuffer(internal::Device &device, const std::vector<glm::mat4> &transforms);
         // void UpdateInstanceBuffer(const std::vector<glm::mat4> &transforms);
     };
 }

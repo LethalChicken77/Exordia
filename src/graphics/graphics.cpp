@@ -146,12 +146,12 @@ namespace graphics
 
     void Graphics::DrawMesh(const core::Mesh& meshData, const Material& material, const std::vector<glm::mat4>& modelMatrices, int instanceID)
     {
-        drawQueue.push_back(MeshRenderData(meshData->graphicsHandle, modelMatrices, material.graphicsHandle, instanceID));
+        drawQueue.push_back(MeshDrawInfo(meshData->graphicsHandle, modelMatrices, material.graphicsHandle, instanceID));
     }
 
     void Graphics::DrawMesh(const core::Mesh& meshData, const Material& material, const glm::mat4& modelMatrix, int instanceID)
     {
-        drawQueue.push_back(MeshRenderData(meshData->graphicsHandle, modelMatrix, material.graphicsHandle, instanceID));
+        drawQueue.push_back(MeshDrawInfo(meshData->graphicsHandle, modelMatrix, material.graphicsHandle, instanceID));
     }
 
     void Graphics::DrawFrame()
@@ -191,10 +191,10 @@ namespace graphics
                 passInfo
             );
 
-            for(MeshRenderData &renderData : drawQueue)
+            for(MeshDrawInfo &drawInfo : drawQueue)
             {
-                GraphicsMaterial *mat = graphicsData->materialRegistry.Get(renderData.materialHandle);
-                // Console::debugf("{}", renderData.materialHandle.index);
+                GraphicsMaterial *mat = graphicsData->materialRegistry.Get(drawInfo.materialHandle);
+                // Console::debugf("{}", drawInfo.materialHandle.index);
                 if(mat == nullptr) continue;
                 GraphicsPipeline *currentPipeline = graphicsData->pipelineRegistry.Get(mat->base->shader->graphicsHandle);
                 if(currentPipeline == nullptr) continue;
@@ -215,11 +215,11 @@ namespace graphics
                         nullptr
                     );
 
-                GraphicsMesh* mesh = graphicsData->meshRegistry.Get(renderData.handle);
+                GraphicsMesh* mesh = graphicsData->meshRegistry.Get(drawInfo.handle);
                 if(mesh != nullptr)
                 {
-                    mesh->Bind(renderContext.commandBuffer, currentPipeline->GetVertexLayout(), renderData.instanceBuffer);
-                    mesh->Draw(renderContext.commandBuffer, renderData.transforms.size());
+                    mesh->Bind(renderContext.commandBuffer, currentPipeline->GetVertexLayout(), drawInfo.instanceBuffer);
+                    mesh->Draw(renderContext.commandBuffer, drawInfo.transforms.size());
                 }
             }
 

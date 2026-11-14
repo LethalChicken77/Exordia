@@ -796,7 +796,7 @@ void Graphics::drawMesh(const core::Mesh& mesh, uint32_t materialIndex, const gl
         setGraphicsMesh(mesh);
     }
 
-    sceneRenderQueue.push_back(MeshRenderData(mesh->getInstanceID(), transform, materialIndex, objectID));
+    sceneRenderQueue.push_back(MeshDrawInfo(mesh->getInstanceID(), transform, materialIndex, objectID));
 }
 
 void Graphics::drawMeshInstanced(const core::Mesh& mesh, uint32_t materialIndex, const std::vector<glm::mat4> &transforms)
@@ -808,7 +808,7 @@ void Graphics::drawMeshInstanced(const core::Mesh& mesh, uint32_t materialIndex,
     }
     if(transforms.size() == 0) return; // No work to do with no transforms
 
-    sceneRenderQueue.push_back(MeshRenderData(mesh->getInstanceID(), transforms, materialIndex));
+    sceneRenderQueue.push_back(MeshDrawInfo(mesh->getInstanceID(), transforms, materialIndex));
 }
 
 void Graphics::drawMeshOutline(const core::Mesh& mesh, const glm::mat4& transform)
@@ -819,7 +819,7 @@ void Graphics::drawMeshOutline(const core::Mesh& mesh, const glm::mat4& transfor
         setGraphicsMesh(mesh);
     }
 
-    outlineRenderQueue.push_back(MeshRenderData(mesh->getInstanceID(), transform, 0));
+    outlineRenderQueue.push_back(MeshDrawInfo(mesh->getInstanceID(), transform, 0));
 }
 
 std::unique_ptr<Buffer> Graphics::createInstanceBuffer(const std::vector<glm::mat4>& transforms)

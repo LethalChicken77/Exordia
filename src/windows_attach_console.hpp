@@ -1,5 +1,5 @@
 #pragma once
-#ifdef WIN32
+#ifdef _WIN32
 #include <windows.h>
 
 #include <iostream>
@@ -7,11 +7,11 @@
 
 void InitConsoleIO()
 {
-    FILE* fp;
+    FILE* stream;
 
-    freopen_s(&fp, "CONOUT$", "w", stdout);
-    freopen_s(&fp, "CONOUT$", "w", stderr);
-    freopen_s(&fp, "CONIN$", "r", stdin);
+    freopen_s(&stream, "CONIN$", "r", stdin);
+    freopen_s(&stream, "CONOUT$", "w", stdout);
+    freopen_s(&stream, "CONOUT$", "w", stderr);
 
     std::ios::sync_with_stdio(true);
 }

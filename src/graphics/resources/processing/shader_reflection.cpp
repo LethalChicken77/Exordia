@@ -405,17 +405,28 @@ std::vector<ShaderParameter> SlangReflect::reflectStruct(slang::VariableLayoutRe
                     }
                 }
 
-                if(field->getVariable()->hasDefaultValue())
+                ISlangBlob* blob = nullptr;
+                SlangResult result = field->getVariable()->getDefaultValueBlob(&blob);
+
+                if(SLANG_FAILED(result))
                 {
-                    if(param.type.type.IsIntegral())
+                    // Handle reflection error.
+                }
+                else if(blob != nullptr)
+                {
+                    const void* buffer = blob->getBufferPointer();
+                    size_t varSize = blob->getBufferSize();
+
+                    if(!decodeDefaultValue(
+                        field->getType(),
+                        buffer,
+                        varSize,
+                        param.metaData.defaultValue))
                     {
-                        field->getVariable()->getDefaultValueInt(&param.metaData.defaultInt);
+                        // Unsupported type or unexpected blob size.
                     }
-                    else if(param.type.type == DataType::Float)
-                    {
-                        field->getVariable()->getDefaultValueFloat(&param.metaData.defaultFloat);
-                    }
-                    // Console::debugf("{} default: {}", field->getName(), param.metaData.defaultFloat);
+
+                    blob->release();
                 }
             }
             break;
@@ -626,6 +637,180 @@ void SlangReflect::reflectVertex(slang::EntryPointReflection* reflect, VertexLay
 }
 
 
+template<typename T>
+bool SlangReflect::readDefaultScalar(const void* buffer, size_t bufferSize, T& value)
+{
+    if(buffer == nullptr || bufferSize != sizeof(T))
+        return false;
+
+    std::memcpy(&value, buffer, sizeof(T));
+    return true;
+}
+
+template<typename T, glm::length_t N>
+bool SlangReflect::readDefaultVector(
+    const void* buffer,
+    size_t bufferSize,
+    glm::vec<N, T, glm::defaultp>& value)
+{
+    if(buffer == nullptr || bufferSize != sizeof(T) * N)
+        return false;
+
+    T components[N];
+    std::memcpy(components, buffer, sizeof(components));
+
+    for(glm::length_t i = 0; i < N; ++i)
+        value[i] = components[i];
+
+    return true;
+}
+
+template<typename T, typename Variant>
+bool SlangReflect::decodeDefaultScalarOrVector(
+    const void* buffer,
+    size_t bufferSize,
+    size_t elementCount,
+    Variant& out)
+{
+    if(elementCount == 1)
+    {
+        T value;
+
+        if(!readDefaultScalar(buffer, bufferSize, value))
+            return false;
+
+        out = value;
+        return true;
+    }
+
+    if(elementCount == 2)
+    {
+        glm::vec<2, T, glm::defaultp> value;
+
+        if(!readDefaultVector<T, 2>(buffer, bufferSize, value))
+            return false;
+
+        out = value;
+        return true;
+    }
+
+    if(elementCount == 3)
+    {
+        glm::vec<3, T, glm::defaultp> value;
+
+        if(!readDefaultVector<T, 3>(buffer, bufferSize, value))
+            return false;
+
+        out = value;
+        return true;
+    }
+
+    if(elementCount == 4)
+    {
+        glm::vec<4, T, glm::defaultp> value;
+
+        if(!readDefaultVector<T, 4>(buffer, bufferSize, value))
+            return false;
+
+        out = value;
+        return true;
+    }
+
+    return false;
+}
+
+template<typename Variant>
+bool SlangReflect::decodeDefaultValue(
+    slang::TypeReflection* type,
+    const void* buffer,
+    size_t bufferSize,
+    Variant& out)
+{
+    if(type == nullptr)
+        return false;
+
+    size_t elementCount = 1;
+
+    switch(type->getKind())
+    {
+        case slang::TypeReflection::Kind::Scalar:
+        case slang::TypeReflection::Kind::Enum:
+            break;
+
+        case slang::TypeReflection::Kind::Vector:
+            elementCount = type->getElementCount();
+
+            if(elementCount < 2 || elementCount > 4)
+                return false;
+
+            break;
+
+        default:
+            return false;
+    }
+
+    switch(type->getScalarType())
+    {
+        case slang::TypeReflection::Bool:
+        {
+            if(elementCount != 1)
+                return false;
+
+            uint32_t value;
+
+            if(!readDefaultScalar(buffer, bufferSize, value))
+                return false;
+
+            out = value != 0;
+            return true;
+        }
+
+        case slang::TypeReflection::Int8:
+            return decodeDefaultScalarOrVector<int8_t>(
+                buffer, bufferSize, elementCount, out);
+
+        case slang::TypeReflection::UInt8:
+            return decodeDefaultScalarOrVector<uint8_t>(
+                buffer, bufferSize, elementCount, out);
+
+        case slang::TypeReflection::Int16:
+            return decodeDefaultScalarOrVector<int16_t>(
+                buffer, bufferSize, elementCount, out);
+
+        case slang::TypeReflection::UInt16:
+            return decodeDefaultScalarOrVector<uint16_t>(
+                buffer, bufferSize, elementCount, out);
+
+        case slang::TypeReflection::Int32:
+            return decodeDefaultScalarOrVector<int32_t>(
+                buffer, bufferSize, elementCount, out);
+
+        case slang::TypeReflection::UInt32:
+            return decodeDefaultScalarOrVector<uint32_t>(
+                buffer, bufferSize, elementCount, out);
+
+        case slang::TypeReflection::Int64:
+        case slang::TypeReflection::IntPtr:
+            return decodeDefaultScalarOrVector<int64_t>(
+                buffer, bufferSize, elementCount, out);
+
+        case slang::TypeReflection::UInt64:
+        case slang::TypeReflection::UIntPtr:
+            return decodeDefaultScalarOrVector<uint64_t>(
+                buffer, bufferSize, elementCount, out);
+
+        case slang::TypeReflection::Float32:
+            return decodeDefaultScalarOrVector<float>(
+                buffer, bufferSize, elementCount, out);
+
+        case slang::TypeReflection::Float64:
+            return decodeDefaultScalarOrVector<double>(
+                buffer, bufferSize, elementCount, out);
+
+        default:
+            return false;
+    }
+}
 
 // ---------------------------------SPIRV REFLECT--------------------------------------
 

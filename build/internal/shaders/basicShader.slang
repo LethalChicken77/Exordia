@@ -10,7 +10,7 @@ import shaderInputs;
 // Material Descriptor Set
 struct MaterialInfo
 {
-    [Color] float3 color;
+    [Color] float3 color = float3(1.0,0.0,1.0);
     [Range(0,1)] float roughness = 0.4;
     [Range(0,1)] float metallic = 0.0;
     [Range(0,1)] float specular = 0.04; // Typical for dielectrics

@@ -10,7 +10,7 @@
 #include "core/input.hpp"
 
 #include "close_handler.hpp"
-#if WIN32
+#if _WIN32
 #include <windows.h>
 #include <windows_attach_console.hpp>
 #endif
@@ -19,7 +19,7 @@
 using namespace core;
 using namespace graphics;
 
-#if WIN32
+#if _WIN32 && false
 int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE prevInstance, PSTR cmdLine, int showCmd) 
 {
     // SetupConsole();

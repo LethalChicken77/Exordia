@@ -62,9 +62,12 @@ class Graphics
         inline internal::Device &GetDevice() { return graphicsData->GetBackend().GetDevice(); }
         void GraphicsInitImgui();
     private:
-        std::vector<MeshRenderData> drawQueue{};
+        std::vector<MeshDrawInfo> drawQueue{};
+        // std::vector<SpriteDrawInfo> spriteDrawQueue{};
         CameraUbo cameraState{};
         // Temporary
+        void drawMeshes(FrameContext context);
+        void drawSprites(FrameContext context);
         void drawImgui(FrameContext context);
 };
 

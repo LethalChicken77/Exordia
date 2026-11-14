@@ -12,8 +12,8 @@ class DrawFunctions
         static void bindCameraDescriptor(const FrameContext &renderContext, vk::DescriptorSet descriptorSet, const GraphicsPipeline* pipeline);
         static void bindGlobalDescriptor(const FrameContext &renderContext, vk::DescriptorSet descriptorSet, const GraphicsPipeline* pipeline);
     private:
-        static void renderMeshes(FrameContext& frameInfo, const std::vector<MeshRenderData> &renderQueue);
-        static void renderGameObjectIDs(FrameContext& frameInfo, const std::vector<MeshRenderData> &renderQueue);
+        static void renderMeshes(FrameContext& frameInfo, const std::vector<MeshDrawInfo> &renderQueue);
+        static void renderGameObjectIDs(FrameContext& frameInfo, const std::vector<MeshDrawInfo> &renderQueue);
         static void renderFullScreenQuad(FrameContext& frameInfo);
 
         friend class Graphics;

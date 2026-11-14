@@ -22,14 +22,32 @@ Material::Material(const Shader *_shader, const std::string_view _name)
         {
             for(const ShaderParameter& param : bufferLayout->GetParameters())
             {
-                if(param.type.type.IsIntegral() && param.type.componentCount == 1)
+                std::visit([this, &param](const auto& value)
                 {
-                    setIntegralParam<uint64_t>(&param, param.metaData.defaultInt);
-                }
-                if(param.type.type.IsFloat() && param.type.componentCount == 1)
-                {
-                    setFloatParam<float>(&param, param.metaData.defaultFloat);
-                }
+                    using T = std::decay_t<decltype(value)>;
+
+                    if constexpr(std::is_integral_v<T>)
+                    {
+                        setIntegralParam<T>(&param, value);
+                    }
+                    else if constexpr(std::is_floating_point_v<T>)
+                    {
+                        setFloatParam<T>(&param, value);
+                    }
+                    else if constexpr(std::is_same_v<T, glm::vec2> ||
+                                    std::is_same_v<T, glm::vec3> ||
+                                    std::is_same_v<T, glm::vec4> ||
+                                    std::is_same_v<T, glm::dvec2> ||
+                                    std::is_same_v<T, glm::dvec3> ||
+                                    std::is_same_v<T, glm::dvec4>)
+                    {
+                        setFloatParam<T>(&param, value);
+                    }
+                    else if constexpr(requires { value.length(); })
+                    {
+                        setIntegralParam<T>(&param, value);
+                    }
+                }, param.metaData.defaultValue);
             }
         }
     }

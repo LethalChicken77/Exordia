@@ -4,9 +4,12 @@
 #include <csignal>
 #include <iostream>
 #include "utils/console.hpp"
-#if WIN32
+#ifdef _WIN32
 #include "windows_attach_console.hpp"
 #include <io.h>
+#else
+#include <unistd.h>
+#define _write write
 #endif
 // Only to be used by main
 

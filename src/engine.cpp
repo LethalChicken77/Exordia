@@ -113,7 +113,7 @@ void Engine::init()
     // skyboxMat->UpdateValues();
     int64_t testVal = 69;
     // mat.SetInt("test", testVal);
-    yella->SetColor3("color", Color(1.f, 0.8f, 0.3f));
+    // yella->SetColor3("color", Color(1.f, 0.8f, 0.3f));
     yella->SetFloat("roughness", 0.2f);
     yella->SetFloat("metallic", 0.0f);
 

@@ -7,6 +7,7 @@
 #include <string_view>
 #include <string>
 #include <unordered_map>
+#include <variant>
 
 #include "graphics/standards.hpp"
 
@@ -33,6 +34,49 @@ struct ShaderParameter
         // Default vals
         int64_t defaultInt = 0;
         float defaultFloat = 0;
+        std::variant<
+            bool,
+            uint8_t,
+            uint16_t,
+            uint32_t,
+            uint64_t,
+            int8_t,
+            int16_t,
+            int32_t,
+            int64_t,
+            float,
+            double,
+            glm::vec2,
+            glm::vec3,
+            glm::vec4,
+            glm::dvec2,
+            glm::dvec3,
+            glm::dvec4,
+            glm::i8vec2,
+            glm::i8vec3,
+            glm::i8vec4,
+            glm::u8vec2,
+            glm::u8vec3,
+            glm::u8vec4,
+            glm::i16vec2,
+            glm::i16vec3,
+            glm::i16vec4,
+            glm::u16vec2,
+            glm::u16vec3,
+            glm::u16vec4,
+            glm::i32vec2,
+            glm::i32vec3,
+            glm::i32vec4,
+            glm::u32vec2,
+            glm::u32vec3,
+            glm::u32vec4,
+            glm::i64vec2,
+            glm::i64vec3,
+            glm::i64vec4,
+            glm::u64vec2,
+            glm::u64vec3,
+            glm::u64vec4
+        > defaultValue;
     };
     std::string name{};
     uint32_t offset{};

@@ -18,7 +18,7 @@ public:
         return Deregister(texture.graphicsHandle);
     }
 
-    Texture* Get(TextureHandle handle) const;
+    [[nodiscard]] Texture* Get(TextureHandle handle) const;
 private:
     TextureHandle debugTextureHandle;
 };

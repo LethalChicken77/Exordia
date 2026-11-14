@@ -2,8 +2,8 @@ cmake_minimum_required(VERSION 3.20)
 project(GameEngine LANGUAGES CXX C)
 
 # Compiler & basic settings
-set(CMAKE_C_COMPILER "C:/msys64/clang64/bin/clang.exe") # Set to your C compiler path
-set(CMAKE_CXX_COMPILER "C:/msys64/clang64/bin/clang++.exe") # Set to your C++ compiler path
+# set(CMAKE_C_COMPILER "C:/msys64/clang64/bin/clang.exe") # Set to your C compiler path
+# set(CMAKE_CXX_COMPILER "C:/msys64/clang64/bin/clang++.exe") # Set to your C++ compiler path
 set(CMAKE_CXX_STANDARD 23)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
@@ -14,41 +14,77 @@ message(STATUS "Compiler version: ${CMAKE_CXX_COMPILER_VERSION}")
 
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
-set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -fuse-ld=lld")
+if(CMAKE_CXX_COMPILER_FRONTEND_VARIANT STREQUAL "MSVC")
+    # YOLO
+else()
+    set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -fuse-ld=lld")
+endif()
 
 set(SANITIZE OFF)
-
-add_compile_options(
-    -fdiagnostics-format=msvc
-    -fno-caret-diagnostics
-    -fno-diagnostics-show-option
-    -fno-diagnostics-show-note-include-stack
-    -fno-color-diagnostics
-    -fdiagnostics-absolute-paths
+if(CMAKE_CXX_COMPILER_FRONTEND_VARIANT STREQUAL "MSVC")
+    add_compile_options(
+        /diagnostics:column
+        /clang:-fno-diagnostics-show-option
+        /clang:-fno-diagnostics-show-note-include-stack
+        /clang:-fno-color-diagnostics
+        /clang:-fdiagnostics-absolute-paths
+        /clang:-fno-ms-compatibility
+    )
+else()
+    add_compile_options(
+        -fdiagnostics-format=msvc
+        -fno-caret-diagnostics
+        -fno-diagnostics-show-option
+        -fno-diagnostics-show-note-include-stack
+        -fno-color-diagnostics
+        -fdiagnostics-absolute-paths
     # -fmacro-prefix-map=${CMAKE_SOURCE_DIR}/=.
     # -ffile-prefix-map=${CMAKE_SOURCE_DIR}/=.
-)
+    )
+endif()
 
 if(CMAKE_BUILD_TYPE STREQUAL "Debug")
-    add_compile_options(
-        -g
-        -fno-omit-frame-pointer
-    )
-    if(SANITIZE)
-    add_compile_options(
-        -fsanitize=address # Crashes gdb on windows
-    )
+    if(CMAKE_CXX_COMPILER_FRONTEND_VARIANT STREQUAL "MSVC")
+        add_compile_options(
+            /Od
+            /Zi
+            /clang:-fno-omit-frame-pointer
+        )
+    else()
+        add_compile_options(
+            -g
+            -fno-omit-frame-pointer
+        )
     endif()
+
+    if(SANITIZE)
+        if(CMAKE_CXX_COMPILER_FRONTEND_VARIANT STREQUAL "MSVC")
+            add_compile_options(/fsanitize=address)
+        else()
+            add_compile_options(-fsanitize=address)
+        endif()
+    endif()
+
 elseif(CMAKE_BUILD_TYPE STREQUAL "Release")
-    add_compile_options(
-        -O3
-        -march=native
-        # -flto # Link Time Optimization, disable for faster compile
-        -ffast-math
-        -fopenmp-simd
-        # -Wall
-        # -Wextra # More warnings
-        # -Wpedantic
+    if(CMAKE_CXX_COMPILER_FRONTEND_VARIANT STREQUAL "MSVC")
+        add_compile_options(
+            /O2
+            /clang:-march=native
+            /fp:fast
+        )
+    else()
+        add_compile_options(
+            -O3
+            -march=native
+            -ffast-math
+            -fopenmp-simd
+        )
+    endif()
+endif()
+if(WIN32)
+    set_source_files_properties(
+        "${CMAKE_SOURCE_DIR}/lib/miniz-3.0.2/miniz.c"
+        PROPERTIES COMPILE_DEFINITIONS "_CRT_DECLARE_NONSTDC_NAMES=1"
     )
 endif()
 # set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -L${ASAN_LIB_PATH} -lclang_rt.asan_dynamic -lclang_rt.asan_dynamic_runtime_thunk")
@@ -118,12 +154,17 @@ file(GLOB_RECURSE LIB_SOURCES
 )
 
 # OpenMP setup 
-set(OpenMP_C_FLAGS "-fopenmp")
-set(OpenMP_CXX_FLAGS "-fopenmp")
-set(OpenMP_C_LIB_NAMES "omp")
-set(OpenMP_CXX_LIB_NAMES "omp")
-set(OpenMP_omp_LIBRARY omp)
-find_package(OpenMP)
+# OpenMP setup
+if(CMAKE_CXX_COMPILER_FRONTEND_VARIANT STREQUAL "MSVC")
+    set(OpenMP_C_FLAGS "/openmp:experimental")
+    set(OpenMP_CXX_FLAGS "/openmp:experimental")
+else()
+    set(OpenMP_C_FLAGS "-fopenmp")
+    set(OpenMP_CXX_FLAGS "-fopenmp")
+endif()
+
+
+find_package(OpenMP COMPONENTS CXX)
 if(OpenMP_CXX_FOUND)
     set(LIBRARIES ${LIBRARIES} OpenMP::OpenMP_CXX)
 endif()
@@ -151,11 +192,17 @@ target_include_directories(GameEngine PRIVATE "${VULKAN_SDK}/Include")
 target_include_directories(GameEngine PRIVATE "${VULKAN_SDK}/Include/Volk")
 target_include_directories(GameEngine PRIVATE "${VULKAN_SDK}/Include/vulkan") # Needed for vulkan.hpp
 target_include_directories(GameEngine PRIVATE SYSTEM "${VULKAN_SDK}/Include/slang")
-target_include_directories(OpenMP::OpenMP_CXX INTERFACE C:/msys64/clang64/include)
+# target_include_directories(OpenMP::OpenMP_CXX INTERFACE C:/msys64/clang64/include)
 # target_include_directories(GameEngine PRIVATE "${Vulkan_INCLUDE_DIRS}/vma")
 
+if(WIN32)
+    set_target_properties(GameEngine PROPERTIES
+        WIN32_EXECUTABLE TRUE
+    )
+endif()
+
 if(CMAKE_BUILD_TYPE STREQUAL "Debug")
-target_compile_definitions(GameEngine PRIVATE DEBUG)
+    target_compile_definitions(GameEngine PRIVATE DEBUG)
 endif()
 target_compile_definitions(GameEngine PRIVATE SPIRV_REFLECT_USE_SYSTEM_SPIRV_H)
 target_compile_definitions(GameEngine PRIVATE VK_NO_PROTOTYPES)
@@ -184,17 +231,19 @@ if(CMAKE_BUILD_TYPE STREQUAL "Debug")
 endif()
 if(WIN32)
 # set_target_properties(GameEngine PROPERTIES WIN32_EXECUTABLE TRUE)
+    target_link_options(GameEngine PRIVATE /SUBSYSTEM:CONSOLE)
 endif()
 # target_link_options(GameEngine PRIVATE
 #     -static-libstdc++
 #     -static-libgcc
 # )
 # Link libraries
+# TODO: Linux version
 target_link_libraries(GameEngine PRIVATE 
-    "C:/glfw-3.4.bin.WIN64/lib-mingw-w64/libglfw3.a"    # Link GLFW
+    "C:/glfw-3.4.bin.WIN64/lib-vc2022/glfw3.lib"    # Link GLFW
     "${VULKAN_SDK}/Lib/vulkan-1.lib"                     # Link Vulkan
     # "${VULKAN_SDK}/Lib/volk.lib"                     # Link Volk
     "${VULKAN_SDK}/Lib/slang.lib"
     gdi32 user32 shell32 Dwmapi
-    OpenMP::OpenMP_CXX INTERFACE omp
+    OpenMP::OpenMP_CXX
 )

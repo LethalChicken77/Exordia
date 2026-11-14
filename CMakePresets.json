@@ -1,0 +1,63 @@
+
+{
+    "version": 3,
+    "configurePresets": [
+        {
+            "name": "windows",
+            "displayName": "Windows (clang-cl)",
+            "generator": "Ninja",
+            "binaryDir": "${sourceDir}/build",
+            "condition": {
+                "type": "equals",
+                "lhs": "${hostSystemName}",
+                "rhs": "Windows"
+            },
+            "environment": {
+                "CC": "clang-cl",
+                "CXX": "clang-cl",
+                "INCLUDE": "C:/Program Files/Microsoft Visual Studio/2022/Community/VC/Tools/MSVC/14.44.35207/include;C:/Program Files (x86)/Windows Kits/10/Include/10.0.26100.0/ucrt;C:/Program Files (x86)/Windows Kits/10/Include/10.0.26100.0/shared;C:/Program Files (x86)/Windows Kits/10/Include/10.0.26100.0/um;C:/Program Files (x86)/Windows Kits/10/Include/10.0.26100.0/winrt",
+                "LIB": "C:/Program Files/Microsoft Visual Studio/2022/Community/VC/Tools/MSVC/14.44.35207/lib/x64;C:/Program Files (x86)/Windows Kits/10/Lib/10.0.26100.0/ucrt/x64;C:/Program Files (x86)/Windows Kits/10/Lib/10.0.26100.0/um/x64"
+            },
+            "cacheVariables": {
+                "CMAKE_BUILD_TYPE": "Release",
+                "CMAKE_C_COMPILER_TARGET": "x86_64-pc-windows-msvc",
+                "CMAKE_CXX_COMPILER_TARGET": "x86_64-pc-windows-msvc",
+                "CMAKE_C_FLAGS": "/X",
+                "CMAKE_CXX_FLAGS": "/X",
+                "CMAKE_C_STANDARD_INCLUDE_DIRECTORIES": "C:/Program Files/Microsoft Visual Studio/2022/Community/VC/Tools/MSVC/14.44.35207/include;C:/Program Files (x86)/Windows Kits/10/Include/10.0.26100.0/ucrt;C:/Program Files (x86)/Windows Kits/10/Include/10.0.26100.0/shared;C:/Program Files (x86)/Windows Kits/10/Include/10.0.26100.0/um",
+                "CMAKE_CXX_STANDARD_INCLUDE_DIRECTORIES": "C:/Program Files/Microsoft Visual Studio/2022/Community/VC/Tools/MSVC/14.44.35207/include;C:/Program Files (x86)/Windows Kits/10/Include/10.0.26100.0/ucrt;C:/Program Files (x86)/Windows Kits/10/Include/10.0.26100.0/shared;C:/Program Files (x86)/Windows Kits/10/Include/10.0.26100.0/um",
+                "OpenMP_CXX_FLAGS": "/openmp:experimental",
+                "OpenMP_CXX_LIB_NAMES": "libomp",
+                "OpenMP_libomp_LIBRARY": "C:/msys64/ucrt64/lib/libomp.dll.a"
+            }
+        },
+        {
+            "name": "linux",
+            "displayName": "Linux (Clang)",
+            "generator": "Ninja",
+            "binaryDir": "${sourceDir}/build",
+            "condition": {
+                "type": "equals",
+                "lhs": "${hostSystemName}",
+                "rhs": "Linux"
+            },
+            "environment": {
+                "CC": "clang",
+                "CXX": "clang++"
+            },
+            "cacheVariables": {
+                "CMAKE_BUILD_TYPE": "Release"
+            }
+        }
+    ],
+    "buildPresets": [
+        {
+            "name": "windows",
+            "configurePreset": "windows"
+        },
+        {
+            "name": "linux",
+            "configurePreset": "linux"
+        }
+    ]
+}

@@ -35,6 +35,15 @@ private:
 
     static bool handleVertexField(slang::VariableLayoutReflection* field, VertexLayout::Attribute& attribute);
     static void reflectVertex(slang::EntryPointReflection* reflect, VertexLayout* vertLayout);
+
+    template<typename T>
+    static bool readDefaultScalar(const void* buffer, size_t bufferSize, T& value);
+    template<typename T, glm::length_t N>
+    static bool readDefaultVector(const void* buffer, size_t bufferSize, glm::vec<N, T, glm::defaultp>& value);
+    template<typename T, typename Variant>
+    static bool decodeDefaultScalarOrVector(const void* buffer, size_t bufferSize, size_t elementCount, Variant& out);
+    template<typename Variant>
+    static bool decodeDefaultValue(slang::TypeReflection* type, const void* buffer, size_t bufferSize, Variant& out);
 };
 
 

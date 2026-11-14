@@ -80,8 +80,8 @@ public:
     VkExtent2D viewportSize{};
 
 private:
-    std::vector<MeshRenderData> sceneRenderQueue{};
-    std::vector<MeshRenderData> outlineRenderQueue{};
+    std::vector<MeshDrawInfo> sceneRenderQueue{};
+    std::vector<MeshDrawInfo> outlineRenderQueue{};
 
     static std::unique_ptr<Buffer> createInstanceBuffer(const std::vector<glm::mat4>& transforms);
 

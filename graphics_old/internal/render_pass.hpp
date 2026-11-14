@@ -41,7 +41,7 @@ class RenderPass
         // Needs to verify input textures and change their formats
         // Call draw function
         Texture *Execute(const RenderContext* renderContext); // Returns pointer to output Texture for easier use
-        Texture *Execute(const RenderContext* renderContext, const std::vector<MeshRenderData> &renderQueue);
+        Texture *Execute(const RenderContext* renderContext, const std::vector<MeshDrawInfo> &renderQueue);
 
     private:
         RenderPass(VkExtent2D initialExtent);
@@ -50,7 +50,7 @@ class RenderPass
         VkExtent2D extent;
 
         void (*drawFunc_Screen)(const RenderContext& context);
-        void (*drawFunc_Mesh)(const RenderContext& context, const std::vector<MeshRenderData> &renderQueue);
+        void (*drawFunc_Mesh)(const RenderContext& context, const std::vector<MeshDrawInfo> &renderQueue);
 
         std::vector<VkImageLayout> colorImageLayout;
         VkImageLayout depthImageLayout;
@@ -86,7 +86,7 @@ class RenderPassBuilder
         RenderPassBuilder &AddDepthAttachment(VkImageLayout imageLayout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL);
         
         RenderPassBuilder &SetDrawFunction_Screen(void (*func)(const RenderContext& context));
-        RenderPassBuilder &SetDrawFunction_Mesh(void (*func)(const RenderContext& context, const std::vector<MeshRenderData> &renderQueue));
+        RenderPassBuilder &SetDrawFunction_Mesh(void (*func)(const RenderContext& context, const std::vector<MeshDrawInfo> &renderQueue));
 
         std::unique_ptr<RenderPass> Build();
 };

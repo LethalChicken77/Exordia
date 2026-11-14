@@ -64,7 +64,7 @@ bool TextureRegistry::Update(TextureData &texture)
 /// @brief Get a pointer to a stored resource
 /// @param handle The handle of the resource to retrieve
 /// @return Pointer to the resource. nullptr if invalid.
-Texture* TextureRegistry::Get(TextureHandle handle) const 
+[[nodiscard]] Texture* TextureRegistry::Get(TextureHandle handle) const 
 {
     if(!IsValid(handle) && handle == debugTextureHandle)
     {

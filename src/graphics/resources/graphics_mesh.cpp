@@ -76,9 +76,9 @@ void GraphicsMesh::Bind(vk::CommandBuffer commandBuffer, const VertexLayout& ver
 void GraphicsMesh::Draw(vk::CommandBuffer commandBuffer, uint32_t instanceCount) const
 {
     if(m_useIndexBuffer)
-        vkCmdDrawIndexed(commandBuffer, m_indexCount, instanceCount, 0, 0, 0);
+        commandBuffer.drawIndexed(m_indexCount, instanceCount, 0, 0, 0);
     else
-        vkCmdDraw(commandBuffer, m_vertexCount, instanceCount, 0, 0);
+        commandBuffer.draw(m_vertexCount, instanceCount, 0, 0);
 }
 
 void GraphicsMesh::createPositionBuffer()
@@ -570,12 +570,12 @@ std::vector<Vertex> generateSierpinski(float edgeLength, int depth)
     }
 }
 
-MeshRenderData::MeshRenderData(MeshHandle _handle, const glm::mat4& _transform, MaterialHandle _materialHandle, id_t objID)
-    : handle(_handle), objectID(objID), transforms{_transform}, materialHandle{_materialHandle}, instanceBuffer{CreateInstanceBuffer(graphicsData->GetBackend().GetDevice(), transforms)} {}
-MeshRenderData::MeshRenderData(MeshHandle _handle, const std::vector<glm::mat4>& _transform, MaterialHandle _materialHandle, id_t objID)
-    : handle(_handle), objectID(objID), transforms{_transform}, materialHandle{_materialHandle}, instanceBuffer{CreateInstanceBuffer(graphicsData->GetBackend().GetDevice(), transforms)} {}
+MeshDrawInfo::MeshDrawInfo(MeshHandle _handle, const glm::mat4& _transform, MaterialHandle _materialHandle, id_t objID)
+    : handle(_handle), objectID(objID), transforms{_transform}, materialHandle{_materialHandle}, instanceBuffer{createInstanceBuffer(graphicsData->GetBackend().GetDevice(), transforms)} {}
+MeshDrawInfo::MeshDrawInfo(MeshHandle _handle, const std::vector<glm::mat4>& _transform, MaterialHandle _materialHandle, id_t objID)
+    : handle(_handle), objectID(objID), transforms{_transform}, materialHandle{_materialHandle}, instanceBuffer{createInstanceBuffer(graphicsData->GetBackend().GetDevice(), transforms)} {}
 
-std::unique_ptr<Buffer> MeshRenderData::CreateInstanceBuffer(internal::Device &device, const std::vector<glm::mat4>& transforms)
+std::unique_ptr<Buffer> MeshDrawInfo::createInstanceBuffer(internal::Device &device, const std::vector<glm::mat4>& transforms)
 {
     uint32_t instanceCount = transforms.size();
     VkDeviceSize bufferSize = sizeof(transforms[0]) * instanceCount;
