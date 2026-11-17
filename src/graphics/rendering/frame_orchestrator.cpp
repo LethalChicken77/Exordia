@@ -56,6 +56,8 @@ FrameContext FrameOrchestrator::BeginFrame()
     VkCommandBufferBeginInfo beginInfo{};
     beginInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
 
+    currentCommandBuffer.reset();
+
     if(vkBeginCommandBuffer(currentCommandBuffer, &beginInfo) != VK_SUCCESS)
     {
         throw std::runtime_error("Failed to begin recording command buffers!");
@@ -107,7 +109,7 @@ void FrameOrchestrator::BeginRenderDynamic(const FrameContext& context, const Pa
     
     vk::RenderingAttachmentInfo colorAttachment{};
     colorAttachment.imageView = passInfo.colorView;
-    colorAttachment.imageLayout = vk::ImageLayout::eAttachmentOptimal; // usually COLOR_ATTACHMENT_OPTIMAL
+    colorAttachment.imageLayout = vk::ImageLayout::eColorAttachmentOptimal; // usually COLOR_ATTACHMENT_OPTIMAL
     colorAttachment.loadOp = vk::AttachmentLoadOp::eClear;
     colorAttachment.storeOp = vk::AttachmentStoreOp::eStore;
     colorAttachment.clearValue = passInfo.clearColor;
@@ -229,7 +231,7 @@ void FrameOrchestrator::transitionToRenderTarget(vk::CommandBuffer commandBuffer
 {
     Image::TransitionVkImageLayout(
         image, 
-        vk::ImageLayout::ePresentSrcKHR,
+        vk::ImageLayout::eUndefined,
         vk::ImageLayout::eColorAttachmentOptimal,
         commandBuffer,
         {vk::ImageAspectFlagBits::eColor, 0, 1, 0, 1}

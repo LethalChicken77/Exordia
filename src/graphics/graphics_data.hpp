@@ -10,7 +10,7 @@
 #include "resources/registries/pipeline_registry.hpp"
 #include "resources/registries/texture_registry.hpp"
 #include "resources/graphics_material.hpp"
-
+#include "resources/graphics_sprite.hpp"
 
 #define GLM_FORCE_RADIANS
 #define GLM_FORCE_DEPTH_ZERO_TO_ONE

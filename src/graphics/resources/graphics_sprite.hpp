@@ -18,57 +18,35 @@
 
 namespace graphics
 {
-    class GraphicsSprite
+    struct SpriteInstanceInfo
     {
-    public:
-
-        GraphicsSprite(const core::MeshData* meshptr);
-        GraphicsSprite(internal::Device &device, const core::MeshData* meshptr);
-        ~GraphicsSprite();
-
-        GraphicsSprite(const GraphicsSprite&) = delete;
-        GraphicsSprite& operator=(const GraphicsSprite&) = delete;
-
-        void Bind(vk::CommandBuffer commandBuffer, const VertexLayout& vertexLayout, const std::unique_ptr<Buffer> &instanceBuffer);
-        void Draw(vk::CommandBuffer commandBuffer, uint32_t instanceCount) const;
-
-        void RecreateBuffers();
-
-    private:
-        internal::Device &m_device;
-
-        const Sprite* m_spriteData;
-        uint32_t m_vertexCount = 0;
-        uint32_t m_indexCount = 0;
-
-        std::unique_ptr<Buffer> m_positionBuffer{};
-        // std::unique_ptr<Buffer> m_vertexBuffer{};
-        std::vector<Buffer> m_vertexBuffers{};
-        std::unordered_map<VertexLayout, uint32_t, VertexLayout::Hash> m_vertexBufferIndex{};
-        bool m_useIndexBuffer = true;
-        MeshConfig m_config{};
-        std::unique_ptr<Buffer> m_indexBuffer{};
-
-        void createPositionBuffer();
-        void createVertexBuffer(const VertexLayout& vertexLayout);
-        void createIndexBuffer();
-        
-        void loadModelFromObj(const std::string& filename);
+        glm::mat4 Model = glm::mat4(1);
+        glm::vec2 Size = {1.f, 1.f};
+        glm::vec2 Pivot = {0.f, 0.f};
+        glm::vec2 UVMin = {0.f, 0.f};
+        glm::vec2 UVMax = {1.f, 1.f};
+        float Left = 0.f;
+        float Right = 0.f;
+        float Top = 0.f;
+        float Bottom = 0.f;
+        int TextureIndex = 0; // TODO: Implement with bindless textures
+        uint32_t Tiled;
     };
-    
     struct SpriteDrawInfo
     {
-        SpriteDrawInfo(MeshHandle handle, const glm::mat4& _transform, MaterialHandle materialHandle = {}, id_t objID = -1);
-        SpriteDrawInfo(MeshHandle handle, const std::vector<glm::mat4>& _transform, MaterialHandle materialHandle = {}, id_t objID = -1);
+        SpriteDrawInfo(const Sprite& sprite, const glm::mat4& _transform, MaterialHandle materialHandle = {}, id_t objID = -1);
+        SpriteDrawInfo(const Sprite& sprite, const std::span<const glm::mat4> _transform, MaterialHandle materialHandle = {}, id_t objID = -1);
 
-        MeshHandle handle;
+        Sprite sprite;
         uint32_t objectID;
         MaterialHandle materialHandle;
         std::vector<glm::mat4> transforms{};
         std::unique_ptr<Buffer> instanceBuffer{};
 
+        void Bind(vk::CommandBuffer commandBuffer);
+        void Draw(vk::CommandBuffer commandBuffer) const;
     private:
-        std::unique_ptr<Buffer> createInstanceBuffer(internal::Device &device, const std::vector<glm::mat4> &transforms);
+        std::unique_ptr<Buffer> createInstanceBuffer(internal::Device &device, const Sprite& sprite);
         // void UpdateInstanceBuffer(const std::vector<glm::mat4> &transforms);
     };
 }

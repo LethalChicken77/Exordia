@@ -23,6 +23,8 @@ class Graphics
 
         void DrawMesh(const core::Mesh& meshData, const Material& material, const std::vector<glm::mat4>& modelMatrices, int instanceID = -1);
         void DrawMesh(const core::Mesh& meshData, const Material& material, const glm::mat4& modelMatrix, int instanceID = -1);
+        void DrawSprite(const Sprite& sprite, const Material& material, const std::vector<glm::mat4>& modelMatrices, int instanceID = -1);
+        void DrawSprite(const Sprite& sprite, const Material& material, const glm::mat4& modelMatrix, int instanceID = -1);
         void DrawFrame();
 
         inline void RegisterShader(Shader &shader) { graphicsData->pipelineRegistry.Register(shader); }
@@ -63,7 +65,7 @@ class Graphics
         void GraphicsInitImgui();
     private:
         std::vector<MeshDrawInfo> drawQueue{};
-        // std::vector<SpriteDrawInfo> spriteDrawQueue{};
+        std::vector<SpriteDrawInfo> spriteDrawQueue{};
         CameraUbo cameraState{};
         // Temporary
         void drawMeshes(FrameContext context);

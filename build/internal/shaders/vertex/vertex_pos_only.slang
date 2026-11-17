@@ -1,6 +1,7 @@
 import attributes;
+import vertex_attributes;
 
-public struct VertexData
+[VertexLayout] public struct VertexData
 {
     public uint VertexID : SV_VertexID;
     public float3 Position : POSITION;

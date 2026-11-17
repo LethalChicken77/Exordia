@@ -32,7 +32,8 @@ public:
     const std::vector<uint32_t>& GetFragSpirv() const { return fragSpirv; }
     const ShaderLayout& GetLayout() const { return layout; }
     const ShaderLayout* GetLayoutPtr() const { return &layout; }
-    const VertexLayout& GetVertexLayout() const { return vertLayout; }
+    const VertexLayout& GetVertexLayout() const { return vertexLayout; }
+    const VertexLayout& GetInstanceLayout() const { return instanceLayout; }
 
     void SetVertexShaderAsset(ShaderAsset* asset) { vertexShaderAsset = asset; }
     void SetFragmentShaderAsset(ShaderAsset* asset) { fragmentShaderAsset = asset; }
@@ -48,7 +49,8 @@ private:
     std::vector<uint32_t> vertSpirv{};
     std::vector<uint32_t> fragSpirv{};
     ShaderLayout layout{};
-    VertexLayout vertLayout{};
+    VertexLayout vertexLayout{};
+    VertexLayout instanceLayout{};
     bool isValid; // Used to prevent passing bad data to the graphics module if compilation fails
 
     void compileFrag();

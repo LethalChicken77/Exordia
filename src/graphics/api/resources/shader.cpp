@@ -38,7 +38,8 @@ void Shader::Compile()
             &tempVertSpirv,
             &tempFragSpirv,
             &layout,
-            &vertLayout);
+            &vertexLayout,
+            &instanceLayout);
             
         // Console::log(layout.ToString());
     }

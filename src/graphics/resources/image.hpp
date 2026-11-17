@@ -141,6 +141,8 @@ public:
         range.layerCount = 1;
         return range;
     }
+    glm::ivec2 GetDimensions() const { return {width, height}; }
+    glm::ivec3 GetDimensions3() const { return {width, height, depth}; }
     uint32_t GetWidth() const { return width; }
     uint32_t GetHeight() const { return height; }
     uint32_t GetDepth() const { return depth; }

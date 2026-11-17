@@ -179,5 +179,8 @@ struct TextureConfig
 
     bool srgb = true; // Color textures
     bool readWrite = false; // Storage textures, default false for sampled textures
+
+    // Sprite properties
+    float pixelsPerUnit = 100.f;
 };
 } // namespace graphics

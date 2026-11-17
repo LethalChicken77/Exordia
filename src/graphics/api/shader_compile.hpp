@@ -29,6 +29,7 @@ public:
     /// @param slangStage 
     /// @param globalLayout Shader layout generated from code. Returns uniform buffers, textures, and samplers used by the shader.
     /// @param vertLayout Vertex layout generated from code. Only use on vertex shaders.
+    /// @param instanceLayout Instance layout generated from code. Only use on vertex shaders.
     /// @return SPIR-V code
     /// @note Also handles HLSL, with some minor caveats.
     static std::vector<uint32_t> CompileSlang(
@@ -37,14 +38,16 @@ public:
         const std::string_view entryPointName,
         SlangStage slangStage,
         ShaderLayout* globalLayout,
-        VertexLayout* vertLayout);
+        VertexLayout* vertLayout,
+        VertexLayout* instanceLayout);
     
     inline static std::vector<uint32_t> CompileSlang(
         const ShaderAsset& shaderAsset,
         const std::string_view entryPointName,
         SlangStage slangStage,
         ShaderLayout* globalLayout,
-        VertexLayout* vertLayout)
+        VertexLayout* vertLayout,
+        VertexLayout* instanceLayout)
     {
         const std::span<const char> data = shaderAsset.GetData();
         const std::string dataString = std::string(data.data(), data.size()); // TODO: Remove copy to string (Needed for null termination in string view)
@@ -54,7 +57,8 @@ public:
             entryPointName,
             slangStage,
             globalLayout,
-            vertLayout
+            vertLayout,
+            instanceLayout
         );
     }
 
@@ -73,7 +77,8 @@ public:
         std::vector<uint32_t>* vertexDest,
         std::vector<uint32_t>* fragmentDest,
         ShaderLayout* globalLayout,
-        VertexLayout* vertLayout);
+        VertexLayout* vertLayout,
+        VertexLayout* instanceLayout);
 
     // TODO: Support GLSL
 

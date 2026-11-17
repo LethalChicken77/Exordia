@@ -70,14 +70,19 @@ elseif(CMAKE_BUILD_TYPE STREQUAL "Release")
         add_compile_options(
             /O2
             /clang:-march=native
-            /fp:fast
+            # /fp:fast
+            /clang:-fno-finite-math-only
+            /clang:-funsafe-math-optimizations
+            /clang:-ffp-contract=fast
         )
     else()
         add_compile_options(
             -O3
             -march=native
-            -ffast-math
-            -fopenmp-simd
+            # -ffast-math
+            -fno-finite-math-only
+            -funsafe-math-optimizations
+            -ffp-contract=fast
         )
     endif()
 endif()

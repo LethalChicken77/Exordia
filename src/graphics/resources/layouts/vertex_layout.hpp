@@ -127,7 +127,6 @@ public:
     }
 
     inline const std::vector<Attribute> &GetAttributes() const { return vertexAttributes; }
-    inline uint8_t GetInstanceBaseLocation() const { return instanceBaseLocation; }
     
     const std::vector<VkVertexInputBindingDescription> GetVertexBindingDescriptions() const;
     const std::vector<VkVertexInputAttributeDescription> GetVertexAttributeDescriptions() const;
@@ -136,7 +135,6 @@ public:
 
 private:
     std::vector<Attribute> vertexAttributes{};
-    uint8_t instanceBaseLocation = 255;
 
     friend class SlangReflect;
 };

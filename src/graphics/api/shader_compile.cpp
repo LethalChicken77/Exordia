@@ -44,7 +44,8 @@ std::vector<uint32_t> ShaderCompile::CompileSlang(
         const std::string_view entryPointName,
         SlangStage slangStage,
         ShaderLayout* globalLayout,
-        VertexLayout* vertLayout)
+        VertexLayout* vertLayout,
+        VertexLayout* instanceLayout)
 {
     Console::logf("Compiling shader {} as {} shader", path, Debug::SlangStageToString((uint32_t)slangStage), "ShaderAsset");
 
@@ -89,6 +90,7 @@ std::vector<uint32_t> ShaderCompile::CompileSlang(
     
     std::vector<uint32_t> spirv = getSpirv(request, entryPointIndex);
 
+    // TODO: Add reflection
     return spirv;
 }
 
@@ -98,7 +100,8 @@ bool ShaderCompile::CompileSlangCombined(
         std::vector<uint32_t>* vertexDest,
         std::vector<uint32_t>* fragmentDest,
         ShaderLayout* globalLayout,
-        VertexLayout* vertLayout)
+        VertexLayout* vertLayout,
+        VertexLayout* instanceLayout)
 {
     Console::logf("Compiling combined shader {}", path, "ShaderCompile");
 
@@ -145,7 +148,7 @@ bool ShaderCompile::CompileSlangCombined(
     // Early return if no reflection is needed
     // if(vertexDest == nullptr && fragmentDest == nullptr) return true;
 
-    SlangReflect::GenerateLayouts(request, vertEP, fragEP, globalLayout, vertLayout, VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT);
+    SlangReflect::GenerateLayouts(request, vertEP, fragEP, globalLayout, vertLayout, instanceLayout, VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT);
 
     return true;
 }

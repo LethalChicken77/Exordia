@@ -55,6 +55,8 @@ namespace graphics
                 // size_t offset = GetPixelSize() * sizeof(T)
             }
 
+            glm::ivec2 GetDimensions() const { return {width, height}; }
+            glm::ivec3 GetDimensions3() const { return {width, height, depth}; }
             inline uint32_t GetWidth() const { return width; }
             inline uint32_t GetHeight() const { return height; }
             inline uint32_t GetDepth() const { return depth; }

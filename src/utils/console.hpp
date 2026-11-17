@@ -38,12 +38,12 @@ class Console
         static ConsoleMessage constructMessage(const std::string_view message, const std::string_view source, ConsoleMessage::Type type);
         static void pushMessage(ConsoleMessage& message);
 
-        static inline constexpr std::string consoleEndl = "\033[0m\n";
-        static inline constexpr std::string ANSIreset = "\033[0m";
-        static inline constexpr std::string ANSIred = "\033[31m";
-        static inline constexpr std::string ANSIyellow = "\033[33m";
-        static inline constexpr std::string ANSIgray = "\033[90m";
-        static inline constexpr std::string ANSIgreen = "\033[32m";
+        static inline constexpr std::string_view consoleEndl = "\033[0m\n";
+        static inline constexpr std::string_view ANSIreset = "\033[0m";
+        static inline constexpr std::string_view ANSIred = "\033[31m";
+        static inline constexpr std::string_view ANSIyellow = "\033[33m";
+        static inline constexpr std::string_view ANSIgray = "\033[90m";
+        static inline constexpr std::string_view ANSIgreen = "\033[32m";
     public:
         // Putting logf functions down here for readability
 

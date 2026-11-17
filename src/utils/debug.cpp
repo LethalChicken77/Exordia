@@ -67,12 +67,12 @@ std::string Debug::mat4ToString(const glm::mat4& m)
 {
     std::ostringstream oss;
     oss << "mat4(\n";
-    for (int i = 0; i < 4; ++i)
+    for (int i = 0; i < 4; i++)
     {
-        for (int j = 0; j < 4; ++j)
+        for (int j = 0; j < 4; j++)
         {
             oss << m[i][j];
-            if (i != 1 || j != 1)
+            if (!(j == 3 && i == 3))
                 oss << ", \t";
         }
         oss << "\n";

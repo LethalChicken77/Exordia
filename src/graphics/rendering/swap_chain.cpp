@@ -191,18 +191,6 @@ void Swapchain::createSwapchain(vk::SwapchainKHR oldSwapchain)
     swapchainImages = device.Get().getSwapchainImagesKHR(swapchain);
 
     // Transition image formats to avoid branch in render loop
-    vk::CommandBuffer cmd = device.BeginSingleTimeCommands();
-    for(vk::Image img : swapchainImages)
-    {
-        Image::TransitionVkImageLayout(
-            img,
-            vk::ImageLayout::eUndefined,
-            vk::ImageLayout::ePresentSrcKHR,
-            cmd,
-            {vk::ImageAspectFlagBits::eColor, 0, 1, 0, 1}
-        );
-    }
-    device.EndSingleTimeCommands(cmd);
 
     swapchainImageFormat = surfaceFormat.format;
     swapchainExtent = extent;

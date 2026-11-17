@@ -12,6 +12,7 @@ GraphicsPipeline::GraphicsPipeline(internal::Device& device, const Shader &shade
 {
     m_configInfo.SetShaderConfig(shader.properties);
     m_vertexLayout = shader.GetVertexLayout();
+    m_instanceLayout = shader.GetInstanceLayout();
     createPipelineLayout(shader);
     createPipeline(shader, cache);
 }
@@ -73,20 +74,21 @@ vk::ShaderModuleCreateInfo GraphicsPipeline::createShaderModuleInfo(const std::v
     return moduleInfo;
 }
 
-std::vector<vk::VertexInputBindingDescription> GraphicsPipeline::createVertexBindings(const VertexLayout& layout)
+std::vector<vk::VertexInputBindingDescription> GraphicsPipeline::createVertexBindings()
 {
+    Console::debug("Creating vertex attribute bindings", "GraphicsPipeline");
     std::vector<vk::VertexInputBindingDescription> bindingDescriptions(3);
     bindingDescriptions[0].binding = 0;
-    bindingDescriptions[0].stride = layout.GetPositionStride();
+    bindingDescriptions[0].stride = m_vertexLayout.GetPositionStride();
     bindingDescriptions[0].inputRate = vk::VertexInputRate::eVertex;
 
     bindingDescriptions[1].binding = 1;
-    bindingDescriptions[1].stride = layout.GetStride();
+    bindingDescriptions[1].stride = m_vertexLayout.GetStride();
     bindingDescriptions[1].inputRate = vk::VertexInputRate::eVertex;
 
     // Instance data
     bindingDescriptions[2].binding = 2;
-    bindingDescriptions[2].stride = sizeof(glm::mat4); // TODO: Maybe make configurable for smaller instance data
+    bindingDescriptions[2].stride = m_instanceLayout.GetStride();
     bindingDescriptions[2].inputRate = vk::VertexInputRate::eInstance;
     return bindingDescriptions;
 }
@@ -94,28 +96,30 @@ std::vector<vk::VertexInputBindingDescription> GraphicsPipeline::createVertexBin
 /// @brief Generate vertex attributes from layout.
 /// @param layout Layout of the vertex generated from reflection data.
 /// @return Vertex attribute descriptions.
-std::vector<vk::VertexInputAttributeDescription> GraphicsPipeline::createVertexAttributes(const VertexLayout& layout)
+std::vector<vk::VertexInputAttributeDescription> GraphicsPipeline::createVertexAttributes()
 {
+    Console::debug("Creating vertex attribute descriptions", "GraphicsPipeline");
     std::vector<vk::VertexInputAttributeDescription> attrDescriptions{};
-    attrDescriptions.reserve(layout.GetAttributes().size());
-    for(const VertexLayout::Attribute& attr : layout.GetAttributes())
+    attrDescriptions.reserve(m_vertexLayout.GetAttributes().size() + m_instanceLayout.GetAttributes().size());
+    for(const VertexLayout::Attribute& attr : m_vertexLayout.GetAttributes())
     {
+        // Console::debugf("Vert Location: {}", attr.location);
         vk::VertexInputAttributeDescription attrDescription{};
-        attrDescription.binding = attr.semantic == VertexLayout::AttrSemantic::Position ? VERTEX_POSITION_BUFFER_BINDING : VERTEX_BUFFER_BINDING;
+        attrDescription.binding = (uint32_t)(attr.semantic == VertexLayout::AttrSemantic::Position ? VertBinding::VertexPosition : VertBinding::VertexBuffer);
         attrDescription.location = attr.location;
         attrDescription.offset = attr.offset;
         attrDescription.format = static_cast<vk::Format>(attr.format.GetVkFormat());
         attrDescriptions.push_back(attrDescription);
     }
-    uint32_t instanceBase = layout.GetInstanceBaseLocation();
-    for(uint32_t i = 0; i < 4; i++)
+    for(const VertexLayout::Attribute& attr : m_instanceLayout.GetAttributes())
     {
-        vk::VertexInputAttributeDescription instanceDescription{};
-        instanceDescription.binding = INSTANCE_BUFFER_BINDING;
-        instanceDescription.location = instanceBase + i;
-        instanceDescription.offset = sizeof(glm::vec4) * i;
-        instanceDescription.format = vk::Format::eR32G32B32A32Sfloat;
-        attrDescriptions.push_back(instanceDescription);
+        // Console::debugf("Inst Location: {}", attr.location);
+        vk::VertexInputAttributeDescription attrDescription{};
+        attrDescription.binding = (uint32_t)VertBinding::InstanceBuffer;
+        attrDescription.location = attr.location;
+        attrDescription.offset = attr.offset;
+        attrDescription.format = static_cast<vk::Format>(attr.format.GetVkFormat());
+        attrDescriptions.push_back(attrDescription);
     }
     return attrDescriptions;
 }
@@ -142,8 +146,10 @@ void GraphicsPipeline::createPipeline(const Shader &shader, vk::PipelineCache ca
     shaderStages[1].pSpecializationInfo = nullptr;
     shaderStages[1].pNext = &fsModuleCreateInfo;
 
-    std::vector<vk::VertexInputBindingDescription> bindingDescriptions = createVertexBindings(shader.GetVertexLayout());
-    std::vector<vk::VertexInputAttributeDescription> attributeDescriptions = createVertexAttributes(shader.GetVertexLayout());
+    
+    Console::debug(shader.GetVertexLayout().ToString(), "CreatePipeline");
+    std::vector<vk::VertexInputBindingDescription> bindingDescriptions = createVertexBindings();
+    std::vector<vk::VertexInputAttributeDescription> attributeDescriptions = createVertexAttributes();
     vk::PipelineVertexInputStateCreateInfo vertexInputInfo{};
     vertexInputInfo.vertexAttributeDescriptionCount = static_cast<uint32_t>(attributeDescriptions.size());
     vertexInputInfo.vertexBindingDescriptionCount = static_cast<uint32_t>(bindingDescriptions.size());

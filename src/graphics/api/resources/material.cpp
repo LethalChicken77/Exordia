@@ -22,6 +22,7 @@ Material::Material(const Shader *_shader, const std::string_view _name)
         {
             for(const ShaderParameter& param : bufferLayout->GetParameters())
             {
+                if(!param.metaData.hasDefaultValue) continue;
                 std::visit([this, &param](const auto& value)
                 {
                     using T = std::decay_t<decltype(value)>;
@@ -171,7 +172,7 @@ bool Material::validateLayout() const noexcept
     }
     if(materialLayout->GetMaterialLayout() == nullptr)
     {
-        Console::warnf("No material buffer layout info found for material {}", name);
+        // Console::warnf("No material buffer layout info found for material {}", name);
         return false;
     }
     return true;

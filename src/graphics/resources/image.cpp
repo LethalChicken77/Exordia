@@ -271,7 +271,7 @@ void Image::generateMipmaps()
 
     for(uint32_t i = 1; i < properties.mipLevels; i++)
     {
-        Console::debugf("Generating mip {}", i);
+        // Console::debugf("Generating mip {}", i);
         vk::ImageBlit2 blit{};
         blit.srcSubresource.aspectMask = fullRange.aspectMask;
         blit.srcSubresource.mipLevel = i - 1;

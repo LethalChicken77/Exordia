@@ -42,12 +42,12 @@ private:
 
     static void windowRefreshCallback(GLFWwindow *window);
 
-    VkInstance instance;
-    VkApplicationInfo appInfo{};
     graphics::Shader* shader;
     graphics::Shader* gShader;
     graphics::Shader* sbShader;
     graphics::Shader* pbr;
+    graphics::Shader* spriteShader;
+    graphics::Sprite testSprite;
 
     Scene scene;
 

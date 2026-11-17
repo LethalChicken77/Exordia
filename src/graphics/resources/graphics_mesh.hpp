@@ -51,8 +51,6 @@ namespace graphics
         void createPositionBuffer();
         void createVertexBuffer(const VertexLayout& vertexLayout);
         void createIndexBuffer();
-        
-        void loadModelFromObj(const std::string& filename);
     };
     
     struct MeshDrawInfo

@@ -21,6 +21,7 @@ public:
         int fragEntryPoint,
         ShaderLayout* globalLayout,
         VertexLayout* vertLayout, 
+        VertexLayout* instanceLayout,
         uint32_t stageFlags);
 
 private:
@@ -34,7 +35,7 @@ private:
 
 
     static bool handleVertexField(slang::VariableLayoutReflection* field, VertexLayout::Attribute& attribute);
-    static void reflectVertex(slang::EntryPointReflection* reflect, VertexLayout* vertLayout);
+    static void reflectVertex(slang::EntryPointReflection* reflect, VertexLayout* vertLayout, VertexLayout* instanceLayout);
 
     template<typename T>
     static bool readDefaultScalar(const void* buffer, size_t bufferSize, T& value);

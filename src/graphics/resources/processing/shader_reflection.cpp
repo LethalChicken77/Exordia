@@ -14,7 +14,8 @@ void SlangReflect::GenerateLayouts(
     int vertEntryPoint, 
     int fragEntryPoint, 
     ShaderLayout* globalLayout, 
-    VertexLayout* vertLayout, 
+    VertexLayout* vertLayout,
+    VertexLayout* instanceLayout,
     uint32_t stageFlags)
 {
     if(globalLayout == nullptr && vertLayout == nullptr) return; // No work to do
@@ -32,7 +33,7 @@ void SlangReflect::GenerateLayouts(
     if(globalLayout)
         reflectLayout(globals, globalLayout, stageFlags);
     if(vertLayout)
-        reflectVertex(vertRefl, vertLayout);
+        reflectVertex(vertRefl, vertLayout, instanceLayout);
 }
 
 using DescriptorSetInfo = ShaderLayout::DescriptorSetInfo;
@@ -425,6 +426,10 @@ std::vector<ShaderParameter> SlangReflect::reflectStruct(slang::VariableLayoutRe
                     {
                         // Unsupported type or unexpected blob size.
                     }
+                    else
+                    {
+                        param.metaData.hasDefaultValue = true;
+                    }
 
                     blob->release();
                 }
@@ -502,7 +507,7 @@ bool SlangReflect::handleVertexField(slang::VariableLayoutReflection* field, Att
     }
 
     attrFormat.componentCount = field->getType()->getColumnCount();
-    attrFormat.arrayCount  = field->getType()->getRowCount();
+    attrFormat.arrayCount = 1;
     // uint32_t elementSize = 0;
     slang::TypeReflection::ScalarType scalarType = field->getType()->getScalarType();
     switch(scalarType)
@@ -578,62 +583,85 @@ bool SlangReflect::handleVertexField(slang::VariableLayoutReflection* field, Att
     return true;
 }
 
-void SlangReflect::reflectVertex(slang::EntryPointReflection* reflect, VertexLayout* vertLayout)
+void SlangReflect::reflectVertex(
+    slang::EntryPointReflection* reflect,
+    VertexLayout* vertLayout,
+    VertexLayout* instanceLayout)
 {
-    reflect->getTypeLayout();
-    // uint32_t weightsBufferoffset = 0;
-    uint32_t locationBase = 0;
     *vertLayout = VertexLayout();
+    *instanceLayout = VertexLayout();
+
+    int location = 0;
+
     for(uint32_t i = 0; i < reflect->getParameterCount(); i++)
     {
-        // Leaving this as a loop in case I need to parse instance layout
-        
         slang::VariableLayoutReflection* param = reflect->getParameterByIndex(i);
+        slang::VariableReflection* variable = param->getVariable();
+        slang::TypeReflection* type = param->getType();
+
+        if(variable == nullptr) continue;
+        if(type == nullptr) continue;
+
+        bool isVertexLayout = false;
+        bool isInstanceLayout = false;
+
+        for(uint32_t j = 0; j < type->getUserAttributeCount(); j++)
+        {
+            slang::Attribute* userAttribute = type->getUserAttributeByIndex(j);
+            if(userAttribute == nullptr) continue;
+
+            const char* name = userAttribute->getName();
+            if(name == nullptr) continue;
+
+            if(std::strcmp(name, "VertexLayout") == 0)
+                isVertexLayout = true;
+            else if(std::strcmp(name, "InstanceLayout") == 0)
+                isInstanceLayout = true;
+        }
+
+        // Skip untagged or ambiguously tagged parameters.
+        if(isVertexLayout == isInstanceLayout) continue;
+
+        VertexLayout* targetLayout = isVertexLayout ? vertLayout : instanceLayout;
+        if(targetLayout == nullptr) continue;
+
         slang::TypeLayoutReflection* typeLayout = param->getTypeLayout();
-        // if (param->getCategory() == slang::ParameterCategory::VaryingInput ||
-        //     param->getCategory() == slang::ParameterCategory::Mixed)
-        uint32_t nextLocation;
         uint32_t bufferOffset = 0;
+
+        if(typeLayout == nullptr) continue;
         for(uint32_t j = 0; j < typeLayout->getFieldCount(); j++)
         {
             slang::VariableLayoutReflection* field = typeLayout->getFieldByIndex(j);
-            
-            Attribute attribute{};
-            bool result = handleVertexField(field, attribute);
-            uint8_t location = param->getOffset(SLANG_PARAMETER_CATEGORY_VARYING_INPUT) + field->getOffset(SLANG_PARAMETER_CATEGORY_VARYING_INPUT);
-            
-            // nextLocation = glm::max(localLocation + locationBase + attribute.format.arrayCount, nextLocation);
-            
-            // attribute.location = field->getOffset(SlangParameterCategory);
-            // Console::logf("Name: {}", field->getName());
-            // Console::logf("\tLocation: {}", location);
-            if(i == 1) 
-            {
-                if(attribute.semantic == AttrSemantic::I_Model)
-                    vertLayout->instanceBaseLocation = glm::min(vertLayout->instanceBaseLocation, location);
-                break; // Don't add instance parameters to vertex layout
-            }
-            // attribute.location = field->getOffset(SLANG_PARAMETER_CATEGORY_VERTEX_INPUT);
-            attribute.location = location;
-            // attribute.location = field->getSemanticIndex();
-            
-            if(!result) continue;
 
-            if(attribute.semantic == AttrSemantic::Position)
+            for(int i = 0; i < field->getType()->getRowCount(); i++)
             {
-                attribute.offset = 0;
+                Attribute attribute{};
+                bool fieldValid = handleVertexField(field, attribute);
+                if(fieldValid < 1) continue;
+    
+                uint32_t location = 
+                    param->getOffset(SLANG_PARAMETER_CATEGORY_VARYING_INPUT) +
+                    field->getOffset(SLANG_PARAMETER_CATEGORY_VARYING_INPUT) + i;
+    
+                attribute.location = location;
+                if(attribute.semantic == AttrSemantic::Position)
+                {
+                    attribute.offset = 0;
+                }
+                else
+                {
+                    bufferOffset = Alignment::AlignUp(
+                        bufferOffset,
+                        attribute.format.GetAlignment(false));
+    
+                    attribute.offset = bufferOffset;
+                    bufferOffset += attribute.format.GetSize();
+                }
+    
+                targetLayout->vertexAttributes.push_back(attribute);
             }
-            else
-            {
-                bufferOffset = Alignment::AlignUp(bufferOffset, attribute.format.GetAlignment(false)); // Don't worry about alignment
-                attribute.offset = bufferOffset;
-                bufferOffset += attribute.format.GetSize();
-            }
-
-            vertLayout->vertexAttributes.push_back(attribute);
         }
     }
-    // Console::logf("{}", vertLayout->ToString());
 }
 
 

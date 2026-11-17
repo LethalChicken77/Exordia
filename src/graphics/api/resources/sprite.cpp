@@ -5,6 +5,21 @@
 namespace graphics
 {
 
+void Sprite::SetTexture(TextureData* textureData)
+{
+    TextureHandle handle = textureData->graphicsHandle;
+    if(!handle.IsValid())
+    {
+        Console::errorf("Attempt to set invalid texture handle on sprite {}", name, "Sprite");
+        return;
+    }
+    texture = handle;
+    Texture* textureP = graphicsData->textureRegistry.Get(texture);
+    textureSize = textureData->GetDimensions();
+    texturePPU = textureData->properties.pixelsPerUnit;
+    Validate();
+}
+
 void Sprite::SetPosition(int x, int y)
 {
     graphics::Texture* tex = graphicsData->textureRegistry.Get(texture);

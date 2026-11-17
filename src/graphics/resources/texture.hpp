@@ -21,6 +21,9 @@ public:
         imageInfo.sampler = sampler.Get();
         return imageInfo;
     }
+
+    const Image& GetImage() const { return image; }
+    const Sampler& GetSampler() const { return sampler; }
 private:
     internal::Device &device;
     Image image;

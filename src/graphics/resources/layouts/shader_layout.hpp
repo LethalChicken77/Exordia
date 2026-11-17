@@ -32,8 +32,7 @@ struct ShaderParameter
         bool isColor = false;
 
         // Default vals
-        int64_t defaultInt = 0;
-        float defaultFloat = 0;
+        bool hasDefaultValue = false;
         std::variant<
             bool,
             uint8_t,
@@ -268,7 +267,7 @@ public:
     { 
         for(const DescriptorSetInfo &info : descriptorSets)
         {
-            if(info.id == MATERIAL_DESCRIPTOR_SET)
+            if(info.id == (uint32_t)DescriptorBinding::Material)
             {
                 return &info;
             }

@@ -59,11 +59,13 @@ void Engine::init()
     ShaderAsset *goochShader = AssetManager::LoadAsset<ShaderAsset>("internal/shaders/goochShader.slang");
     ShaderAsset *pbrShader = AssetManager::LoadAsset<ShaderAsset>("internal/shaders/PBR.slang");
     ShaderAsset *skyboxShader = AssetManager::LoadAsset<ShaderAsset>("internal/shaders/skybox.slang");
+    ShaderAsset *spriteShaderA = AssetManager::LoadAsset<ShaderAsset>("internal/shaders/sprite.slang");
 
     basicShader->LoadData();
     goochShader->LoadData();
     pbrShader->LoadData();
     skyboxShader->LoadData();
+    spriteShaderA->LoadData();
 
     // Shader shader = Shader(testShader, testShader);
     // This is just to test memory pools, this will be replaced with a proper resource management system
@@ -73,6 +75,8 @@ void Engine::init()
     pbr = gameData->shaderPool.New(pbrShader, pbrShader);
     sbShader->properties.depthWrite = DepthWrite::Disabled;
     sbShader->Update();
+
+    spriteShader = gameData->shaderPool.New(spriteShaderA, spriteShaderA);
     // Shader* pbr = shaderPool.New(pbrShader, pbrShader);
 
 
@@ -87,33 +91,52 @@ void Engine::init()
     std::unique_ptr<TextureData> texm = TextureData::LoadFromFileEXR("./internal/textures/defaults/default_metal.exr");
     std::unique_ptr<TextureData> texs = TextureData::LoadFromFileEXR("./internal/textures/rocky_terrain_02/rocky_terrain_02_spec_4k.exr");
     std::unique_ptr<TextureData> texn = TextureData::LoadFromFileEXR("./internal/textures/rocky_terrain_02/rocky_terrain_02_nor_gl_4k.exr");
+    std::unique_ptr<TextureData> texSprite = TextureData::LoadFromFile("./assets/upgrades_inventory.png");
+    std::unique_ptr<TextureData> texSpriteTile = TextureData::LoadFromFile("./assets/environment_wall_stone_hot.png");
 
     TextureHandle thA{};
     TextureHandle thR{};
     TextureHandle thM{};
     TextureHandle thS{};
     TextureHandle thN{};
+    TextureHandle thSprite{};
 
     TextureData* texaP = gameData->textures.New(std::move(*texa));
     TextureData* texrP = gameData->textures.New(std::move(*texr));
     TextureData* texmP = gameData->textures.New(std::move(*texm));
     TextureData* texsP = gameData->textures.New(std::move(*texs));
     TextureData* texnP = gameData->textures.New(std::move(*texn));
+    TextureData* texSpriteP = gameData->textures.New(std::move(*texSprite));
+    TextureData* texSpriteTileP = gameData->textures.New(std::move(*texSpriteTile));
+    texSpriteP->properties.magFilter = graphics::TextureFilterMode::Nearest;
+    texSpriteP->properties.minFilter = graphics::TextureFilterMode::Nearest;
+    texSpriteP->properties.pixelsPerUnit = 16.f;
+    texSpriteTileP->properties.magFilter = graphics::TextureFilterMode::Nearest;
+    texSpriteTileP->properties.minFilter = graphics::TextureFilterMode::Nearest;
+    texSpriteTileP->properties.pixelsPerUnit = 16.f;
 
     if(texa != nullptr) thA = graphicsModule.RegisterTexture(*texaP);
     if(texr != nullptr) thR = graphicsModule.RegisterTexture(*texrP);
     if(texm != nullptr) thM = graphicsModule.RegisterTexture(*texmP);
     if(texs != nullptr) thS = graphicsModule.RegisterTexture(*texsP);
     if(texn != nullptr) thN = graphicsModule.RegisterTexture(*texnP);
+    if(texSpriteP != nullptr) thSprite = graphicsModule.RegisterTexture(*texSpriteP);
+    if(texSpriteTileP != nullptr) graphicsModule.RegisterTexture(*texSpriteTileP);
+    testSprite.SetTexture(texSpriteP);
+    testSprite.SetPosition({6, 96});
+    testSprite.SetSize({20,32});
+    testSprite.SetPivot({0.5f,0.5f});
+    testSprite.name = "upgrade_rupture_core";
 
     graphics::Material *yella = gameData->materials.New(shader, "Yeller");
     graphics::Material *blue = gameData->materials.New(shader, "Bloo");
     graphics::Material *pbrMat = gameData->materials.New(pbr, "Justin Pbr");
     graphics::Material *skyboxMat = gameData->materials.New(sbShader, "Skybox");
+    graphics::Material *spriteMat = gameData->materials.New(spriteShader, "Shprite");
     // skyboxMat->UpdateValues();
     int64_t testVal = 69;
     // mat.SetInt("test", testVal);
-    // yella->SetColor3("color", Color(1.f, 0.8f, 0.3f));
+    yella->SetColor3("color", Color(1.f, 0.8f, 0.3f));
     yella->SetFloat("roughness", 0.2f);
     yella->SetFloat("metallic", 0.0f);
 
@@ -141,6 +164,8 @@ void Engine::init()
     pbrMat->SetTexture("specularMap", thS);
     pbrMat->SetTexture("normalMap", thN);
 
+    spriteMat->SetTexture("mainTex", thSprite);
+
     gameData->skyboxMaterial = skyboxMat;
     // mat2.SetVector("color", glm::vec4(1));
     // mat2.SetFloat("normalMapStrength", 1.0f);
@@ -158,7 +183,7 @@ void Engine::init()
 
     CameraProperties camProps{};
     camProps.near = 0.01f;
-    camProps.far = INFINITY;
+    camProps.far = std::numeric_limits<float>::infinity();
     camera = Camera(camProps);
     // camera = Camera(
     //     {0.01f, 100.0f, 20.0f},
@@ -220,6 +245,7 @@ void Engine::update(double deltaTime)
         gShader->Compile();
         sbShader->Compile();
         pbr->Compile();
+        spriteShader->Compile();
     }
 
     if(core::Input::getKeyDown(GLFW_KEY_F10))
@@ -325,6 +351,14 @@ void Engine::run()
         {
             gameData->materials.Get(2)->DrawImGui();
         }
+        if(ImGui::CollapsingHeader(gameData->materials.Get(3)->name.c_str()))
+        {
+            gameData->materials.Get(3)->DrawImGui();
+        }
+        if(ImGui::CollapsingHeader(gameData->materials.Get(4)->name.c_str()))
+        {
+            gameData->materials.Get(4)->DrawImGui();
+        }
         // for(Material &mat : Shared::materials)
         // {
         //     mat.drawImGui();
@@ -355,13 +389,13 @@ void Engine::run()
         Transform skyboxTransform{};
         skyboxTransform.setPosition(cameraTransform.getPosition());
         graphicsModule.DrawMesh(gameData->skyboxMesh, *gameData->skyboxMaterial, skyboxTransform.getTransform(), -1); // Draw skybox
+        graphicsModule.DrawSprite(testSprite, *gameData->materials.Get(4), glm::identity<glm::mat4>(), -1);
         scene->drawScene();
         // Render here
         camera.setAspectRatio(graphicsModule.GetAspectRatio());
         camera.SetTransform(cameraTransform.getTransform());
         graphicsModule.SetCamera(camera);
         graphicsModule.DrawFrame();
-
 
         // std::cout << "Delta time: " << deltaTime << std::endl;
     }

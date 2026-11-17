@@ -173,6 +173,7 @@ private:
     vk::PipelineLayout m_pipelineLayout = nullptr;
     vk::Pipeline m_pipeline = nullptr;
     VertexLayout m_vertexLayout;
+    VertexLayout m_instanceLayout;
     DescriptorSetLayout m_materialSetLayout;
 
     PipelineConfigInfo m_configInfo;
@@ -181,8 +182,8 @@ private:
 
     void createPipelineLayout(const Shader &shader);
     vk::ShaderModuleCreateInfo createShaderModuleInfo(const std::vector<uint32_t> &spvCode);
-    std::vector<vk::VertexInputBindingDescription> createVertexBindings(const VertexLayout& layout);
-    std::vector<vk::VertexInputAttributeDescription> createVertexAttributes(const VertexLayout& layout);
+    std::vector<vk::VertexInputBindingDescription> createVertexBindings();
+    std::vector<vk::VertexInputAttributeDescription> createVertexAttributes();
     void createPipeline(const Shader &shader, vk::PipelineCache cache);
 
 };

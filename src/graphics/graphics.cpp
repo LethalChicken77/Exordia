@@ -123,6 +123,7 @@ namespace graphics
     {
         Console::log("Shutting down graphics module", "Graphics");
         drawQueue.clear();
+        spriteDrawQueue.clear();
         graphicsData.reset();
         graphicsData.release(); // Ensure it's not freed again on exit
     }
@@ -146,12 +147,70 @@ namespace graphics
 
     void Graphics::DrawMesh(const core::Mesh& meshData, const Material& material, const std::vector<glm::mat4>& modelMatrices, int instanceID)
     {
-        drawQueue.push_back(MeshDrawInfo(meshData->graphicsHandle, modelMatrices, material.graphicsHandle, instanceID));
+        if(!graphicsData->materialRegistry.IsValid(material.graphicsHandle))
+        {
+            Console::warn("Invalid material handle passed to Draw", "Graphics");
+            return; // TODO: Draw with debug material
+        }
+        else if(!graphicsData->meshRegistry.IsValid(meshData->graphicsHandle))
+        {
+            Console::warn("Invalid mesh handle passed to Draw", "Graphics");
+            return; // TODO: Draw with debug mesh
+        }
+        drawQueue.push_back(MeshDrawInfo(
+            meshData->graphicsHandle, 
+            modelMatrices, 
+            material.graphicsHandle, 
+            instanceID));
     }
 
     void Graphics::DrawMesh(const core::Mesh& meshData, const Material& material, const glm::mat4& modelMatrix, int instanceID)
     {
-        drawQueue.push_back(MeshDrawInfo(meshData->graphicsHandle, modelMatrix, material.graphicsHandle, instanceID));
+        if(!graphicsData->materialRegistry.IsValid(material.graphicsHandle))
+        {
+            Console::warn("Invalid material handle passed to Draw", "Graphics");
+            return; // TODO: Draw with debug material
+        }
+        else if(!graphicsData->meshRegistry.IsValid(meshData->graphicsHandle))
+        {
+            Console::warn("Invalid mesh handle passed to Draw", "Graphics");
+            return; // TODO: Draw with debug mesh
+        }
+        drawQueue.push_back(MeshDrawInfo(
+            meshData->graphicsHandle, 
+            modelMatrix, 
+            material.graphicsHandle, 
+            instanceID));
+    }
+
+    void Graphics::DrawSprite(const Sprite& sprite, const Material& material, const std::vector<glm::mat4>& modelMatrices, int instanceID)
+    {
+        if(!graphicsData->materialRegistry.IsValid(material.graphicsHandle))
+        {
+            Console::warn("Invalid material handle passed to DrawSprite", "Graphics");
+            return; // TODO: Draw with debug material
+        }
+        spriteDrawQueue.push_back(SpriteDrawInfo(
+            sprite,
+            modelMatrices,
+            material.graphicsHandle,
+            instanceID
+        ));
+    }
+
+    void Graphics::DrawSprite(const Sprite& sprite, const Material& material, const glm::mat4& modelMatrix, int instanceID)
+    {
+        if(!graphicsData->materialRegistry.IsValid(material.graphicsHandle))
+        {
+            Console::warn("Invalid material handle passed to DrawSprite", "Graphics");
+            return; // TODO: Draw with debug material
+        }
+        spriteDrawQueue.push_back(SpriteDrawInfo(
+            sprite,
+            modelMatrix,
+            material.graphicsHandle,
+            instanceID
+        ));
     }
 
     void Graphics::DrawFrame()
@@ -222,6 +281,33 @@ namespace graphics
                     mesh->Draw(renderContext.commandBuffer, drawInfo.transforms.size());
                 }
             }
+            for(SpriteDrawInfo &drawInfo : spriteDrawQueue)
+            {
+                GraphicsMaterial *mat = graphicsData->materialRegistry.Get(drawInfo.materialHandle);
+                // Console::debugf("{}", drawInfo.materialHandle.index);
+                if(mat == nullptr) continue;
+                GraphicsPipeline *currentPipeline = graphicsData->pipelineRegistry.Get(mat->base->shader->graphicsHandle);
+                if(currentPipeline == nullptr) continue;
+                currentPipeline->Bind(renderContext.commandBuffer);
+                localDescriptorSets = {mat->GetDescriptorSet()}; // This is terrible. TODO: literally anything else
+
+                DrawFunctions::bindCameraDescriptor(renderContext, graphicsData->cameraDescriptorSets[renderContext.frameIndex], currentPipeline);
+                DrawFunctions::bindGlobalDescriptor(renderContext, graphicsData->globalDescriptorSet, currentPipeline);
+
+                if(!mat->IsEmpty())
+                    renderContext.commandBuffer.bindDescriptorSets(
+                        vk::PipelineBindPoint::eGraphics,
+                        currentPipeline->GetPipelineLayout(),
+                        2,
+                        1,
+                        (vk::DescriptorSet*)localDescriptorSets.data(), 
+                        0,
+                        nullptr
+                    );
+
+                drawInfo.Bind(renderContext.commandBuffer);
+                drawInfo.Draw(renderContext.commandBuffer);
+            }
 
             renderer.EndRenderDynamic(
                 renderContext,
@@ -235,6 +321,7 @@ namespace graphics
         // sceneRenderQueue.clear();
         // outlineRenderQueue.clear();
         drawQueue.clear();
+        spriteDrawQueue.clear();
     }
 
     void Graphics::GraphicsInitImgui()

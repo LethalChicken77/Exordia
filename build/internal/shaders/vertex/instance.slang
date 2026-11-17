@@ -1,6 +1,7 @@
 import attributes;
+import vertex_attributes;
 
-public struct InstanceData
+[InstanceLayout] public struct InstanceData
 {
     public float4x4 Model : MODEL;
     // float4 Model0 : MODEL0;
