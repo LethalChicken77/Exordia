@@ -48,6 +48,7 @@ private:
     graphics::Shader* pbr;
     graphics::Shader* spriteShader;
     graphics::Sprite testSprite;
+    graphics::Sprite testSpriteStretch;
 
     Scene scene;
 

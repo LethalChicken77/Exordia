@@ -77,6 +77,9 @@ void Engine::init()
     sbShader->Update();
 
     spriteShader = gameData->shaderPool.New(spriteShaderA, spriteShaderA);
+    spriteShader->properties.depthTest = CompareOp::Always;
+    // spriteShader->properties.drawMode = DrawMode::Wireframe;
+    spriteShader->Update();
     // Shader* pbr = shaderPool.New(pbrShader, pbrShader);
 
 
@@ -100,6 +103,7 @@ void Engine::init()
     TextureHandle thS{};
     TextureHandle thN{};
     TextureHandle thSprite{};
+    TextureHandle thSpriteTile{};
 
     TextureData* texaP = gameData->textures.New(std::move(*texa));
     TextureData* texrP = gameData->textures.New(std::move(*texr));
@@ -121,18 +125,26 @@ void Engine::init()
     if(texs != nullptr) thS = graphicsModule.RegisterTexture(*texsP);
     if(texn != nullptr) thN = graphicsModule.RegisterTexture(*texnP);
     if(texSpriteP != nullptr) thSprite = graphicsModule.RegisterTexture(*texSpriteP);
-    if(texSpriteTileP != nullptr) graphicsModule.RegisterTexture(*texSpriteTileP);
+    if(texSpriteTileP != nullptr) thSpriteTile = graphicsModule.RegisterTexture(*texSpriteTileP);
     testSprite.SetTexture(texSpriteP);
     testSprite.SetPosition({6, 96});
     testSprite.SetSize({20,32});
-    testSprite.SetPivot({0.5f,0.5f});
     testSprite.name = "upgrade_rupture_core";
+    testSpriteStretch.SetTexture(texSpriteTileP);
+    testSpriteStretch.SetPosition({0,0});
+    testSpriteStretch.SetSize(texSpriteTileP->GetDimensions());
+    testSpriteStretch.SetLeft(8);
+    testSpriteStretch.SetRight(8);
+    testSpriteStretch.SetTop(8);
+    testSpriteStretch.SetBottom(8);
+    testSpriteStretch.name = "environment_wall_stone";
 
     graphics::Material *yella = gameData->materials.New(shader, "Yeller");
     graphics::Material *blue = gameData->materials.New(shader, "Bloo");
     graphics::Material *pbrMat = gameData->materials.New(pbr, "Justin Pbr");
     graphics::Material *skyboxMat = gameData->materials.New(sbShader, "Skybox");
     graphics::Material *spriteMat = gameData->materials.New(spriteShader, "Shprite");
+    graphics::Material *spriteMatStretch = gameData->materials.New(spriteShader, "Shprite Stretch");
     // skyboxMat->UpdateValues();
     int64_t testVal = 69;
     // mat.SetInt("test", testVal);
@@ -165,6 +177,7 @@ void Engine::init()
     pbrMat->SetTexture("normalMap", thN);
 
     spriteMat->SetTexture("mainTex", thSprite);
+    spriteMatStretch->SetTexture("mainTex", thSpriteTile);
 
     gameData->skyboxMaterial = skyboxMat;
     // mat2.SetVector("color", glm::vec4(1));
@@ -181,16 +194,27 @@ void Engine::init()
     Input::initializeKeys();
 
 
+    // CameraProperties camProps{};
+    // camProps.near = 0.01f;
+    // camProps.far = std::numeric_limits<float>::infinity();
+    // camera = Camera(camProps);
+    // cameraTransform.setPosition(glm::vec3(0.0f, 2.0f, 5.0f));
+    // cameraTransform.setRotation(glm::vec3(glm::radians(20.0f), glm::radians(-180.0f), 0.0f));
+
     CameraProperties camProps{};
-    camProps.near = 0.01f;
-    camProps.far = std::numeric_limits<float>::infinity();
+    camProps.orthographic = true;
+    camProps.near = 0.0001f;
+    camProps.far = 100.f;
+    camProps.vFov = 18.f;
+    camProps.reversedDepth = false;
     camera = Camera(camProps);
+    cameraTransform.setPosition(glm::vec3(0.0f, 0.0f, -10.0f));
+    cameraTransform.setRotation(glm::vec3(0.0f, 0.0f, 0.0f));
+
     // camera = Camera(
     //     {0.01f, 100.0f, 20.0f},
     //     true
     // );
-    cameraTransform.setPosition(glm::vec3(0.0f, 2.0f, 5.0f));
-    cameraTransform.setRotation(glm::vec3(glm::radians(20.0f), glm::radians(-180.0f), 0.0f));
 
     scene = Scene("Test");
     scene->loadScene();
@@ -389,6 +413,7 @@ void Engine::run()
         Transform skyboxTransform{};
         skyboxTransform.setPosition(cameraTransform.getPosition());
         graphicsModule.DrawMesh(gameData->skyboxMesh, *gameData->skyboxMaterial, skyboxTransform.getTransform(), -1); // Draw skybox
+        graphicsModule.DrawSprite(testSpriteStretch, *gameData->materials.Get(5), glm::identity<glm::mat4>(), -1);
         graphicsModule.DrawSprite(testSprite, *gameData->materials.Get(4), glm::identity<glm::mat4>(), -1);
         scene->drawScene();
         // Render here

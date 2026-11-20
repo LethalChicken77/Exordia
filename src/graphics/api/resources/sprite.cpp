@@ -78,4 +78,31 @@ void Sprite::Validate()
     
 }
 
+uint32_t Sprite::Get9SliceQuadCount() const
+{
+    int horizontal = 1 + (left > 0) + (right > 0);
+    int vertical = 1 + (top > 0) + (bottom > 0);
+
+    return horizontal * vertical;
+}
+
+uint32_t Sprite::GetTiledQuadCount(glm::vec2 _size) const
+{
+    float leftSize = left / texturePPU;
+    float rightSize = right / texturePPU;
+    float topSize = top / texturePPU;
+    float bottomSize = bottom / texturePPU;
+
+    float centerWidth = (size.x - left - right) / texturePPU;
+    float centerHeight = (size.y - top - bottom) / texturePPU;
+
+    int horizontal = std::max(1, (int)std::ceil((_size.x - leftSize - rightSize) / centerWidth));
+    int vertical = std::max(1, (int)std::ceil((_size.y - topSize - bottomSize) / centerHeight));
+
+    horizontal += (left > 0) + (right > 0);
+    vertical += (top > 0) + (bottom > 0);
+
+    return horizontal * vertical;
+}
+
 } // namespace graphics

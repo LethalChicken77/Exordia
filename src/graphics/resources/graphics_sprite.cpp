@@ -41,7 +41,14 @@ void SpriteDrawInfo::Bind(vk::CommandBuffer commandBuffer)
 void SpriteDrawInfo::Draw(vk::CommandBuffer commandBuffer) const
 {
     // TODO: Compute vertex count from sprite info and 
-    commandBuffer.draw(6, transforms.size(), 0, 0);
+    glm::vec2 size = {29.0f, 29.0f};
+    float left =   (float)sprite.GetLeft()   / (float)sprite.GetTextureSize().x;
+    float right =  (float)sprite.GetRight()  / (float)sprite.GetTextureSize().x;
+    float top =    (float)sprite.GetTop()    / (float)sprite.GetTextureSize().y;
+    float bottom = (float)sprite.GetBottom() / (float)sprite.GetTextureSize().y;
+    if(left + right + top + bottom < 0.0000001f)
+        size = (glm::vec2)sprite.GetSize() / sprite.GetTexturePPU();
+    commandBuffer.draw(sprite.GetTiledQuadCount(size) * 6, transforms.size(), 0, 0);
 }
 
 
@@ -58,7 +65,13 @@ std::unique_ptr<Buffer> SpriteDrawInfo::createInstanceBuffer(internal::Device& d
     glm::vec2 uvMin = (glm::vec2)sprite.GetPos() / (glm::vec2)sprite.GetTextureSize();
     glm::vec2 uvMax = (glm::vec2)(sprite.GetPos() + sprite.GetSize()) / (glm::vec2)sprite.GetTextureSize();
     glm::vec2 textureSize = (glm::vec2)sprite.GetTextureSize();
-    glm::vec2 size = (glm::vec2)sprite.GetSize() / sprite.GetTexturePPU();
+    glm::vec2 size = {29.0f, 29.0f};
+    float left =   (float)sprite.GetLeft()   / (float)sprite.GetTextureSize().x;
+    float right =  (float)sprite.GetRight()  / (float)sprite.GetTextureSize().x;
+    float top =    (float)sprite.GetTop()    / (float)sprite.GetTextureSize().y;
+    float bottom = (float)sprite.GetBottom() / (float)sprite.GetTextureSize().y;
+    if(left + right + top + bottom < 0.0000001f)
+        size = (glm::vec2)sprite.GetSize() / sprite.GetTexturePPU();
     for(int i = 0; i < instanceData.size(); i++)
     {
         SpriteInstanceInfo& instance = instanceData[i];
@@ -67,7 +80,10 @@ std::unique_ptr<Buffer> SpriteDrawInfo::createInstanceBuffer(internal::Device& d
         instance.Pivot = sprite.GetPivot();
         instance.UVMin = uvMin;
         instance.UVMax = uvMax;
-
+        instance.Border = {left, right, top, bottom};
+        instance.TextureSize = (glm::vec2)sprite.GetTextureSize();
+        instance.PixelsPerUnit = sprite.GetTexturePPU();
+        instance.Tiled = 1;
     }
 
     Buffer stagingBuffer = Buffer::CreateStagingBuffer(

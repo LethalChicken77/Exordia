@@ -43,20 +43,21 @@ public:
     void SetTop(int t);
     void SetBottom(int b);
 
-    [[nodiscard]] TextureHandle GetTexture() const { return texture; };
-    [[nodiscard]] glm::ivec2 GetTextureSize() const { return textureSize; };
-    [[nodiscard]] float GetTexturePPU() const { return texturePPU; };
+    [[nodiscard]] inline TextureHandle GetTexture() const { return texture; };
+    [[nodiscard]] inline glm::ivec2 GetTextureSize() const { return textureSize; };
+    [[nodiscard]] inline float GetTexturePPU() const { return texturePPU; };
 
-    [[nodiscard]] glm::ivec2 GetPos() const { return pos; }
-    [[nodiscard]] glm::ivec2 GetSize() const { return size; }
-    [[nodiscard]] glm::vec2 GetPivot() const { return pivot; }
+    [[nodiscard]] inline glm::ivec2 GetPos() const { return pos; }
+    [[nodiscard]] inline glm::ivec2 GetSize() const { return size; }
+    [[nodiscard]] inline glm::vec2 GetPivot() const { return pivot; }
     
-    [[nodiscard]] int GetLeft() const { return left; }
-    [[nodiscard]] int GetRight() const { return right; }
-    [[nodiscard]] int GetTop() const { return top; }
-    [[nodiscard]] int GetBottom() const { return bottom; }
+    [[nodiscard]] inline int GetLeft() const { return left; }
+    [[nodiscard]] inline int GetRight() const { return right; }
+    [[nodiscard]] inline int GetTop() const { return top; }
+    [[nodiscard]] inline int GetBottom() const { return bottom; }
     
-
+    [[nodiscard]] uint32_t Get9SliceQuadCount() const;
+    [[nodiscard]] uint32_t GetTiledQuadCount(glm::vec2 size) const;
 private:
     TextureHandle texture;
     glm::ivec2 textureSize{};
@@ -70,7 +71,7 @@ private:
     int top = 0;
     int bottom = 0;
 
-    glm::vec2 pivot = {0,0};
+    glm::vec2 pivot = {0.5f,0.5f};
 };
 
 } // namespace graphics

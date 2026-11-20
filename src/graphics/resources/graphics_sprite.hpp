@@ -25,10 +25,9 @@ namespace graphics
         glm::vec2 Pivot = {0.f, 0.f};
         glm::vec2 UVMin = {0.f, 0.f};
         glm::vec2 UVMax = {1.f, 1.f};
-        float Left = 0.f;
-        float Right = 0.f;
-        float Top = 0.f;
-        float Bottom = 0.f;
+        glm::vec4 Border{};
+        glm::vec2 TextureSize;
+        float PixelsPerUnit;
         int TextureIndex = 0; // TODO: Implement with bindless textures
         uint32_t Tiled;
     };

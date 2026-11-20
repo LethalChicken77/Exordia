@@ -19,10 +19,9 @@ public static const float2 quadPositions[6] =
     public float2 Pivot;
     public float2 UVMin;
     public float2 UVMax;
-    public float Left;
-    public float Right;
-    public float Top;
-    public float Bottom;
+    public float4 Border;
+    public float2 TextureSize;
+    public float PixelsPerUnit;
     public int TextureIndex; // TODO: Implement with bindless textures
     public uint Tiled;
     
