@@ -413,7 +413,7 @@ void Engine::run()
         Transform skyboxTransform{};
         skyboxTransform.setPosition(cameraTransform.getPosition());
         graphicsModule.DrawMesh(gameData->skyboxMesh, *gameData->skyboxMaterial, skyboxTransform.getTransform(), -1); // Draw skybox
-        graphicsModule.DrawSprite(testSpriteStretch, *gameData->materials.Get(5), glm::identity<glm::mat4>(), -1);
+        graphicsModule.DrawSprite({testSpriteStretch, {29,29}, SpriteDrawMode::Tile}, *gameData->materials.Get(5), glm::identity<glm::mat4>(), -1);
         graphicsModule.DrawSprite(testSprite, *gameData->materials.Get(4), glm::identity<glm::mat4>(), -1);
         scene->drawScene();
         // Render here

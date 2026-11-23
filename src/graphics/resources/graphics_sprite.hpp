@@ -31,12 +31,18 @@ namespace graphics
         int TextureIndex = 0; // TODO: Implement with bindless textures
         uint32_t Tiled;
     };
-    struct SpriteDrawInfo
+    struct SpriteDrawCall
     {
-        SpriteDrawInfo(const Sprite& sprite, const glm::mat4& _transform, MaterialHandle materialHandle = {}, id_t objID = -1);
-        SpriteDrawInfo(const Sprite& sprite, const std::span<const glm::mat4> _transform, MaterialHandle materialHandle = {}, id_t objID = -1);
+        SpriteDrawCall(const Sprite& sprite, const glm::mat4& _transform, MaterialHandle materialHandle = {}, id_t objID = -1);
+        SpriteDrawCall(const Sprite& sprite, const std::span<const glm::mat4> _transform, MaterialHandle materialHandle = {}, id_t objID = -1);
 
-        Sprite sprite;
+        SpriteDrawCall(const Sprite& sprite, glm::vec2 size, const glm::mat4& _transform, MaterialHandle materialHandle = {}, id_t objID = -1);
+        SpriteDrawCall(const Sprite& sprite, glm::vec2 size, const std::span<const glm::mat4> _transform, MaterialHandle materialHandle = {}, id_t objID = -1);
+
+        SpriteDrawCall(const SpriteDrawInfo& drawInfo, const glm::mat4& _transform, MaterialHandle materialHandle = {}, id_t objID = -1);
+        SpriteDrawCall(const SpriteDrawInfo& drawInfo, const std::span<const glm::mat4> _transform, MaterialHandle materialHandle = {}, id_t objID = -1);
+
+        SpriteDrawInfo drawInfo;
         uint32_t objectID;
         MaterialHandle materialHandle;
         std::vector<glm::mat4> transforms{};
@@ -45,7 +51,7 @@ namespace graphics
         void Bind(vk::CommandBuffer commandBuffer);
         void Draw(vk::CommandBuffer commandBuffer) const;
     private:
-        std::unique_ptr<Buffer> createInstanceBuffer(internal::Device &device, const Sprite& sprite);
+        void createInstanceBuffer(internal::Device &device);
         // void UpdateInstanceBuffer(const std::vector<glm::mat4> &transforms);
     };
 }

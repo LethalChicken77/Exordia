@@ -105,4 +105,9 @@ uint32_t Sprite::GetTiledQuadCount(glm::vec2 _size) const
     return horizontal * vertical;
 }
 
+glm::vec2 Sprite::GetSimpleSize() const
+{
+    return (glm::vec2)size / texturePPU;
+}
+
 } // namespace graphics

@@ -55,9 +55,23 @@ public:
     [[nodiscard]] inline int GetRight() const { return right; }
     [[nodiscard]] inline int GetTop() const { return top; }
     [[nodiscard]] inline int GetBottom() const { return bottom; }
+
+    [[nodiscard]] inline float GetUVLeft() const { return left / (float)textureSize.x; }
+    [[nodiscard]] inline float GetUVRight() const { return right / (float)textureSize.x; }
+    [[nodiscard]] inline float GetUVTop() const { return top / (float)textureSize.y; }
+    [[nodiscard]] inline float GetUVBottom() const { return bottom / (float)textureSize.y; }
+    [[nodiscard]] inline glm::vec4 GetUVBorder() const { return {GetUVLeft(), GetUVRight(), GetUVTop(), GetUVBottom()}; }
     
+    [[nodiscard]] inline glm::vec2 GetUVMin() const { return (glm::vec2)pos / (glm::vec2)textureSize; }
+    [[nodiscard]] inline glm::vec2 GetUVMax() const { return (glm::vec2)(pos + size) / (glm::vec2)textureSize; }
+    
+    /// @brief Get the number of quads needed to render the sprite as a 9-slice. 
     [[nodiscard]] uint32_t Get9SliceQuadCount() const;
+    /// @brief Get the number of quads needed to render the sprite as a tiled 9-slice. 
     [[nodiscard]] uint32_t GetTiledQuadCount(glm::vec2 size) const;
+
+    /// @brief Get size of the sprite based on texture PPU and rect
+    [[nodiscard]] glm::vec2 GetSimpleSize() const;
 private:
     TextureHandle texture;
     glm::ivec2 textureSize{};
@@ -72,6 +86,19 @@ private:
     int bottom = 0;
 
     glm::vec2 pivot = {0.5f,0.5f};
+};
+
+enum class SpriteDrawMode
+{
+    Stretch,
+    Tile
+};
+
+struct SpriteDrawInfo
+{
+    Sprite sprite{};
+    glm::vec2 size{};
+    SpriteDrawMode drawMode{};
 };
 
 } // namespace graphics

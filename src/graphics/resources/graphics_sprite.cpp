@@ -22,13 +22,26 @@ namespace graphics
 // }
 
 
-SpriteDrawInfo::SpriteDrawInfo(const Sprite& _sprite, const glm::mat4& _transform, MaterialHandle _materialHandle, id_t objID)
-    : sprite(_sprite), objectID(objID), transforms{_transform}, materialHandle{_materialHandle}, instanceBuffer{createInstanceBuffer(graphicsData->GetBackend().GetDevice(), _sprite)} {}
-SpriteDrawInfo::SpriteDrawInfo(const Sprite& _sprite, const std::span<const glm::mat4> _transform, MaterialHandle _materialHandle, id_t objID)
-    : sprite(_sprite), objectID(objID), transforms{_transform.begin(), _transform.end()}, materialHandle{_materialHandle}, instanceBuffer{createInstanceBuffer(graphicsData->GetBackend().GetDevice(), _sprite)} {}
+SpriteDrawCall::SpriteDrawCall(const Sprite& sprite, const glm::mat4& transform, MaterialHandle _materialHandle, id_t objID)
+    : SpriteDrawCall(sprite, sprite.GetSimpleSize(), {&transform, 1}, _materialHandle, objID) {}
+SpriteDrawCall::SpriteDrawCall(const Sprite& sprite, const std::span<const glm::mat4> _transforms, MaterialHandle _materialHandle, id_t objID)
+    : SpriteDrawCall(sprite, sprite.GetSimpleSize(), _transforms, _materialHandle, objID) {}
+
+SpriteDrawCall::SpriteDrawCall(const Sprite& sprite, glm::vec2 size, const glm::mat4& transform, MaterialHandle _materialHandle, id_t objID)
+    : SpriteDrawCall(sprite, size, {&transform, 1}, _materialHandle, objID) {}
+SpriteDrawCall::SpriteDrawCall(const Sprite& sprite, glm::vec2 size, const std::span<const glm::mat4> _transforms, MaterialHandle _materialHandle, id_t objID)
+    : SpriteDrawCall(SpriteDrawInfo{sprite, size, SpriteDrawMode::Stretch}, _transforms, _materialHandle, objID) {}
+
+SpriteDrawCall::SpriteDrawCall(const SpriteDrawInfo& _drawInfo, const glm::mat4& transform, MaterialHandle _materialHandle, id_t objID)
+    : SpriteDrawCall(_drawInfo, {&transform, 1}, _materialHandle, objID) {}
+SpriteDrawCall::SpriteDrawCall(const SpriteDrawInfo& _drawInfo, const std::span<const glm::mat4> _transform, MaterialHandle _materialHandle, id_t objID)
+    : drawInfo(_drawInfo), objectID(objID), transforms{_transform.begin(), _transform.end()}, materialHandle{_materialHandle}
+{
+    createInstanceBuffer(graphicsData->GetBackend().GetDevice()); // TODO: Lazy creation of instance buffer to better support batching
+}
 
 
-void SpriteDrawInfo::Bind(vk::CommandBuffer commandBuffer)
+void SpriteDrawCall::Bind(vk::CommandBuffer commandBuffer)
 {
     vk::Buffer buffers[] = {instanceBuffer->GetBuffer()};
     vk::DeviceSize offsets[] = {0};
@@ -38,52 +51,45 @@ void SpriteDrawInfo::Bind(vk::CommandBuffer commandBuffer)
     commandBuffer.setPrimitiveRestartEnable(false);
 }
 
-void SpriteDrawInfo::Draw(vk::CommandBuffer commandBuffer) const
+void SpriteDrawCall::Draw(vk::CommandBuffer commandBuffer) const
 {
-    // TODO: Compute vertex count from sprite info and 
-    glm::vec2 size = {29.0f, 29.0f};
-    float left =   (float)sprite.GetLeft()   / (float)sprite.GetTextureSize().x;
-    float right =  (float)sprite.GetRight()  / (float)sprite.GetTextureSize().x;
-    float top =    (float)sprite.GetTop()    / (float)sprite.GetTextureSize().y;
-    float bottom = (float)sprite.GetBottom() / (float)sprite.GetTextureSize().y;
-    if(left + right + top + bottom < 0.0000001f)
-        size = (glm::vec2)sprite.GetSize() / sprite.GetTexturePPU();
-    commandBuffer.draw(sprite.GetTiledQuadCount(size) * 6, transforms.size(), 0, 0);
+    int quadCount = drawInfo.drawMode == SpriteDrawMode::Stretch ? drawInfo.sprite.Get9SliceQuadCount() : drawInfo.sprite.GetTiledQuadCount(drawInfo.size);
+    commandBuffer.draw(quadCount * 6, transforms.size(), 0, 0);
 }
 
 
-std::unique_ptr<Buffer> SpriteDrawInfo::createInstanceBuffer(internal::Device& device, const Sprite& sprite)
+void SpriteDrawCall::createInstanceBuffer(internal::Device& device)
 {
     uint32_t instanceCount = transforms.size();
     uint32_t instanceSize = sizeof(SpriteInstanceInfo);
     VkDeviceSize bufferSize = instanceSize * instanceCount;
 
     std::vector<SpriteInstanceInfo> instanceData{};
+    const Sprite& sprite = drawInfo.sprite;
     instanceData.resize(transforms.size());
     // Console::debugf("Sprite Pos: {}", sprite.GetPos());
     // Console::debugf("Sprite Size: {}", sprite.GetSize());
-    glm::vec2 uvMin = (glm::vec2)sprite.GetPos() / (glm::vec2)sprite.GetTextureSize();
-    glm::vec2 uvMax = (glm::vec2)(sprite.GetPos() + sprite.GetSize()) / (glm::vec2)sprite.GetTextureSize();
+    glm::vec2 uvMin = sprite.GetUVMin();
+    glm::vec2 uvMax = sprite.GetUVMax();
     glm::vec2 textureSize = (glm::vec2)sprite.GetTextureSize();
-    glm::vec2 size = {29.0f, 29.0f};
-    float left =   (float)sprite.GetLeft()   / (float)sprite.GetTextureSize().x;
-    float right =  (float)sprite.GetRight()  / (float)sprite.GetTextureSize().x;
-    float top =    (float)sprite.GetTop()    / (float)sprite.GetTextureSize().y;
-    float bottom = (float)sprite.GetBottom() / (float)sprite.GetTextureSize().y;
-    if(left + right + top + bottom < 0.0000001f)
-        size = (glm::vec2)sprite.GetSize() / sprite.GetTexturePPU();
+    glm::vec4 border{
+        sprite.GetUVLeft(),
+        sprite.GetUVRight(),
+        sprite.GetUVTop(),
+        sprite.GetUVBottom()
+    };
     for(int i = 0; i < instanceData.size(); i++)
     {
         SpriteInstanceInfo& instance = instanceData[i];
         instance.Model = transforms[i];
-        instance.Size = size;
+        instance.Size = drawInfo.size;
         instance.Pivot = sprite.GetPivot();
         instance.UVMin = uvMin;
         instance.UVMax = uvMax;
-        instance.Border = {left, right, top, bottom};
+        instance.Border = border;
         instance.TextureSize = (glm::vec2)sprite.GetTextureSize();
         instance.PixelsPerUnit = sprite.GetTexturePPU();
-        instance.Tiled = 1;
+        instance.Tiled = drawInfo.drawMode == SpriteDrawMode::Tile;
     }
 
     Buffer stagingBuffer = Buffer::CreateStagingBuffer(
@@ -95,7 +101,7 @@ std::unique_ptr<Buffer> SpriteDrawInfo::createInstanceBuffer(internal::Device& d
     stagingBuffer.Map();
     stagingBuffer.WriteData((void *)instanceData.data(), bufferSize);
 
-    std::unique_ptr<Buffer> instanceBuffer = std::make_unique<Buffer>(
+    instanceBuffer = std::make_unique<Buffer>(
         device,
         instanceSize,
         instanceCount,
@@ -104,6 +110,5 @@ std::unique_ptr<Buffer> SpriteDrawInfo::createInstanceBuffer(internal::Device& d
     );
 
     instanceBuffer->CopyFromBuffer(stagingBuffer, bufferSize);
-    return std::move(instanceBuffer);
 }
 } // namespace graphics

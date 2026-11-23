@@ -183,31 +183,41 @@ namespace graphics
             instanceID));
     }
 
-    void Graphics::DrawSprite(const Sprite& sprite, const Material& material, const std::vector<glm::mat4>& modelMatrices, int instanceID)
-    {
-        if(!graphicsData->materialRegistry.IsValid(material.graphicsHandle))
-        {
-            Console::warn("Invalid material handle passed to DrawSprite", "Graphics");
-            return; // TODO: Draw with debug material
-        }
-        spriteDrawQueue.push_back(SpriteDrawInfo(
-            sprite,
-            modelMatrices,
-            material.graphicsHandle,
-            instanceID
-        ));
-    }
-
     void Graphics::DrawSprite(const Sprite& sprite, const Material& material, const glm::mat4& modelMatrix, int instanceID)
     {
+        DrawSprite({sprite, sprite.GetSimpleSize(), SpriteDrawMode::Stretch}, material, {&modelMatrix, 1}, instanceID);
+    }
+
+    void Graphics::DrawSprite(const Sprite& sprite, const Material& material, const std::span<const glm::mat4> modelMatrices, int instanceID)
+    {
+        DrawSprite({sprite, sprite.GetSimpleSize(), SpriteDrawMode::Stretch}, material, modelMatrices, instanceID);
+    }
+
+    void Graphics::DrawSprite(const Sprite& sprite, glm::vec2 size, const Material& material, const glm::mat4& modelMatrix, int instanceID)
+    {
+        DrawSprite({sprite, size, SpriteDrawMode::Stretch}, material, {&modelMatrix, 1}, instanceID);
+    }
+
+    void Graphics::DrawSprite(const Sprite& sprite, glm::vec2 size, const Material& material, const std::span<const glm::mat4> modelMatrices, int instanceID)
+    {
+        DrawSprite({sprite, size, SpriteDrawMode::Stretch}, material, modelMatrices, instanceID);
+    }
+
+    void Graphics::DrawSprite(const SpriteDrawInfo& drawInfo, const Material& material, const glm::mat4& modelMatrix, int instanceID)
+    {
+        DrawSprite(drawInfo, material, {&modelMatrix, 1}, instanceID);
+    }
+
+    void Graphics::DrawSprite(const SpriteDrawInfo& drawInfo, const Material& material, const std::span<const glm::mat4> modelMatrices, int instanceID)
+    {
         if(!graphicsData->materialRegistry.IsValid(material.graphicsHandle))
         {
             Console::warn("Invalid material handle passed to DrawSprite", "Graphics");
             return; // TODO: Draw with debug material
         }
-        spriteDrawQueue.push_back(SpriteDrawInfo(
-            sprite,
-            modelMatrix,
+        spriteDrawQueue.push_back(SpriteDrawCall(
+            drawInfo,
+            modelMatrices,
             material.graphicsHandle,
             instanceID
         ));
@@ -281,7 +291,7 @@ namespace graphics
                     mesh->Draw(renderContext.commandBuffer, drawInfo.transforms.size());
                 }
             }
-            for(SpriteDrawInfo &drawInfo : spriteDrawQueue)
+            for(SpriteDrawCall &drawInfo : spriteDrawQueue)
             {
                 GraphicsMaterial *mat = graphicsData->materialRegistry.Get(drawInfo.materialHandle);
                 // Console::debugf("{}", drawInfo.materialHandle.index);
@@ -350,7 +360,7 @@ namespace graphics
 
         // Modify colors
 
-        ImGui_ImplGlfw_InitForVulkan(GetGLFWWindow(), true);
+        ImGui_ImplGlfw_InitForVulkan(GetGLFWWindow(), false); // TODO: Switch to true if needed. Switched to false to fix crash on close.
 
         internal::Device &device = GetDevice();
         const Swapchain &swapchain = graphicsData->renderer->GetSwapchain();
