@@ -3,59 +3,44 @@
 #include <string>
 #include <fstream>
 #include <iostream>
+#include <type_traits>
 #include <vector>
 #include <filesystem>
 
 using namespace std;
 namespace fs = std::filesystem;
 
-std::string FileUtil::ReadFileToString(const std::filesystem::path &path)
+template<FileBufferConcept T>
+T FileUtil::ReadFile(const std::filesystem::path &path)
 {
     std::ifstream file(path, std::ios::ate | std::ios::binary);
     if (!file.is_open())
     {
         Console::error("File not found: " + path.string(), "File Util");
-        return "";
-    }
-
-    size_t fileSize = static_cast<size_t>(file.tellg());
-
-    std::string content(fileSize, '\0'); // Create a string of the appropriate size
-    
-    file.seekg(0, std::ios::beg);  // Move back to the beginning of the file
-    file.read(&content[0], fileSize);   // Read the file content into the string
-
-    if (!file)
-    {
-        Console::error("Could not read file: " + path.string(), "File Util");
-        return "";
-    }
-
-    return content;
-}
-
-std::vector<char> FileUtil::ReadFileToCharVector(const std::filesystem::path &path)
-{
-    std::ifstream file(path, std::ios::ate | std::ios::binary);
-    if (!file.is_open())
-    {
-        Console::error("File not found: " + path.string(), "File Util");
-        return std::vector<char>();
+        return T{};
     }
 
     
     size_t fileSize = static_cast<size_t>(file.tellg());
 
-    std::vector<char> content(fileSize); // Create a string of the appropriate size
+    T content = [fileSize]
+    {
+        if constexpr(std::same_as<T, std::string>)
+            return T(fileSize + 1, '\0');
+        else
+            return T(fileSize + 1);
+    }();
     
     file.seekg(0, std::ios::beg);  // Move back to the beginning of the file
-    file.read(&content[0], fileSize);   // Read the file content into the string
+    file.read(reinterpret_cast<char*>(&content[0]), fileSize);   // Read the file content into the string
 
     if (!file)
     {
         Console::error("Could not read file: " + path.string(), "File Util");
-        return std::vector<char>();
+        return T{};
     }
+
+    content[fileSize] = {}; // Null termination so string pointers can be passed to C functions.
 
     return content;
 }
@@ -180,3 +165,8 @@ bool FileUtil::Move(const std::filesystem::path &oldPath, const std::filesystem:
     }
     return true;    
 }
+
+template string FileUtil::ReadFile<string>(const std::filesystem::path &path);
+template std::vector<char> FileUtil::ReadFile<std::vector<char>>(const std::filesystem::path &path);
+template std::vector<uint8_t> FileUtil::ReadFile<std::vector<uint8_t>>(const std::filesystem::path &path);
+template std::vector<std::byte> FileUtil::ReadFile<std::vector<std::byte>>(const std::filesystem::path &path);

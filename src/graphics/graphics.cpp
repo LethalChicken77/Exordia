@@ -1,7 +1,7 @@
 #include "utils/debug.hpp"
 #include "graphics.hpp"
 #include "graphics_data.hpp"
-#include "utils/console.hpp"
+#include "console.hpp"
 #include "resources/buffer.hpp"
 #include "resources/image.hpp"
 #include "rendering/swap_chain.hpp"
@@ -343,7 +343,7 @@ namespace graphics
         (void)imguiIO;
         // imguiIO.ConfigFlags |= ImGuiConfigFlags_DockingEnable;
         // imguiIO.ConfigFlags |= ImGuiConfigFlags_ViewportsEnable;
-        // imguiIO.ConfigFlags |= ImGuiConfigFlags_IsSRGB;
+        imguiIO.ConfigFlags |= ImGuiConfigFlags_IsSRGB;
         // Set style (optional)
         // ImGui::StyleColorsDark();
         ImGuiStyle& style = ImGui::GetStyle();
@@ -360,7 +360,7 @@ namespace graphics
 
         // Modify colors
 
-        ImGui_ImplGlfw_InitForVulkan(GetGLFWWindow(), false); // TODO: Switch to true if needed. Switched to false to fix crash on close.
+        ImGui_ImplGlfw_InitForVulkan(GetGLFWWindow(), true);
 
         internal::Device &device = GetDevice();
         const Swapchain &swapchain = graphicsData->renderer->GetSwapchain();

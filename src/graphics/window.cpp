@@ -2,7 +2,7 @@
 #include "window.hpp"
 #include "graphics/graphics_data.hpp"
 #include "utils/debug.hpp"
-#include "utils/console.hpp"
+#include "console.hpp"
 #include <stdexcept>
 
 #ifdef _WIN32

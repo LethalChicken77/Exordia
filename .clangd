@@ -1,0 +1,9 @@
+CompileFlags:
+    Add: [-std=c++23]
+    # CompilationDatabase: build
+---
+If:
+  PathMatch: .*\.rc
+
+CompileFlags:
+  Remove: [--target=*, -D*, -I*]

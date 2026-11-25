@@ -1,6 +1,6 @@
 #include "frame_orchestrator.hpp"
 #include "graphics/graphics_data.hpp"
-#include "utils/console.hpp"
+#include "console.hpp"
 #include "utils/debug.hpp"
 #include "graphics/resources/image.hpp"
 

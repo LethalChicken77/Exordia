@@ -70,7 +70,7 @@ float angleBetween(glm::vec3 v1, glm::vec3 v2)
 
 Mesh::Mesh(std::vector<Vertex> &vertices, const std::string& objectName)
 {
-    meshData = Ref<MeshData>(MeshData());
+    meshData = std::make_shared<MeshData>();
     meshData->name = objectName;
     meshData->SetMesh(vertices, std::vector<uint32_t>{});
     // graphicsModule.setGraphicsMesh(*this);
@@ -78,7 +78,7 @@ Mesh::Mesh(std::vector<Vertex> &vertices, const std::string& objectName)
 
 Mesh::Mesh(std::vector<Vertex> &vertices, std::vector<uint32_t> &indices, const std::string& objectName)
 {
-    meshData = Ref<MeshData>(MeshData());
+    meshData = std::make_shared<MeshData>();
     meshData->name = objectName;
     meshData->SetMesh(vertices, indices);
     // graphicsModule.setGraphicsMesh(*this);
@@ -86,7 +86,7 @@ Mesh::Mesh(std::vector<Vertex> &vertices, std::vector<uint32_t> &indices, const 
 
 Mesh::Mesh(std::vector<Vertex> &vertices, std::vector<Triangle> &triangles, const std::string& objectName)
 {
-    meshData = Ref<MeshData>(std::move(MeshData()));
+    meshData = std::make_shared<MeshData>();
     meshData->name = objectName;
     meshData->SetMesh(vertices, triangles);
     // graphicsModule.setGraphicsMesh(*this);

@@ -1,68 +1,73 @@
-#pragma once
+#include <functional>
+#include <memory>
 #include <string>
 #include <unordered_map>
-#include "asset_data.hpp"
-#include "object_manager.hpp"
-#include "utils/file_util.hpp"
-#include "utils/console.hpp"
-#include <regex>
-#include <random>
+
+#include "asset.hpp"
+#include "string_hash.hpp"
 
 namespace core
 {
-    class AssetManager
+
+class AssetManager
+{
+public:
+    // TODO: CreateAsset
+    
+    /// @brief Load an asset and register it in the table
+    template<std::derived_from<Asset> T>
+    static Ref<T> LoadAsset(std::string_view path)
     {
-    public:
-        AssetManager() = delete;
-        ~AssetManager() = delete;
-        AssetManager(const AssetManager&) = delete;
-        AssetManager& operator=(const AssetManager&) = delete;
-
-        template<class T>
-        static T* LoadAsset(const std::string &path)
+        Ref<T> asset = GetAsset<T>(path);
+        if(asset != nullptr) // Asset already registered
         {
-            static_assert(std::is_base_of<AssetData, T>::value, "Instantiated assets must derive from AssetData");
-            // Check if file exists
-            if(!FileUtil::FileExists(path))
-            {
-                Console::warn("File not found: " + path, "Asset Manager");
-            }
-            
-
-            // Extract filename
-            std::regex filenameRegex(R"([^/\\]+$)"); // match after last slash
-            std::smatch match;
-            std::regex_search(path, match, filenameRegex);
-
-            T* obj = ObjectManager::InstantiateInternal<T>(match.str());
-
-            AssetData* assetData = static_cast<AssetData*>(obj);
-            id_t newID = createUUID();
-            while(assets.contains(newID)) // Should practically never run, but just in case
-            {
-                newID = createUUID();
-            }
-            assetData->UUID = newID;
-            assets[newID] = assetData;
-
-            assetData->path = path;
-            // assetData->LoadAsset();
-
-            return obj;
+            return asset;
         }
 
-    private:
-        static std::unordered_map<id_t, AssetData*> assets;
+        if(!fileCheck(path))
+            return nullptr;
 
-        static id_t createUUID()
+        asset = std::make_shared<T>();
+        asset->SetPath(path);
+        asset->Load();
+
+        assetTable.try_emplace(std::string(path), asset);
+
+        return asset;
+    }
+
+    /// @brief Retrieve an asset that already exists
+    template<std::derived_from<Asset> T>
+    static Ref<T> GetAsset(std::string_view path)
+    {
+        auto tableLookup = assetTable.find(path);
+        if(tableLookup == assetTable.end())
         {
-            std::random_device rd;
-            std::mt19937_64 engine(rd());
-            std::uniform_int_distribution<uint64_t> dist;
-
-            return dist(engine);
+            return nullptr;
         }
 
-        friend class AssetData;
-    };
-}
+        Ref<Asset> asset = tableLookup->second.lock();
+        if(!asset)
+        {
+            return nullptr;
+        }
+
+        return std::dynamic_pointer_cast<T>(asset);
+    }
+
+    static Ref<Asset> GetAsset(std::string_view path)
+    {
+        auto tableLookup = assetTable.find(std::string(path));
+        if(tableLookup == assetTable.end())
+        {
+            return nullptr;
+        }
+
+        return tableLookup->second.lock();
+    }
+private:
+    inline static std::unordered_map<std::string, WRef<Asset>, StringHash, std::equal_to<>> assetTable{};
+    static bool fileCheck(std::filesystem::path path);
+};
+
+} // namespace core

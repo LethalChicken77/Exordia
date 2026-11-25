@@ -42,17 +42,17 @@ public:
         VertexLayout* instanceLayout);
     
     inline static std::vector<uint32_t> CompileSlang(
-        const ShaderAsset& shaderAsset,
+        const ShaderCodeAsset& shaderAsset,
         const std::string_view entryPointName,
         SlangStage slangStage,
         ShaderLayout* globalLayout,
         VertexLayout* vertLayout,
         VertexLayout* instanceLayout)
     {
-        const std::span<const char> data = shaderAsset.GetData();
-        const std::string dataString = std::string(data.data(), data.size()); // TODO: Remove copy to string (Needed for null termination in string view)
+        std::string_view data = shaderAsset.DataString();
+        const std::string dataString = std::string(data); // TODO: Remove copy to string (Needed for null termination in string view)
         return CompileSlang(
-            shaderAsset.GetPath(), 
+            shaderAsset.Path(), 
             dataString,
             entryPointName,
             slangStage,

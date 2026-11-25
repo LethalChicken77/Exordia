@@ -7,6 +7,7 @@
 #include "modules.hpp"
 #include "core/input.hpp"
 #include "graphics/resources/graphics_mesh.hpp"
+#include "core/asset_manager.hpp"
 
 #include "graphics/api/resources/shader.hpp"
 
@@ -24,6 +25,8 @@
 #include "arena_allocator.hpp"
 #include "pool_allocator.hpp"
 #include "analysis/rolling_average.hpp"
+
+#include "console.hpp"
 
 using namespace graphics;
 
@@ -51,32 +54,27 @@ void Engine::init()
 {
     gameData->skyboxMesh = Mesh::createSkybox(10);
     graphicsModule.RegisterMesh(*gameData->skyboxMesh);
+    Console::log("Shit");
 
     // ShaderAsset *testShader = AssetManager::LoadAsset<ShaderAsset>("internal/shaders/test_shader.slang");
     // testShader->LoadData();
     // graphics::Shader* ts = gameData->shaderPool.New(testShader, testShader);
-    ShaderAsset *basicShader = AssetManager::LoadAsset<ShaderAsset>("internal/shaders/basicShader.slang");
-    ShaderAsset *goochShader = AssetManager::LoadAsset<ShaderAsset>("internal/shaders/goochShader.slang");
-    ShaderAsset *pbrShader = AssetManager::LoadAsset<ShaderAsset>("internal/shaders/PBR.slang");
-    ShaderAsset *skyboxShader = AssetManager::LoadAsset<ShaderAsset>("internal/shaders/skybox.slang");
-    ShaderAsset *spriteShaderA = AssetManager::LoadAsset<ShaderAsset>("internal/shaders/sprite.slang");
-
-    basicShader->LoadData();
-    goochShader->LoadData();
-    pbrShader->LoadData();
-    skyboxShader->LoadData();
-    spriteShaderA->LoadData();
+    Ref<ShaderCodeAsset> basicShader = AssetManager::LoadAsset<ShaderCodeAsset>("internal/shaders/basicShader.slang");
+    Ref<ShaderCodeAsset> goochShader = AssetManager::LoadAsset<ShaderCodeAsset>("internal/shaders/goochShader.slang");
+    Ref<ShaderCodeAsset> pbrShader = AssetManager::LoadAsset<ShaderCodeAsset>("internal/shaders/PBR.slang");
+    Ref<ShaderCodeAsset> skyboxShader = AssetManager::LoadAsset<ShaderCodeAsset>("internal/shaders/skybox.slang");
+    Ref<ShaderCodeAsset> spriteShaderA = AssetManager::LoadAsset<ShaderCodeAsset>("internal/shaders/sprite.slang");
 
     // Shader shader = Shader(testShader, testShader);
     // This is just to test memory pools, this will be replaced with a proper resource management system
-    shader = gameData->shaderPool.New(basicShader, basicShader);
-    gShader = gameData->shaderPool.New(goochShader, goochShader);
-    sbShader = gameData->shaderPool.New(skyboxShader, skyboxShader);
-    pbr = gameData->shaderPool.New(pbrShader, pbrShader);
+    shader = make_shared<Shader>(basicShader, basicShader);
+    gShader = make_shared<Shader>(goochShader, goochShader);
+    sbShader = make_shared<Shader>(skyboxShader, skyboxShader);
+    pbr = make_shared<Shader>(pbrShader, pbrShader);
     sbShader->properties.depthWrite = DepthWrite::Disabled;
     sbShader->Update();
 
-    spriteShader = gameData->shaderPool.New(spriteShaderA, spriteShaderA);
+    spriteShader = make_shared<Shader>(spriteShaderA, spriteShaderA);
     spriteShader->properties.depthTest = CompareOp::Always;
     // spriteShader->properties.drawMode = DrawMode::Wireframe;
     spriteShader->Update();

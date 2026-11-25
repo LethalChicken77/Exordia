@@ -9,16 +9,16 @@
 namespace graphics
 {
 
-Shader::Shader(ShaderAsset* vertAsset, ShaderAsset* fragAsset)
-    : vertexShaderAsset(vertAsset),
-    fragmentShaderAsset(fragAsset)
+Shader::Shader(Ref<ShaderCodeAsset> vertAsset, Ref<ShaderCodeAsset> fragAsset)
+    : vertexShaderCode(vertAsset),
+    fragmentShaderCode(fragAsset)
 {
     Compile();
 }
 
-Shader::Shader(ShaderAsset* vertAsset, ShaderAsset* fragAsset, const ShaderProperties& _properties)
-    : vertexShaderAsset(vertAsset),
-    fragmentShaderAsset(fragAsset),
+Shader::Shader(Ref<ShaderCodeAsset> vertAsset, Ref<ShaderCodeAsset> fragAsset, const ShaderProperties& _properties)
+    : vertexShaderCode(vertAsset),
+    fragmentShaderCode(fragAsset),
     properties(_properties)
 {
     Compile();
@@ -29,12 +29,12 @@ void Shader::Compile()
     std::vector<uint32_t> tempVertSpirv{};
     std::vector<uint32_t> tempFragSpirv{};
     isValid = false;
-    if(vertexShaderAsset == fragmentShaderAsset) // usually true
+    if(vertexShaderCode == fragmentShaderCode) // usually true
     {
-        vertexShaderAsset->LoadData();
+        vertexShaderCode->Load();
         isValid = ShaderCompile::CompileSlangCombined(
-            vertexShaderAsset->GetPath(), 
-            vertexShaderAsset->GetDataString(), 
+            vertexShaderCode->Path(), 
+            vertexShaderCode->DataString(), 
             &tempVertSpirv,
             &tempFragSpirv,
             &layout,
@@ -45,11 +45,11 @@ void Shader::Compile()
     }
     else
     {
-        vertexShaderAsset->LoadData();
-        fragmentShaderAsset->LoadData();
-        // TODO: Migrate to call ShaderCompile directly
-        vertSpirv = vertexShaderAsset->CompileSlang("vsMain", SLANG_STAGE_VERTEX);
-        fragSpirv = fragmentShaderAsset->CompileSlang("fsMain", SLANG_STAGE_FRAGMENT);
+        vertexShaderCode->Load();
+        fragmentShaderCode->Load();
+        // TODO: Compilation for split shaders
+        // vertSpirv = vertexShaderCode->CompileSlang("vsMain", SLANG_STAGE_VERTEX);
+        // fragSpirv = fragmentShaderCode->CompileSlang("fsMain", SLANG_STAGE_FRAGMENT);
     }
     if(isValid)
     {
@@ -58,6 +58,8 @@ void Shader::Compile()
         // layout = ShaderLayout(fragSpirv);
         graphicsModule.UpdateShader(*this);
     }
+    vertexShaderCode->Unload();
+    fragmentShaderCode->Unload();
 }
 
 void Shader::Update()
@@ -68,7 +70,7 @@ void Shader::Update()
 
 void ComputeShader::Compile()
 {
-    spirv = shaderAsset->CompileSlang("main", SLANG_STAGE_COMPUTE);
+    // spirv = ShaderCodeAsset->CompileSlang("main", SLANG_STAGE_COMPUTE);
 }
 
 }; // namespace core

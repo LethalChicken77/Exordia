@@ -1,6 +1,6 @@
 #include "shader_layout.hpp"
 #include "spirv_reflect.h"
-#include "utils/console.hpp"
+#include "console.hpp"
 #include "graphics/backend/vulkan_include.h"
 #include <sstream>
 

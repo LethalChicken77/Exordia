@@ -5,21 +5,20 @@
 #include "graphics/resources/layouts/shader_layout.hpp"
 #include "graphics/resources/layouts/vertex_layout.hpp"
 #include "graphics/api/handles.hpp"
-#include "core/assets/shader_asset.hpp"
+#include "graphics/api/assets/shader_asset.hpp"
 
 #include "glm/glm.hpp"
 #include "primitives/color.hpp"
 // #define __STDCPP_FLOAT16_T__
 // #include <stdfloat>
-using core::ShaderAsset;
 
 namespace graphics
 {
 class Shader
 {
 public:
-    Shader(ShaderAsset* vertAsset, ShaderAsset* fragAsset);
-    Shader(ShaderAsset* vertAsset, ShaderAsset* fragAsset, const ShaderProperties& properties);
+    Shader(Ref<ShaderCodeAsset> vertAsset, Ref<ShaderCodeAsset> fragAsset);
+    Shader(Ref<ShaderCodeAsset> vertAsset, Ref<ShaderCodeAsset> fragAsset, const ShaderProperties& properties);
     ~Shader() = default;
 
     Shader(const Shader&) = delete;
@@ -35,17 +34,14 @@ public:
     const VertexLayout& GetVertexLayout() const { return vertexLayout; }
     const VertexLayout& GetInstanceLayout() const { return instanceLayout; }
 
-    void SetVertexShaderAsset(ShaderAsset* asset) { vertexShaderAsset = asset; }
-    void SetFragmentShaderAsset(ShaderAsset* asset) { fragmentShaderAsset = asset; }
-
     ShaderProperties properties{};
 
     ShaderHandle graphicsHandle;
 
 private:
+    Ref<ShaderCodeAsset> vertexShaderCode{};
+    Ref<ShaderCodeAsset> fragmentShaderCode{};
 
-    ShaderAsset* vertexShaderAsset = nullptr;
-    ShaderAsset* fragmentShaderAsset = nullptr;
     std::vector<uint32_t> vertSpirv{};
     std::vector<uint32_t> fragSpirv{};
     ShaderLayout layout{};
@@ -60,8 +56,8 @@ private:
 class ComputeShader
 {
 public:
-    ComputeShader(ShaderAsset& asset) 
-        : shaderAsset(&asset) {}
+    ComputeShader(ShaderCodeAsset& asset) 
+        : ShaderCodeAsset(&asset) {}
     ~ComputeShader() = default;
 
     ComputeShader(const ComputeShader&) = delete;
@@ -74,7 +70,7 @@ public:
 
 private:
 
-    const ShaderAsset *shaderAsset;
+    const ShaderCodeAsset *ShaderCodeAsset;
     std::vector<uint32_t> spirv;
     ShaderLayout layout;
 };

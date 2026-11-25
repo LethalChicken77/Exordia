@@ -9,7 +9,7 @@
 #include "backend_data.hpp"
 
 #include "utils/debug.hpp"
-#include "utils/console.hpp"
+#include "console.hpp"
 
 #define VULKAN_HPP_NO_INCLUDE
 #include <vulkan/vulkan.hpp>

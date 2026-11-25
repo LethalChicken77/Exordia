@@ -2,7 +2,7 @@
 #include <memory>
 #include "graphics/api.hpp"
 #include "pool_allocator.hpp"
-#include "mesh.hpp"
+#include "core/resources/mesh.hpp"
 
 namespace core
 {

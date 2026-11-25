@@ -1,6 +1,6 @@
 #include "asset_data.hpp"
 #include "utils/file_util.hpp"
-#include "utils/console.hpp"
+#include "console.hpp"
 
 namespace core
 {
@@ -11,6 +11,6 @@ void AssetData::LoadData()
         Console::error("File not found: " + path, "AssetData");
         return;
     }
-    data = FileUtil::ReadFileToCharVector(path);
+    data = FileUtil::ReadFile<std::vector<char>>(path);
 }
 } // namespace core

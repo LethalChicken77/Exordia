@@ -3,7 +3,7 @@
 
 #include <csignal>
 #include <iostream>
-#include "utils/console.hpp"
+#include "console.hpp"
 #ifdef _WIN32
 #include "windows_attach_console.hpp"
 #include <io.h>

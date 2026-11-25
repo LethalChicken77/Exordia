@@ -10,7 +10,7 @@
 #include <string>
 #include <iostream>
 
-#include "core/mesh.hpp"
+#include "core/resources/mesh.hpp"
 #include "engine_types.hpp"
 #include "graphics/api/resources/sprite.hpp"
 

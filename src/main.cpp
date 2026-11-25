@@ -4,7 +4,7 @@
 #include <memory>
 
 #include "modules.hpp"
-#include "utils/console.hpp"
+#include "console.hpp"
 #include "engine.hpp"
 #include "utils/debug.hpp"
 #include "core/input.hpp"

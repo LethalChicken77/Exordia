@@ -10,7 +10,7 @@ using graphics::BufferLayout;
 namespace graphics
 {
 
-Material::Material(const Shader *_shader, const std::string_view _name) 
+Material::Material(Ref<const Shader> _shader, const std::string_view _name) 
     : shader(_shader),
     name(_name)
 {

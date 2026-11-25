@@ -1,4 +1,5 @@
 #pragma once
+
 #include <string>
 #include <vector>
 #include <GLFW/glfw3.h>
@@ -9,7 +10,6 @@
 #include "core/game_object.hpp"
 #include "utils/debug.hpp"
 #include "utils/random.hpp"
-#include "utils/console.hpp"
 #include "core/scene.hpp"
 #include "temp_data.hpp"
 
@@ -42,11 +42,11 @@ private:
 
     static void windowRefreshCallback(GLFWwindow *window);
 
-    graphics::Shader* shader;
-    graphics::Shader* gShader;
-    graphics::Shader* sbShader;
-    graphics::Shader* pbr;
-    graphics::Shader* spriteShader;
+    Ref<graphics::Shader> shader;
+    Ref<graphics::Shader> gShader;
+    Ref<graphics::Shader> sbShader;
+    Ref<graphics::Shader> pbr;
+    Ref<graphics::Shader> spriteShader;
     graphics::Sprite testSprite;
     graphics::Sprite testSpriteStretch;
 

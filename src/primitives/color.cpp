@@ -1,7 +1,7 @@
 #include "color.hpp"
 #include <algorithm>
 #include <cmath>
-#include "utils/console.hpp"
+#include "console.hpp"
 
 Color::Color() : r(0.0f), g(0.0f), b(0.0f), a(1.0f) {}
 Color::Color(uint8_t _r, uint8_t _g, uint8_t _b, uint8_t _a) : r(_r / 255.0f), g(_g / 255.0f), b(_b / 255.0f), a(_a / 255.0f) {}

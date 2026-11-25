@@ -8,7 +8,7 @@
 #include <string>
 #include <iostream>
 
-#include "utils/console.hpp"
+#include "console.hpp"
 #include "utils/smart_reference.hpp"
 #include "ref.hpp"
 #include "graphics/api/handles.hpp"
@@ -23,11 +23,10 @@ namespace core
         glm::vec3 importScale = glm::vec3(1);
     };
 
-    class MeshData : RefCounted
+    class MeshData : IRefCounted
     {
     public:
-        static constexpr const char* className = "Mesh Data";
-        const char* GetClassName() const { return className; }
+        static constexpr const std::string_view assetTypeName = "Mesh";
         
         struct Vertex
         {
@@ -136,9 +135,9 @@ namespace core
             static Mesh createSkybox(float size, const std::string& objectName = "Skybox Mesh");
             static Mesh loadObj(const std::string& filename, const std::string& objectName = "Obj Mesh", MeshImportOptions importOptions = {}); // TODO: replace with loadFromFile
             
-            explicit operator bool() const noexcept { return !meshData.IsNull(); }
+            explicit operator bool() const noexcept { return meshData != nullptr; }
             MeshData& operator*() const noexcept { return *meshData; }
-            MeshData* operator->() const noexcept { return meshData.Get(); }
+            MeshData* operator->() const noexcept { return meshData.get(); }
             bool operator==(const Mesh& other) const { return meshData == other.meshData; }
             bool operator!=(const Mesh& other) const { return meshData != other.meshData; }
         private:

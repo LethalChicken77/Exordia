@@ -4,7 +4,7 @@
 #include <format>
 
 #include "graphics/resources/image.hpp"
-#include "utils/console.hpp"
+#include "console.hpp"
 #include "utils/debug.hpp"
 
 namespace graphics

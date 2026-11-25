@@ -1,10 +1,12 @@
+// Deprecated: What a dumb stupid idea this was
+
 #ifndef SMART_REFERENCE_DEFINED
 #define SMART_REFERENCE_DEFINED
 // Wrapper for raw pointer of type T
 // Can be used like a raw pointer
 // Can define additional methods to allow for useful behaviors
 template<typename T>
-class SmartRef
+class [[deprecated]] SmartRef
 {
 protected:
     T* ptr;

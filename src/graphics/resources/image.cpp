@@ -2,7 +2,7 @@
 #include "graphics/graphics_data.hpp"
 
 #include <format>
-#include "utils/console.hpp"
+#include "console.hpp"
 #include "buffer.hpp"
 #include "debug.hpp"
 

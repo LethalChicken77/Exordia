@@ -1,4 +1,4 @@
-#include "core/mesh.hpp"
+#include "core/resources/mesh.hpp"
 
 namespace editor
 {

@@ -158,6 +158,10 @@ file(GLOB_RECURSE LIB_SOURCES
     "lib/spirv-reflect/spirv_reflect.cpp"
 )
 
+file(GLOB_RECURSE MODULE_FILES CONFIGURE_DEPENDS
+    "${CMAKE_CURRENT_SOURCE_DIR}/src/*.cppm"
+)
+
 # OpenMP setup 
 # OpenMP setup
 if(CMAKE_CXX_COMPILER_FRONTEND_VARIANT STREQUAL "MSVC")
@@ -199,6 +203,14 @@ target_include_directories(GameEngine PRIVATE "${VULKAN_SDK}/Include/vulkan") # 
 target_include_directories(GameEngine PRIVATE SYSTEM "${VULKAN_SDK}/Include/slang")
 # target_include_directories(OpenMP::OpenMP_CXX INTERFACE C:/msys64/clang64/include)
 # target_include_directories(GameEngine PRIVATE "${Vulkan_INCLUDE_DIRS}/vma")
+
+# TODO: Figure out how to do modules without everything exploding
+# target_sources(GameEngine
+#     PUBLIC
+#         FILE_SET CXX_MODULES
+#         FILES ${MODULE_FILES}
+# )
+# set_property(TARGET GameEngine PROPERTY CXX_SCAN_FOR_MODULES ON)
 
 if(WIN32)
     set_target_properties(GameEngine PROPERTIES

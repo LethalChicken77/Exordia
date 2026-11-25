@@ -2,6 +2,7 @@
 #include <utility>
 #include <memory>
 #include <cassert>
+#include <vector>
 
 /// @brief A simple pool allocator.
 /// @tparam T Base type of the pool.

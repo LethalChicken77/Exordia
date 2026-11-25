@@ -1,13 +1,20 @@
 #pragma once
+#include <concepts>
 #include <string>
 #include <vector>
 #include <filesystem>
 
+template<typename T>
+concept FileBufferConcept =
+    std::same_as<T, std::string> ||
+    std::same_as<T, std::vector<char>> ||
+    std::same_as<T, std::vector<uint8_t>> ||
+    std::same_as<T, std::vector<std::byte>>;
 class FileUtil
 {
     public:
-        static std::string ReadFileToString(const std::filesystem::path &path);
-        static std::vector<char> ReadFileToCharVector(const std::filesystem::path &path);
+        template<FileBufferConcept T>
+        static T ReadFile(const std::filesystem::path &path);
 
         static bool Write(const std::string_view data, const std::filesystem::path &path, bool overwrite = false);
         static inline bool Write(const std::vector<char> data, const std::filesystem::path &path, bool overwrite = false)

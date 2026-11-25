@@ -1,7 +1,7 @@
 #include "texture_data.hpp"
 
 #include <format>
-#include "utils/console.hpp"
+#include "console.hpp"
 #define STB_IMAGE_IMPLEMENTATION
 #include "stb_image.h"
 #define TINYEXR_IMPLEMENTATION

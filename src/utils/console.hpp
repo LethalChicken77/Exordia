@@ -1,7 +1,12 @@
+// module;
 #pragma once
 #include <string>
+#include <string_view>
+#include <format>
 #include <queue>
 #include <iostream>
+
+// export module exordia.console;
 
 class Console
 {

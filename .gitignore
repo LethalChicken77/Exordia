@@ -1,3 +1,6 @@
+.cache/*
+build/.cache/*
+
 # Build files
 build/.cmake/*
 build/CMakeFiles/*
@@ -16,5 +19,6 @@ build/Makefile
 
 # Executable
 build/GameEngine.exe
+build/GameEngine.pdb
 build/player.log
 build/player_prev.log

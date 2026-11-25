@@ -1,7 +1,13 @@
+// module exordia.console;
 #include "console.hpp"
-#include "imgui.h"
 #include <vector>
 #include <iostream>
+#include <string>
+#include <string_view>
+#include <format>
+#include <queue>
+#include <iostream>
+#include "imgui.h"
 #include "file_util.hpp"
 
 using namespace std;

@@ -3,6 +3,8 @@
 #include "utils/packing.hpp"
 #include "graphics/api/handles.hpp"
 
+#include "console.hpp"
+
 namespace graphics
 {
 
@@ -25,10 +27,10 @@ public:
 
 public:
     MaterialHandle graphicsHandle;
-    const Shader* shader;
+    Ref<const Shader> shader;
     std::string name;
 
-    Material(const Shader *shader, const std::string_view name = "New Material");
+    Material(Ref<const Shader> shader, const std::string_view name = "New Material");
     ~Material();
 
     void UpdateLayout(bool updateVals = true);

@@ -4,12 +4,18 @@
 #include <atomic>
 #include <type_traits>
 
+template<typename T>
+using Ref = std::shared_ptr<T>;
+
+template<typename T>
+using WRef = std::weak_ptr<T>;
+
 /// @brief Include as private.
-class RefCounted
+class IRefCounted
 {
 public:
-    RefCounted() = default;
-    virtual ~RefCounted() = default;
+    IRefCounted() = default;
+    virtual ~IRefCounted() = default;
 
     void AddRef() const
     {
@@ -24,44 +30,34 @@ public:
 private:
     mutable std::atomic_uint32_t count = 0;
 
-    template<class T>
-    friend class Ref;
-
-    static RefCounted* as_refcounted(void* ptr) noexcept
-    {
-        return static_cast<RefCounted*>(ptr);   // this line is now allowed inside RefCounted
-    }
-
-    static const RefCounted* as_refcounted(const void* ptr) noexcept
-    {
-        return static_cast<const RefCounted*>(ptr);
-    }
+    template<std::derived_from<IRefCounted> T>
+    friend class IRef;
 };
 
-template<class T>
-class Ref
+// Intrusive reference counting reference
+template<std::derived_from<IRefCounted> T>
+class IRef
 {
-static_assert(std::is_base_of_v<RefCounted, T>, "Cannot create reference to class that does not derive from RefCounted.");
 public:
     /// @brief Null constructor.
-    Ref() = default;
+    IRef() = default;
     /// @brief Construct a new reference in-place.
-    Ref(T&& rval) : m_data(new T(std::move(rval)))
+    IRef(T&& rval) : m_data(new T(std::move(rval)))
     {
         acquire();
     }
 
-    Ref(const Ref<T>& other) noexcept : m_data(other.m_data)
+    IRef(const IRef<T>& other) noexcept : m_data(other.m_data)
     {
         acquire();
     }
 
-    Ref(Ref<T>&& other) noexcept : m_data(other.m_data)
+    IRef(IRef<T>&& other) noexcept : m_data(other.m_data)
     {
         other.m_data = nullptr;
     }
     
-    Ref<T>& operator=(const Ref<T>& other) noexcept
+    IRef<T>& operator=(const IRef<T>& other) noexcept
     {
         if (this != &other)
         {
@@ -72,7 +68,7 @@ public:
         return *this;
     }
 
-    Ref<T>& operator=(Ref<T>&& other) noexcept
+    IRef<T>& operator=(IRef<T>&& other) noexcept
     {
         if (this != &other)
         {
@@ -83,7 +79,7 @@ public:
         return *this;
     }
 
-    ~Ref() noexcept
+    ~IRef() noexcept
     {
         release();
     }
@@ -96,8 +92,8 @@ public:
     explicit operator bool() const noexcept { return m_data != nullptr; }
     T& operator*() const noexcept { return *m_data; }
     T* operator->() const noexcept { return m_data; }
-    bool operator==(const Ref<T>& other) const { return m_data == other.m_data; }
-    bool operator!=(const Ref<T>& other) const { return m_data != other.m_data; }
+    bool operator==(const IRef<T>& other) const { return m_data == other.m_data; }
+    bool operator!=(const IRef<T>& other) const { return m_data != other.m_data; }
     
 private: 
     T* m_data = nullptr;
@@ -105,14 +101,14 @@ private:
     void acquire() noexcept
     {
         if(m_data)
-            RefCounted::as_refcounted(m_data)->AddRef();
+            static_cast<IRefCounted*>(m_data)->AddRef();
     }
 
     void release() noexcept
     {
         if(m_data)
         {
-            if(RefCounted::as_refcounted(m_data)->RemoveRef() == 0)
+            if(static_cast<IRefCounted*>(m_data)->RemoveRef() == 1) // Compare to 1 as RemoveRef returns previous value
                 delete m_data;
             m_data = nullptr;
         }

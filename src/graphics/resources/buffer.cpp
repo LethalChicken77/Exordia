@@ -5,7 +5,7 @@
 #include "image.hpp"
 #include "graphics/graphics_data.hpp"
 
-#include "utils/console.hpp"
+#include "console.hpp"
 #include "utils/debug.hpp"
 
 namespace graphics

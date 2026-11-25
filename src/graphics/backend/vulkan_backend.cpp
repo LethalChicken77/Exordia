@@ -5,7 +5,7 @@
 #include "graphics/backend/vulkan_include.h"
 
 #include "vulkan_backend.hpp"
-#include "utils/console.hpp"
+#include "console.hpp"
 #include "utils/debug.hpp"
 
 #include "backend_data.hpp"

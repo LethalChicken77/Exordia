@@ -10,7 +10,7 @@
 namespace core
 {
     class AssetData; // Needed to ensure assets are not directly instantiated
-    class AssetManager;
+    class AssetManagerOld;
     class ObjectManager
     {
         public:
@@ -45,6 +45,6 @@ namespace core
             // std::unordered_map<std::string, Object*> objectNameDictionary; // Easy accessing via index // TODO: Implement later to account for renaming
             static std::vector<std::unique_ptr<Object>> objectList; // Where objects live in memory
 
-            friend class AssetManager;
+            friend class AssetManagerOld;
     };
 } // namespace core
