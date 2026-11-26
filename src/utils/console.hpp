@@ -13,13 +13,13 @@ class Console
     struct ConsoleMessage
     {
         std::string message;
-        enum Type
+        enum class Type
         {
-            NONE = 0,
-            INFO = 1,
-            DEBUG_T = 2, // DEBUG is already defined
-            WARNING = 3,
-            ERROR = 4
+            None = 0,
+            Info = 1,
+            Debug = 2, // DEBUG is already defined
+            Warning = 3,
+            Error = 4
         } type;
     };
 

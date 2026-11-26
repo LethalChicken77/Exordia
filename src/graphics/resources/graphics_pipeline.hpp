@@ -7,7 +7,7 @@
 #include "engine_types.hpp"
 // #include "graphics/shader.hpp"
 // #include "graphics/containers.hpp"
-#include "graphics/api/resources/shader.hpp"
+#include "graphics/api/assets/shader_asset.hpp"
 #include "graphics/api/shader_config.hpp"
 #include "descriptors.hpp"
 
@@ -154,7 +154,7 @@ struct PipelineConfigInfo
 class GraphicsPipeline
 {
 public:
-    GraphicsPipeline(internal::Device &device, const Shader &shader, vk::PipelineCache cache);
+    GraphicsPipeline(internal::Device &device, ShaderConst shader, vk::PipelineCache cache);
     ~GraphicsPipeline();
 
     GraphicsPipeline(const GraphicsPipeline&) = delete;
@@ -178,13 +178,13 @@ private:
 
     PipelineConfigInfo m_configInfo;
 
-    DescriptorSetLayout createDescriptorSetLayout(const Shader &shader);
+    DescriptorSetLayout createDescriptorSetLayout(ShaderConst shader);
 
-    void createPipelineLayout(const Shader &shader);
+    void createPipelineLayout(ShaderConst shader);
     vk::ShaderModuleCreateInfo createShaderModuleInfo(const std::vector<uint32_t> &spvCode);
     std::vector<vk::VertexInputBindingDescription> createVertexBindings();
     std::vector<vk::VertexInputAttributeDescription> createVertexAttributes();
-    void createPipeline(const Shader &shader, vk::PipelineCache cache);
+    void createPipeline(ShaderConst shader, vk::PipelineCache cache);
 
 };
 

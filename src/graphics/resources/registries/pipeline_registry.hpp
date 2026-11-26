@@ -12,11 +12,11 @@ public:
     PipelineRegistry(internal::Device &device);
     ~PipelineRegistry();
     
-    PipelineHandle Register(Shader &shader);
-    bool Reload(Shader &shader);
+    PipelineHandle Register(Shader shader);
+    bool Reload(Shader shader);
     void ReloadAll();
     using GraphicsRegistry<GraphicsPipeline, PipelineHandle>::Deregister;
-    inline bool Deregister(Shader &shader)
+    inline bool Deregister(Shader shader)
     {
         return Deregister(shader);
     }

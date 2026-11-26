@@ -1,4 +1,5 @@
 #pragma once
+#include <concepts>
 #include <string>
 #include <filesystem>
 #include <span>
@@ -29,7 +30,7 @@ struct AssetLoadResult
 };
 
 class AssetManager;
-class Asset
+class Asset : public std::enable_shared_from_this<Asset>
 {
 public:
     static constexpr const std::string_view assetTypeName = "Asset";
@@ -43,6 +44,11 @@ public:
 
     virtual void Load();
     virtual void Unload();
+    inline void Reload()
+    {
+        Unload();
+        Load();
+    }
 
     [[nodiscard]] inline bool IsValid() const { return m_status != AssetStatus::Invalid; }
     [[nodiscard]] inline bool IsReady() const { return m_status == AssetStatus::Ready; }
@@ -66,6 +72,22 @@ protected:
     bool loadFile();
     /// @brief Clear the m_fileData vector
     void unloadFile();
+    /// @brief Set the state to invalid
+    void invalidate();
+    /// @brief Set the state to invalid and print an error message
+    void invalidate(std::string_view message);
+
+
+    template<std::derived_from<Asset> T>
+    [[nodiscard]] WRef<T> weakThis()
+    {
+        return std::static_pointer_cast<T>(weak_from_this().lock());
+    }
+    template<std::derived_from<Asset> T>
+    [[nodiscard]] Ref<T> sharedThis()
+    {
+        return std::static_pointer_cast<T>(weak_from_this().lock());
+    }
 private:
     std::filesystem::path m_path;
     std::vector<char> m_fileData{}; // TODO: Replace with scratch arena assigned by asset manager

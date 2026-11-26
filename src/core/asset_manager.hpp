@@ -16,11 +16,15 @@ public:
     
     /// @brief Load an asset and register it in the table
     template<std::derived_from<Asset> T>
-    static Ref<T> LoadAsset(std::string_view path)
+    static Ref<T> LoadAsset(std::string_view path, bool reload = false)
     {
         Ref<T> asset = GetAsset<T>(path);
         if(asset != nullptr) // Asset already registered
         {
+            if(reload)
+            {
+                asset->Reload();
+            }
             return asset;
         }
 

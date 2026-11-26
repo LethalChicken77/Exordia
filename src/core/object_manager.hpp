@@ -10,7 +10,7 @@
 namespace core
 {
     class AssetData; // Needed to ensure assets are not directly instantiated
-    class ObjectManager
+    class ObjectManager // TODO: Yeet ObjectManager to the shadow dimension
     {
         public:
             static Object *getObject(id_t objectID);

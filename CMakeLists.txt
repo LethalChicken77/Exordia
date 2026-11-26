@@ -237,6 +237,7 @@ target_compile_definitions(GameEngine PRIVATE VULKAN_SDK="${VULKAN_SDK}") # TODO
 target_compile_options(GameEngine PRIVATE
     -Wno-nullability-completeness    # Silence warnings from VMA
     -Wno-nullability-extension
+    /wd4996                          # Silence strncat deprecation warning
 )
 
 if(CMAKE_BUILD_TYPE STREQUAL "Debug")
@@ -256,6 +257,38 @@ endif()
 # )
 # Link libraries
 # TODO: Linux version
+
+# TUI
+file(GLOB TUI_SOURCES CONFIGURE_DEPENDS
+    "${CMAKE_CURRENT_SOURCE_DIR}/lib/tui/source/*.cpp"
+)
+
+add_library(TUI STATIC
+    ${TUI_SOURCES}
+)
+
+if(CMAKE_CXX_COMPILER_FRONTEND_VARIANT STREQUAL "MSVC")
+    target_compile_options(TUI PRIVATE /EHsc)
+else()
+    target_compile_options(TUI PRIVATE -fexceptions)
+endif()
+
+if(WIN32)
+    target_compile_definitions(TUI PRIVATE
+        timegm=_mkgmtime
+        _CRT_SECURE_NO_WARNINGS
+    )
+endif()
+
+target_include_directories(TUI PUBLIC
+    lib/tui/source
+    "$ENV{VULKAN_SDK}/Include/glm"
+)
+
+target_link_libraries(TUI PUBLIC
+    "${VULKAN_SDK}/Lib/vulkan-1.lib"
+)
+
 target_link_libraries(GameEngine PRIVATE 
     "C:/glfw-3.4.bin.WIN64/lib-vc2022/glfw3.lib"    # Link GLFW
     "${VULKAN_SDK}/Lib/vulkan-1.lib"                     # Link Vulkan
@@ -263,4 +296,6 @@ target_link_libraries(GameEngine PRIVATE
     "${VULKAN_SDK}/Lib/slang.lib"
     gdi32 user32 shell32 Dwmapi
     OpenMP::OpenMP_CXX
+    TUI
 )
+

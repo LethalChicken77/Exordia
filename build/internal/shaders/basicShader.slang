@@ -14,7 +14,6 @@ struct MaterialInfo
     [Range(0,1)] float roughness = 0.4;
     [Range(0,1)] float metallic = 0.0;
     [Range(0,1)] float specular = 0.04; // Typical for dielectrics
-    int test = 5;
 };
 [[vk::binding(0, 2)]] ConstantBuffer<MaterialInfo> materialInfo;
 

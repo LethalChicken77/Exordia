@@ -2,7 +2,7 @@
 #include <string_view>
 #include <slang.h>
 #include <slang-com-ptr.h>
-#include "resources/shader.hpp"
+#include "assets/shader_asset.hpp"
 
 namespace graphics
 {

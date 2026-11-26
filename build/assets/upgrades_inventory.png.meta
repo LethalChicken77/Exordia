@@ -1,0 +1,17 @@
+UUID = 67
+filterMode = 1
+
+sprites = {
+    rupture_core = {
+        pos = vec2(6,96)
+        size = vec2(20,92)
+        border = vec4(0,0,0,0)
+        pivot = vec2(0.5,0.5)
+    }
+    booster_boots = {
+        pos = vec2(0,64)
+        size = vec2(32,32)
+        border = vec4(0,0,0,0)
+        pivot = vec2(0.5,0.5)
+    }
+}

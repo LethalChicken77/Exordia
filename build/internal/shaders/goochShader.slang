@@ -1,6 +1,7 @@
 import utils;
 import shading_models;
 import colorspace; // TODO: Perform colorspace transforms in post-processing
+import attributes;
 
 import shaderInputs;
 import "vertex/vertex_no_tex.slang";
@@ -9,11 +10,11 @@ import "vertex/instance.slang";
 // Material Descriptor Set
 struct MaterialInfo
 {
-    float4 coolColor;
-    float4 warmColor;
-    float4 outlineColor;
-    float outlinePower;
-    float roughness;
+    [Color] float3 coolColor = float3(0,0.3,0.6);
+    [Color] float3 warmColor = float3(1,0.9,0.5);
+    [Color] float4 outlineColor = float4(0,0,0,0.8);
+    float outlinePower = 1.0;
+    [Range(0,1)] float roughness = 0.4;
 };
 [[vk::binding(0, 2)]] ConstantBuffer<MaterialInfo> materialInfo;
 
@@ -63,8 +64,8 @@ float4 fsMain(VOut input)
     float3 halfDir = 0.5 * (lightDir - viewDir);
 
     float3 lightColor = currentLight.color * currentLight.intensity;
-    float3 coolColor = SRGBToLinear(materialInfo.coolColor.xyz);
-    float3 warmColor = SRGBToLinear(materialInfo.warmColor.xyz);
+    float3 coolColor = SRGBToLinear(materialInfo.coolColor);
+    float3 warmColor = SRGBToLinear(materialInfo.warmColor);
     float4 outlineColor = float4(SRGBToLinear(materialInfo.outlineColor.xyz), materialInfo.outlineColor.w);//float3(1.0, 0.6, 0.1);
     float outlinePower = materialInfo.outlinePower;
     float3 outColor = goochBRDF(coolColor, warmColor, outlineColor, outlinePower, materialInfo.roughness, F0, lightColor, normal, lightDir, viewDir);

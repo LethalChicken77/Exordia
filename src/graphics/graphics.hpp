@@ -32,13 +32,13 @@ class Graphics
         void DrawSprite(const SpriteDrawInfo& drawInfo, const Material& material, const std::span<const glm::mat4> modelMatrices, int instanceID = -1);
         void DrawFrame();
 
-        inline void RegisterShader(Shader &shader) { graphicsData->pipelineRegistry.Register(shader); }
-        inline void UpdateShader(Shader &shader) 
+        inline void RegisterShader(Shader shader) { graphicsData->pipelineRegistry.Register(shader); }
+        inline void UpdateShader(Shader shader) 
         { 
             if(!graphicsData->pipelineRegistry.Reload(shader))
                 graphicsData->pipelineRegistry.Register(shader); 
         }
-        inline void DeregisterShader(Shader &shader) { graphicsData->pipelineRegistry.Deregister(shader); }
+        inline void DeregisterShader(Shader shader) { graphicsData->pipelineRegistry.Deregister(shader); }
 
         void RegisterMaterial(Material& mat) 
         { 

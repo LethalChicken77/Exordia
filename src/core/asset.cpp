@@ -26,6 +26,10 @@ bool Asset::loadFile()
         Console::error("File not found: " + m_path.string(), "AssetData");
         return false;
     }
+    if(m_fileLoaded)
+    {
+        Console::warnf("File {} already loaded.", m_path.string(), "AssetData");
+    }
     m_fileData = FileUtil::ReadFile<std::vector<char>>(m_path);
     m_fileLoaded = true;
     return true;
@@ -36,6 +40,17 @@ void Asset::unloadFile()
     m_fileData.clear();
     m_fileData.shrink_to_fit(); 
     m_fileLoaded = false;
+}
+
+void Asset::invalidate()
+{
+    m_status = AssetStatus::Invalid;
+}
+
+void Asset::invalidate(std::string_view message)
+{
+    m_status = AssetStatus::Invalid;
+    Console::error(message, assetTypeName);
 }
 
 } // namespace core

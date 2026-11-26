@@ -1,4 +1,5 @@
 #pragma once
+#include "graphics/api/assets/shader_asset.hpp"
 #include "shader.hpp"
 #include "utils/packing.hpp"
 #include "graphics/api/handles.hpp"
@@ -27,10 +28,10 @@ public:
 
 public:
     MaterialHandle graphicsHandle;
-    Ref<const Shader> shader;
+    ShaderConst shader;
     std::string name;
 
-    Material(Ref<const Shader> shader, const std::string_view name = "New Material");
+    Material(ShaderConst shader, const std::string_view name = "New Material");
     ~Material();
 
     void UpdateLayout(bool updateVals = true);

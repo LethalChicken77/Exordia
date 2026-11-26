@@ -9,7 +9,7 @@
 #include "graphics/resources/graphics_mesh.hpp"
 #include "core/asset_manager.hpp"
 
-#include "graphics/api/resources/shader.hpp"
+#include "graphics/api/assets/shader_asset.hpp"
 #include "object_manager.hpp"
 
 #define GLM_FORCE_RADIANS
@@ -65,18 +65,17 @@ void Engine::init() {
     gameData->skyboxMesh = Mesh::createSkybox(10);
     graphicsModule->RegisterMesh(*gameData->skyboxMesh);
 
-    shader = std::make_shared<Shader>("internal/shaders/basicShader.slang", "internal/shaders/basicShader.slang");
-    gShader = std::make_shared<Shader>("internal/shaders/goochShader.slang", "internal/shaders/goochShader.slang");
-    sbShader = std::make_shared<Shader>("internal/shaders/skybox.slang", "internal/shaders/skybox.slang");
-    pbr = std::make_shared<Shader>("internal/shaders/PBR.slang", "internal/shaders/PBR.slang");
+    basicShader = AssetManager::LoadAsset<graphics::ShaderAsset>("internal/shaders/basicShader.shader.tui");
+    gShader = AssetManager::LoadAsset<graphics::ShaderAsset>("internal/shaders/goochShader.shader.tui");
+    sbShader = AssetManager::LoadAsset<graphics::ShaderAsset>("internal/shaders/skybox.shader.tui");
+    pbr = AssetManager::LoadAsset<graphics::ShaderAsset>("internal/shaders/PBR.shader.tui");
+    spriteShader = AssetManager::LoadAsset<graphics::ShaderAsset>("internal/shaders/sprite.shader.tui");
     sbShader->properties.depthWrite = DepthWrite::Disabled;
-    sbShader->Update();
-
-    spriteShader = std::make_shared<Shader>("internal/shaders/sprite.slang", "internal/shaders/sprite.slang");
-    // spriteShader->properties.depthTest = CompareOp::Always;
+    sbShader->Reload();
     spriteShader->properties.depthWrite = DepthWrite::Disabled;
+    spriteShader->Reload();
+    // spriteShader->properties.depthTest = CompareOp::Always;
     // spriteShader->properties.drawMode = DrawMode::Wireframe;
-    spriteShader->Update();
     // Shader* pbr = shaderPool.New(pbrShader, pbrShader);
 
 
@@ -136,8 +135,8 @@ void Engine::init() {
     testSpriteStretch.SetBottom(8);
     testSpriteStretch.name = "environment_wall_stone";
 
-    graphics::Material *yella = gameData->materials.New(shader, "Yeller");
-    graphics::Material *blue = gameData->materials.New(shader, "Bloo");
+    graphics::Material *yella = gameData->materials.New(basicShader, "Yeller");
+    graphics::Material *blue = gameData->materials.New(basicShader, "Bloo");
     graphics::Material *pbrMat = gameData->materials.New(pbr, "Justin Pbr");
     graphics::Material *skyboxMat = gameData->materials.New(sbShader, "Skybox");
     graphics::Material *spriteMat = gameData->materials.New(spriteShader, "Shprite");
@@ -261,11 +260,11 @@ void Engine::update(double deltaTime)
     if(core::Input::getKeyDown(GLFW_KEY_R))
     {
         // TODO: Make a better system for this
-        shader->Compile();
-        gShader->Compile();
-        sbShader->Compile();
-        pbr->Compile();
-        spriteShader->Compile();
+        basicShader->Reload();
+        gShader->Reload();
+        sbShader->Reload();
+        pbr->Reload();
+        spriteShader->Reload();
     }
 
     if(core::Input::getKeyDown(GLFW_KEY_F10))

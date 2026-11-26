@@ -40,7 +40,7 @@ void Console::pushMessage(ConsoleMessage& message)
 
 void Console::logRaw(const string_view message, bool terminalOnly)
 {
-    ConsoleMessage newMessage{message.data(), ConsoleMessage::NONE};
+    ConsoleMessage newMessage{message.data(), ConsoleMessage::Type::None};
     cout << message << endl; // Print to standard output
     if(!terminalOnly)
         pushMessage(newMessage);
@@ -48,7 +48,7 @@ void Console::logRaw(const string_view message, bool terminalOnly)
 
 void Console::log(const string_view message, const string_view source, bool terminalOnly)
 {
-    ConsoleMessage newMessage = constructMessage(message, source, ConsoleMessage::INFO);
+    ConsoleMessage newMessage = constructMessage(message, source, ConsoleMessage::Type::Info);
     cout << ANSIgray << "[INFO]\t" << ANSIreset << newMessage.message << consoleEndl; // Print to standard output
     if(!terminalOnly)
         pushMessage(newMessage);
@@ -59,7 +59,7 @@ void Console::debug(const string_view message, const string_view source, bool te
     #ifndef DEBUG
     return; // Strip debug messages in release mode
     #endif
-    ConsoleMessage newMessage = constructMessage(message, source, ConsoleMessage::DEBUG_T);
+    ConsoleMessage newMessage = constructMessage(message, source, ConsoleMessage::Type::Debug);
     cout << ANSIgreen << "[DEBUG]\t" << ANSIreset << newMessage.message << consoleEndl; // Print to standard output
     if(!terminalOnly)
         pushMessage(newMessage);
@@ -67,7 +67,7 @@ void Console::debug(const string_view message, const string_view source, bool te
 
 void Console::warn(const string_view message, const string_view source, bool terminalOnly)
 {
-    ConsoleMessage newMessage = constructMessage(message, source, ConsoleMessage::WARNING);
+    ConsoleMessage newMessage = constructMessage(message, source, ConsoleMessage::Type::Warning);
     cout << ANSIyellow << "[WARNING] " << ANSIreset << newMessage.message << consoleEndl; // Print to standard output
     if(!terminalOnly)
         pushMessage(newMessage);
@@ -75,7 +75,7 @@ void Console::warn(const string_view message, const string_view source, bool ter
 
 void Console::error(const string_view message, const string_view source, bool terminalOnly)
 {
-    ConsoleMessage newMessage = constructMessage(message, source, ConsoleMessage::ERROR);
+    ConsoleMessage newMessage = constructMessage(message, source, ConsoleMessage::Type::Error);
     cout << ANSIred << "[ERROR]\t" << ANSIreset << newMessage.message << endl; // Print to standard output
     if(!terminalOnly)
         pushMessage(newMessage);
@@ -136,22 +136,22 @@ void Console::drawImGui()
 
             switch(message.type)
             {
-                case ConsoleMessage::INFO:
+                case ConsoleMessage::Type::Info:
                     ImGui::TextColored(ImVec4(0.5,0.5,0.5,1), "[INFO]");
                     ImGui::SameLine();
                     break;
 
-                case ConsoleMessage::DEBUG_T:
+                case ConsoleMessage::Type::Debug:
                     ImGui::TextColored(ImVec4(0,1,0,1), "[DEBUG]");
                     ImGui::SameLine();
                     break;
                 
-                case ConsoleMessage::WARNING:
+                case ConsoleMessage::Type::Warning:
                     ImGui::TextColored(ImVec4(1,1,0,1), "[WARNING]");
                     ImGui::SameLine();
                     break;
                 
-                case ConsoleMessage::ERROR:
+                case ConsoleMessage::Type::Error:
                     ImGui::TextColored(ImVec4(1,0,0,1), "[ERROR]");
                     ImGui::SameLine();
                     break;

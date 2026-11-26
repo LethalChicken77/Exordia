@@ -6,13 +6,13 @@ namespace graphics
 {
 
 
-GraphicsPipeline::GraphicsPipeline(internal::Device& device, const Shader &shader, vk::PipelineCache cache)
+GraphicsPipeline::GraphicsPipeline(internal::Device& device, ShaderConst shader, vk::PipelineCache cache)
     : m_device(device),
     m_materialSetLayout(createDescriptorSetLayout(shader))
 {
-    m_configInfo.SetShaderConfig(shader.properties);
-    m_vertexLayout = shader.GetVertexLayout();
-    m_instanceLayout = shader.GetInstanceLayout();
+    m_configInfo.SetShaderConfig(shader->properties);
+    m_vertexLayout = shader->GetVertexLayout();
+    m_instanceLayout = shader->GetInstanceLayout();
     createPipelineLayout(shader);
     createPipeline(shader, cache);
 }
@@ -41,7 +41,7 @@ void GraphicsPipeline::Bind(vk::CommandBuffer commandBuffer)
     commandBuffer.bindPipeline(vk::PipelineBindPoint::eGraphics, m_pipeline);
 }
 
-void GraphicsPipeline::createPipelineLayout(const Shader &shader)
+void GraphicsPipeline::createPipelineLayout(ShaderConst shader)
 {
     // VkPushConstantRange pushConstantRange{};
     // pushConstantRange.stageFlags = VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT;
@@ -124,12 +124,12 @@ std::vector<vk::VertexInputAttributeDescription> GraphicsPipeline::createVertexA
     return attrDescriptions;
 }
 
-void GraphicsPipeline::createPipeline(const Shader &shader, vk::PipelineCache cache)
+void GraphicsPipeline::createPipeline(ShaderConst shader, vk::PipelineCache cache)
 {
     assert(m_pipelineLayout != nullptr && "Cannot create graphics pipeline:: layout is null");
 
-    vk::ShaderModuleCreateInfo vsModuleCreateInfo = createShaderModuleInfo(shader.GetVertSpirv());
-    vk::ShaderModuleCreateInfo fsModuleCreateInfo = createShaderModuleInfo(shader.GetFragSpirv());
+    vk::ShaderModuleCreateInfo vsModuleCreateInfo = createShaderModuleInfo(shader->GetVertSpirv());
+    vk::ShaderModuleCreateInfo fsModuleCreateInfo = createShaderModuleInfo(shader->GetFragSpirv());
 
     vk::PipelineShaderStageCreateInfo shaderStages[2];
     shaderStages[0].stage = vk::ShaderStageFlagBits::eVertex;
@@ -147,7 +147,7 @@ void GraphicsPipeline::createPipeline(const Shader &shader, vk::PipelineCache ca
     shaderStages[1].pNext = &fsModuleCreateInfo;
 
     
-    Console::debug(shader.GetVertexLayout().ToString(), "CreatePipeline");
+    Console::debug(shader->GetVertexLayout().ToString(), "CreatePipeline");
     std::vector<vk::VertexInputBindingDescription> bindingDescriptions = createVertexBindings();
     std::vector<vk::VertexInputAttributeDescription> attributeDescriptions = createVertexAttributes();
     vk::PipelineVertexInputStateCreateInfo vertexInputInfo{};
@@ -195,11 +195,11 @@ void GraphicsPipeline::createPipeline(const Shader &shader, vk::PipelineCache ca
 }
 
 using BindingType = ShaderLayout::BindingType;
-DescriptorSetLayout GraphicsPipeline::createDescriptorSetLayout(const Shader &shader)
+DescriptorSetLayout GraphicsPipeline::createDescriptorSetLayout(ShaderConst shader)
 {        
     DescriptorSetLayout::Builder builder{m_device};
-    const ShaderLayout &layout = shader.GetLayout();
-    const ShaderLayout::DescriptorSetInfo *setInfo = shader.GetLayout().GetMaterialDescriptorSet();
+    const ShaderLayout &layout = shader->GetLayout();
+    const ShaderLayout::DescriptorSetInfo *setInfo = shader->GetLayout().GetMaterialDescriptorSet();
     if(setInfo == nullptr)
         return builder.BuildInPlace();
     for(const ShaderLayout::BindingInfo &bindingInfo : setInfo->bindings)

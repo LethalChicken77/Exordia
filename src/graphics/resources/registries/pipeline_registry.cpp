@@ -32,9 +32,9 @@ void PipelineRegistry::createPipelineCache()
 /// @brief Create a pipeline for a given shader
 /// @param shader 
 /// @return Handle for new pipeline, invalid on failure
-PipelineHandle PipelineRegistry::Register(Shader &shader)
+PipelineHandle PipelineRegistry::Register(Shader shader)
 {
-    if(IsValid(shader.graphicsHandle)) return shader.graphicsHandle; // Pipeline is already registered
+    if(IsValid(shader->graphicsHandle)) return shader->graphicsHandle; // Pipeline is already registered
 
     uint32_t index;
     if(freeList.size() > 0)
@@ -57,16 +57,16 @@ PipelineHandle PipelineRegistry::Register(Shader &shader)
     entry.inUse = true;
     entry.generation = nextGeneration++;
 
-    shader.graphicsHandle = {index, entry.generation};
-    return shader.graphicsHandle;
+    shader->graphicsHandle = {index, entry.generation};
+    return shader->graphicsHandle;
 }
 
 /// @brief Update the graphics mesh corresponding to an already registered mesh
 /// @param meshData 
 /// @return True on success, false on failure
-bool PipelineRegistry::Reload(Shader &shader)
+bool PipelineRegistry::Reload(Shader shader)
 {
-    PipelineHandle &handle = shader.graphicsHandle;
+    PipelineHandle &handle = shader->graphicsHandle;
     if(!handle.IsValid()) return false;
 
     Entry &entry = entries[handle.index];

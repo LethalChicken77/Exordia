@@ -42,11 +42,11 @@ private:
 
     static void windowRefreshCallback(GLFWwindow *window);
 
-    Ref<graphics::Shader> shader;
-    Ref<graphics::Shader> gShader;
-    Ref<graphics::Shader> sbShader;
-    Ref<graphics::Shader> pbr;
-    Ref<graphics::Shader> spriteShader;
+    graphics::Shader basicShader;
+    graphics::Shader gShader;
+    graphics::Shader sbShader;
+    graphics::Shader pbr;
+    graphics::Shader spriteShader;
     graphics::Sprite testSprite;
     graphics::Sprite testSpriteStretch;
 
