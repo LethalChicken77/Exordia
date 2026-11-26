@@ -1,12 +1,13 @@
 #include "scene.hpp"
 #include "modules.hpp"
 #include "temp_data.hpp"
+#include "object_manager.hpp"
 
 namespace core
 {
-void Scene_t::loadScene()
+void Scene::loadScene()
 {
-    Console::log("Loading scene: " + name, "Scene");
+    Console::log("Loading scene: ", "Scene");
     // Original vertex buffer testing code, must keep
     // Triangle
     // std::vector<GraphicsMesh::Vertex> vertices {
@@ -63,7 +64,7 @@ void Scene_t::loadScene()
     Console::log("Scene loaded with " + std::to_string(gameObjects.size()) + " game objects.", "Scene");
 }
 
-void Scene_t::update(double deltaTime)
+void Scene::update(double deltaTime)
 {
     int counter = 0;
     for(GameObject &obj : gameObjects)
@@ -89,7 +90,7 @@ void Scene_t::update(double deltaTime)
     }
 }
 
-void Scene_t::drawScene()
+void Scene::drawScene()
 {
     for(const GameObject& obj : gameObjects)
     {
@@ -108,16 +109,11 @@ void Scene_t::drawScene()
         // }
         // }
         // }
-        // graphicsModule.DrawMesh(obj->mesh, obj->materialID, transforms);
-        graphicsModule.DrawMesh(obj->mesh, *obj->material, obj->transform.getTransform(), obj->getInstanceID());
+        // graphicsModule->DrawMesh(obj->mesh, obj->materialID, transforms);
+        graphicsModule->DrawMesh(obj->mesh, *obj->material, obj->transform.getTransform(), obj->getInstanceID());
         // if(obj->getInstanceID() == selectedObject)
-        //     graphicsModule.drawMeshOutline(obj->mesh, obj->transform.getTransform());
+        //     graphicsModule->drawMeshOutline(obj->mesh, obj->transform.getTransform());
     }
 
-}
-
-Scene::Scene(const std::string& sceneName)
-{
-    ptr = ObjectManager::Instantiate<Scene_t>(sceneName);
 }
 } // namespace core

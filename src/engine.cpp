@@ -10,6 +10,7 @@
 #include "core/asset_manager.hpp"
 
 #include "graphics/api/resources/shader.hpp"
+#include "object_manager.hpp"
 
 #define GLM_FORCE_RADIANS
 #define GLM_FORCE_DEPTH_ZERO_TO_ONE
@@ -40,42 +41,40 @@ namespace core
 
 Engine::Engine()
 {
+    graphicsModule = std::make_unique<Graphics>(APPLICATION_NAME, ENGINE_NAME);
+
+    if(!graphicsModule->IsOpen())
+    {
+        throw std::runtime_error("Failed to initialize graphics");
+    }
+
     gameData = std::make_unique<GameData>();
     init();
 }
 
 Engine::~Engine()
 {
+    scene.reset();
     gameData.reset();
+    ObjectManager::Destroy();
+    graphicsModule.reset();
     close();
 }
 
-void Engine::init()
-{
+void Engine::init() {
     gameData->skyboxMesh = Mesh::createSkybox(10);
-    graphicsModule.RegisterMesh(*gameData->skyboxMesh);
-    Console::log("Shit");
+    graphicsModule->RegisterMesh(*gameData->skyboxMesh);
 
-    // ShaderAsset *testShader = AssetManager::LoadAsset<ShaderAsset>("internal/shaders/test_shader.slang");
-    // testShader->LoadData();
-    // graphics::Shader* ts = gameData->shaderPool.New(testShader, testShader);
-    Ref<ShaderCodeAsset> basicShader = AssetManager::LoadAsset<ShaderCodeAsset>("internal/shaders/basicShader.slang");
-    Ref<ShaderCodeAsset> goochShader = AssetManager::LoadAsset<ShaderCodeAsset>("internal/shaders/goochShader.slang");
-    Ref<ShaderCodeAsset> pbrShader = AssetManager::LoadAsset<ShaderCodeAsset>("internal/shaders/PBR.slang");
-    Ref<ShaderCodeAsset> skyboxShader = AssetManager::LoadAsset<ShaderCodeAsset>("internal/shaders/skybox.slang");
-    Ref<ShaderCodeAsset> spriteShaderA = AssetManager::LoadAsset<ShaderCodeAsset>("internal/shaders/sprite.slang");
-
-    // Shader shader = Shader(testShader, testShader);
-    // This is just to test memory pools, this will be replaced with a proper resource management system
-    shader = make_shared<Shader>(basicShader, basicShader);
-    gShader = make_shared<Shader>(goochShader, goochShader);
-    sbShader = make_shared<Shader>(skyboxShader, skyboxShader);
-    pbr = make_shared<Shader>(pbrShader, pbrShader);
+    shader = std::make_shared<Shader>("internal/shaders/basicShader.slang", "internal/shaders/basicShader.slang");
+    gShader = std::make_shared<Shader>("internal/shaders/goochShader.slang", "internal/shaders/goochShader.slang");
+    sbShader = std::make_shared<Shader>("internal/shaders/skybox.slang", "internal/shaders/skybox.slang");
+    pbr = std::make_shared<Shader>("internal/shaders/PBR.slang", "internal/shaders/PBR.slang");
     sbShader->properties.depthWrite = DepthWrite::Disabled;
     sbShader->Update();
 
-    spriteShader = make_shared<Shader>(spriteShaderA, spriteShaderA);
-    spriteShader->properties.depthTest = CompareOp::Always;
+    spriteShader = std::make_shared<Shader>("internal/shaders/sprite.slang", "internal/shaders/sprite.slang");
+    // spriteShader->properties.depthTest = CompareOp::Always;
+    spriteShader->properties.depthWrite = DepthWrite::Disabled;
     // spriteShader->properties.drawMode = DrawMode::Wireframe;
     spriteShader->Update();
     // Shader* pbr = shaderPool.New(pbrShader, pbrShader);
@@ -117,13 +116,13 @@ void Engine::init()
     texSpriteTileP->properties.minFilter = graphics::TextureFilterMode::Nearest;
     texSpriteTileP->properties.pixelsPerUnit = 16.f;
 
-    if(texa != nullptr) thA = graphicsModule.RegisterTexture(*texaP);
-    if(texr != nullptr) thR = graphicsModule.RegisterTexture(*texrP);
-    if(texm != nullptr) thM = graphicsModule.RegisterTexture(*texmP);
-    if(texs != nullptr) thS = graphicsModule.RegisterTexture(*texsP);
-    if(texn != nullptr) thN = graphicsModule.RegisterTexture(*texnP);
-    if(texSpriteP != nullptr) thSprite = graphicsModule.RegisterTexture(*texSpriteP);
-    if(texSpriteTileP != nullptr) thSpriteTile = graphicsModule.RegisterTexture(*texSpriteTileP);
+    if(texa != nullptr) thA = graphicsModule->RegisterTexture(*texaP);
+    if(texr != nullptr) thR = graphicsModule->RegisterTexture(*texrP);
+    if(texm != nullptr) thM = graphicsModule->RegisterTexture(*texmP);
+    if(texs != nullptr) thS = graphicsModule->RegisterTexture(*texsP);
+    if(texn != nullptr) thN = graphicsModule->RegisterTexture(*texnP);
+    if(texSpriteP != nullptr) thSprite = graphicsModule->RegisterTexture(*texSpriteP);
+    if(texSpriteTileP != nullptr) thSpriteTile = graphicsModule->RegisterTexture(*texSpriteTileP);
     testSprite.SetTexture(texSpriteP);
     testSprite.SetPosition({6, 96});
     testSprite.SetSize({20,32});
@@ -185,42 +184,41 @@ void Engine::init()
     // mat2.SetTexture("metallicMap", );
     // mat2.SetTexture("normalMap", );
 
-    graphicsModule.GraphicsInitImgui();
+    graphicsModule->GraphicsInitImgui();
     // ImGui::GetIO().ConfigFlags |= ImGuiConfigFlags_DockingEnable;
 
 
     Input::initializeKeys();
 
 
-    // CameraProperties camProps{};
-    // camProps.near = 0.01f;
-    // camProps.far = std::numeric_limits<float>::infinity();
-    // camera = Camera(camProps);
-    // cameraTransform.setPosition(glm::vec3(0.0f, 2.0f, 5.0f));
-    // cameraTransform.setRotation(glm::vec3(glm::radians(20.0f), glm::radians(-180.0f), 0.0f));
-
     CameraProperties camProps{};
-    camProps.orthographic = true;
-    camProps.near = 0.0001f;
-    camProps.far = 100.f;
-    camProps.vFov = 18.f;
-    camProps.reversedDepth = false;
+    camProps.near = 0.01f;
+    camProps.far = std::numeric_limits<float>::infinity();
     camera = Camera(camProps);
-    cameraTransform.setPosition(glm::vec3(0.0f, 0.0f, -10.0f));
-    cameraTransform.setRotation(glm::vec3(0.0f, 0.0f, 0.0f));
+    cameraTransform.setPosition(glm::vec3(0.0f, 2.0f, 5.0f));
+    cameraTransform.setRotation(glm::vec3(glm::radians(20.0f), glm::radians(-180.0f), 0.0f));
+
+    // CameraProperties camProps{};
+    // camProps.orthographic = true;
+    // camProps.near = 0.0001f;
+    // camProps.far = 100.f;
+    // camProps.vFov = 18.f;
+    // camProps.reversedDepth = false;
+    // camera = Camera(camProps);
+    // cameraTransform.setPosition(glm::vec3(0.0f, 0.0f, -10.0f));
+    // cameraTransform.setRotation(glm::vec3(0.0f, 0.0f, 0.0f));
 
     // camera = Camera(
     //     {0.01f, 100.0f, 20.0f},
     //     true
     // );
 
-    scene = Scene("Test");
-    scene->loadScene();
+    scene = std::make_unique<Scene>();
 }
 
 void Engine::close()
 {
-    // graphicsModule.cleanup();
+    // graphicsModule->cleanup();
 }
 
 void Engine::update(double deltaTime)
@@ -272,11 +270,11 @@ void Engine::update(double deltaTime)
 
     if(core::Input::getKeyDown(GLFW_KEY_F10))
     {
-        graphicsModule.GetWindow()->ToggleFullscreenBorderless();
+        graphicsModule->GetWindow()->ToggleFullscreenBorderless();
     }
     if(core::Input::getKeyDown(GLFW_KEY_F11))
     {
-        graphicsModule.GetWindow()->ToggleFullscreen();
+        graphicsModule->GetWindow()->ToggleFullscreen();
     }
 
     // TODO: Reimplement object selection
@@ -286,13 +284,13 @@ void Engine::update(double deltaTime)
     //     int mouseXPos = mousePos.x;
     //     int mouseYPos = mousePos.y;
     //     Console::debug(std::to_string(mouseXPos) + " " + std::to_string(mouseYPos));
-    //     Console::debug(std::to_string(graphicsModule.getClickedObjID(mouseXPos, mouseYPos)));
-    //     scene->selectedObject = graphicsModule.getClickedObjID(mouseXPos, mouseYPos);
+    //     Console::debug(std::to_string(graphicsModule->getClickedObjID(mouseXPos, mouseYPos)));
+    //     scene->selectedObject = graphicsModule->getClickedObjID(mouseXPos, mouseYPos);
     // }
 
     if(core::Input::getButtonDown(GLFW_MOUSE_BUTTON_RIGHT))
     {
-        glfwSetInputMode(graphicsModule.GetGLFWWindow(), GLFW_CURSOR, GLFW_CURSOR_DISABLED);
+        glfwSetInputMode(graphicsModule->GetGLFWWindow(), GLFW_CURSOR, GLFW_CURSOR_DISABLED);
     }
     if(core::Input::getButton(GLFW_MOUSE_BUTTON_RIGHT))
     {
@@ -304,7 +302,7 @@ void Engine::update(double deltaTime)
     }
     if(core::Input::getButtonUp(GLFW_MOUSE_BUTTON_RIGHT))
     {
-        glfwSetInputMode(graphicsModule.GetGLFWWindow(), GLFW_CURSOR, GLFW_CURSOR_NORMAL);
+        glfwSetInputMode(graphicsModule->GetGLFWWindow(), GLFW_CURSOR, GLFW_CURSOR_NORMAL);
     }
 
     scene->update(deltaTime);
@@ -314,7 +312,7 @@ void Engine::run()
 {
     // camera.transform.parent = &scene->getGameObjects()[0]->transform;
 
-    // graphicsModule.SetCamera(&camera);
+    // graphicsModule->SetCamera(&camera);
 
     VkDescriptorSet viewPortDS = nullptr;
 
@@ -323,14 +321,14 @@ void Engine::run()
     double time = 0.0f;
     double deltaTime = 0.0f;
     // Main loop
-    while (graphicsModule.IsOpen()) {
+    while (graphicsModule->IsOpen()) {
         // Poll for and process events
         glfwPollEvents();
         
         // TODO: Reimplement
         // if(core::Input::getKeyDown(GLFW_KEY_R))
         // {
-        //     graphicsModule.ReloadShaders();
+        //     graphicsModule->ReloadShaders();
         // }
 
 
@@ -344,9 +342,9 @@ void Engine::run()
         // ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(0,0));
         // ImGui::Begin("Viewport", nullptr, ImGuiWindowFlags_NoDecoration);
         // ImVec2 size = ImGui::GetContentRegionAvail();
-        // graphicsModule.viewportSize = VkExtent2D{(uint32_t)size.x, (uint32_t)size.y};
-        // graphicsModule.updateExtent();
-        // viewPortDS = graphicsModule.getViewportDescriptorSet();
+        // graphicsModule->viewportSize = VkExtent2D{(uint32_t)size.x, (uint32_t)size.y};
+        // graphicsModule->updateExtent();
+        // viewPortDS = graphicsModule->getViewportDescriptorSet();
         // if(viewPortDS != nullptr)
         // {
         //     ImGui::Image((void*)reinterpret_cast<uintptr_t>(viewPortDS), size);
@@ -394,7 +392,7 @@ void Engine::run()
         // ImGui::UpdatePlatformWindows();
         // ImGui::RenderPlatformWindowsDefault();
         // Input
-        Input::processInput(graphicsModule.GetGLFWWindow());
+        Input::processInput(graphicsModule->GetGLFWWindow());
         
         if(core::Input::getKeyDown(GLFW_KEY_ESCAPE))
         {
@@ -410,15 +408,15 @@ void Engine::run()
 
         Transform skyboxTransform{};
         skyboxTransform.setPosition(cameraTransform.getPosition());
-        graphicsModule.DrawMesh(gameData->skyboxMesh, *gameData->skyboxMaterial, skyboxTransform.getTransform(), -1); // Draw skybox
-        graphicsModule.DrawSprite({testSpriteStretch, {29,29}, SpriteDrawMode::Tile}, *gameData->materials.Get(5), glm::identity<glm::mat4>(), -1);
-        graphicsModule.DrawSprite(testSprite, *gameData->materials.Get(4), glm::identity<glm::mat4>(), -1);
+        graphicsModule->DrawMesh(gameData->skyboxMesh, *gameData->skyboxMaterial, skyboxTransform.getTransform(), -1); // Draw skybox
+        graphicsModule->DrawSprite({testSpriteStretch, {29,29}, SpriteDrawMode::Tile}, *gameData->materials.Get(5), glm::identity<glm::mat4>(), -1);
+        graphicsModule->DrawSprite(testSprite, *gameData->materials.Get(4), glm::identity<glm::mat4>(), -1);
         scene->drawScene();
         // Render here
-        camera.setAspectRatio(graphicsModule.GetAspectRatio());
+        camera.setAspectRatio(graphicsModule->GetAspectRatio());
         camera.SetTransform(cameraTransform.getTransform());
-        graphicsModule.SetCamera(camera);
-        graphicsModule.DrawFrame();
+        graphicsModule->SetCamera(camera);
+        graphicsModule->DrawFrame();
 
         // std::cout << "Delta time: " << deltaTime << std::endl;
     }

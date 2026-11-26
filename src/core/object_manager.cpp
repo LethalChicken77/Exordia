@@ -17,4 +17,10 @@ void ObjectManager::drawImGui()
     }
     ImGui::End();
 }
+
+void ObjectManager::Destroy()
+{
+    ObjectManager::objectIDDictionary.clear();
+    ObjectManager::objectList.clear();
+}
 } // namespace core

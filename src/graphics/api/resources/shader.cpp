@@ -1,26 +1,26 @@
 #include "shader.hpp"
 #include <slang-com-ptr.h>
+#include "asset.hpp"
+#include "graphics/api/assets/shader_asset.hpp"
+#include "graphics/api/shader_config.hpp"
 #include "spirv_reflect.h"
 #include <slang.h>
 #include "utils/debug.hpp"
 #include "graphics/api/shader_compile.hpp"
 #include "modules.hpp"
+#include "core/asset_manager.hpp"
 
 namespace graphics
 {
 
-Shader::Shader(Ref<ShaderCodeAsset> vertAsset, Ref<ShaderCodeAsset> fragAsset)
-    : vertexShaderCode(vertAsset),
-    fragmentShaderCode(fragAsset)
-{
-    Compile();
-}
+Shader::Shader(std::string_view vertAssetPath, std::string_view fragAssetPath)
+    : Shader(vertAssetPath, fragAssetPath, ShaderProperties{}) { }
 
-Shader::Shader(Ref<ShaderCodeAsset> vertAsset, Ref<ShaderCodeAsset> fragAsset, const ShaderProperties& _properties)
-    : vertexShaderCode(vertAsset),
-    fragmentShaderCode(fragAsset),
-    properties(_properties)
+Shader::Shader(std::string_view vertAssetPath, std::string_view fragAssetPath, const ShaderProperties& _properties)
+    : properties(_properties)
 {
+    vertexShaderCode = core::AssetManager::LoadAsset<ShaderCodeAsset>(vertAssetPath);
+    fragmentShaderCode = core::AssetManager::LoadAsset<ShaderCodeAsset>(fragAssetPath);
     Compile();
 }
 
@@ -56,7 +56,7 @@ void Shader::Compile()
         vertSpirv = tempVertSpirv;
         fragSpirv = tempFragSpirv;
         // layout = ShaderLayout(fragSpirv);
-        graphicsModule.UpdateShader(*this);
+        graphicsModule->UpdateShader(*this);
     }
     vertexShaderCode->Unload();
     fragmentShaderCode->Unload();
@@ -65,7 +65,7 @@ void Shader::Compile()
 void Shader::Update()
 {
     if(isValid)
-        graphicsModule.UpdateShader(*this);
+        graphicsModule->UpdateShader(*this);
 }
 
 void ComputeShader::Compile()

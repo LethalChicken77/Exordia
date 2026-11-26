@@ -25,20 +25,14 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE prevInstance, PSTR cmdLine, in
     // SetupConsole();
     
     HandleSignals();
-    // graphicsModule.init(APPLICATION_NAME, ENGINE_NAME);
-    
-    if(!graphicsModule.IsOpen())
-    {
-        Console::error("Failed to initialize graphics");
-        return -1;
-    }
+    // graphicsModule->init(APPLICATION_NAME, ENGINE_NAME);
 
     Engine engine{};
 
     engine.run();
     
-    // graphicsModule.WaitForDevice();
-    // graphicsModule.cleanup();
+    // graphicsModule->WaitForDevice();
+    // graphicsModule->cleanup();
 
     return 0;
 }
@@ -46,20 +40,15 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE prevInstance, PSTR cmdLine, in
 int main() 
 {
     HandleSignals();
-    // graphicsModule.init(APPLICATION_NAME, ENGINE_NAME);
+    // graphicsModule->init(APPLICATION_NAME, ENGINE_NAME);
     
-    if(!graphicsModule.IsOpen())
-    {
-        Console::error("Failed to initialize graphics");
-        return -1;
-    }
 
     Engine engine{};
 
     engine.run();
     
-    // graphicsModule.WaitForDevice();
-    // graphicsModule.cleanup();
+    // graphicsModule->WaitForDevice();
+    // graphicsModule->cleanup();
 
     return 0;
 }

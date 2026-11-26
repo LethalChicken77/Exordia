@@ -10,7 +10,6 @@
 namespace core
 {
     class AssetData; // Needed to ensure assets are not directly instantiated
-    class AssetManagerOld;
     class ObjectManager
     {
         public:
@@ -27,6 +26,8 @@ namespace core
             static bool deleteObject(id_t objID); // TODO: Implement
 
             static void drawImGui();
+
+            static void Destroy();
         private:
             template<class T>
             static T *InstantiateInternal(const std::string& name = "New Object")
@@ -44,7 +45,5 @@ namespace core
             static std::unordered_map<id_t, Object*> objectIDDictionary; // Easy accessing via index
             // std::unordered_map<std::string, Object*> objectNameDictionary; // Easy accessing via index // TODO: Implement later to account for renaming
             static std::vector<std::unique_ptr<Object>> objectList; // Where objects live in memory
-
-            friend class AssetManagerOld;
     };
 } // namespace core

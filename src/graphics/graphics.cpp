@@ -336,6 +336,7 @@ namespace graphics
 
     void Graphics::GraphicsInitImgui()
     {
+        Console::log("Creating ImGui context");
         // std::cout << "Configuring IMGUI" << std::endl;
         IMGUI_CHECKVERSION();
         ImGui::CreateContext();

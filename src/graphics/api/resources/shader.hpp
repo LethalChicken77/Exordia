@@ -17,8 +17,8 @@ namespace graphics
 class Shader
 {
 public:
-    Shader(Ref<ShaderCodeAsset> vertAsset, Ref<ShaderCodeAsset> fragAsset);
-    Shader(Ref<ShaderCodeAsset> vertAsset, Ref<ShaderCodeAsset> fragAsset, const ShaderProperties& properties);
+    Shader(std::string_view vertAssetPath, std::string_view fragAssetPath);
+    Shader(std::string_view vertAssetPath, std::string_view fragAssetPath, const ShaderProperties& properties);
     ~Shader() = default;
 
     Shader(const Shader&) = delete;

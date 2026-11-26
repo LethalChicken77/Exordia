@@ -65,7 +65,10 @@ class Graphics
         GLFWwindow* GetGLFWWindow() const { return graphicsData->GetWindow()->GetWindow(); }
         float GetAspectRatio() const { return graphicsData->GetWindow()->GetAspectRatio(); }
 
-        bool IsOpen() const { return graphicsData->GetWindow()->IsOpen(); }
+        bool IsOpen() const 
+        { 
+            return graphicsData->GetWindow() && graphicsData->GetWindow()->IsOpen(); 
+        }
         inline internal::Device &GetDevice() { return graphicsData->GetBackend().GetDevice(); }
         void GraphicsInitImgui();
     private:

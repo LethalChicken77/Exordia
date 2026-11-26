@@ -57,7 +57,7 @@ Material::Material(Ref<const Shader> _shader, const std::string_view _name)
 
 Material::~Material()
 {
-    graphicsModule.DeregisterMaterial(*this);
+    graphicsModule->DeregisterMaterial(*this);
 }
 
 /// @brief Assign a texture to a material via a texture handle.
@@ -160,7 +160,7 @@ void Material::UpdateLayout(bool updateVals)
 void Material::UpdateValues()
 {
     // Console::debugf("Updating material: {}", name);
-    graphicsModule.RegisterMaterial(*this);
+    graphicsModule->RegisterMaterial(*this);
 }
 
 bool Material::validateLayout() const noexcept

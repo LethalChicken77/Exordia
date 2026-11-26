@@ -17,7 +17,7 @@ namespace core
 
 MeshData::~MeshData()
 {
-    graphicsModule.DeregisterMesh(*this);
+    graphicsModule->DeregisterMesh(*this);
 }
 
 MeshData::MeshData(MeshData&& other)
@@ -37,9 +37,9 @@ void MeshData::SetMesh(const std::vector<Vertex>& _vertices, const std::vector<u
         triangles.push_back({_indices[i], _indices[i + 1], _indices[i + 2]});
     }
     if(graphicsHandle.IsValid())
-        graphicsModule.UpdateMesh(*this);
+        graphicsModule->UpdateMesh(*this);
     else
-        graphicsModule.RegisterMesh(*this);
+        graphicsModule->RegisterMesh(*this);
 }
 
 void MeshData::SetMesh(const std::vector<Vertex>& _vertices, const std::vector<Triangle>& _triangles)
@@ -50,17 +50,17 @@ void MeshData::SetMesh(const std::vector<Vertex>& _vertices, const std::vector<T
     // if(useIndexBuffer)
     //     createIndexBuffer();
     if(graphicsHandle.IsValid())
-        graphicsModule.UpdateMesh(*this);
+        graphicsModule->UpdateMesh(*this);
     else
-        graphicsModule.RegisterMesh(*this);
+        graphicsModule->RegisterMesh(*this);
 }
 
 void MeshData::UpdateOnGPU()
 {
     if(graphicsHandle.IsValid())
-        graphicsModule.UpdateMesh(*this);
+        graphicsModule->UpdateMesh(*this);
     else
-        graphicsModule.RegisterMesh(*this);
+        graphicsModule->RegisterMesh(*this);
 }
 
 float angleBetween(glm::vec3 v1, glm::vec3 v2)
@@ -73,7 +73,7 @@ Mesh::Mesh(std::vector<Vertex> &vertices, const std::string& objectName)
     meshData = std::make_shared<MeshData>();
     meshData->name = objectName;
     meshData->SetMesh(vertices, std::vector<uint32_t>{});
-    // graphicsModule.setGraphicsMesh(*this);
+    // graphicsModule->setGraphicsMesh(*this);
 }
 
 Mesh::Mesh(std::vector<Vertex> &vertices, std::vector<uint32_t> &indices, const std::string& objectName)
@@ -81,7 +81,7 @@ Mesh::Mesh(std::vector<Vertex> &vertices, std::vector<uint32_t> &indices, const 
     meshData = std::make_shared<MeshData>();
     meshData->name = objectName;
     meshData->SetMesh(vertices, indices);
-    // graphicsModule.setGraphicsMesh(*this);
+    // graphicsModule->setGraphicsMesh(*this);
 }
 
 Mesh::Mesh(std::vector<Vertex> &vertices, std::vector<Triangle> &triangles, const std::string& objectName)
@@ -89,7 +89,7 @@ Mesh::Mesh(std::vector<Vertex> &vertices, std::vector<Triangle> &triangles, cons
     meshData = std::make_shared<MeshData>();
     meshData->name = objectName;
     meshData->SetMesh(vertices, triangles);
-    // graphicsModule.setGraphicsMesh(*this);
+    // graphicsModule->setGraphicsMesh(*this);
 }
 
 void Mesh::generateNormals()

@@ -30,7 +30,7 @@ public:
 
     void init();
     void close();
-    bool isOpen() const { return graphicsModule.GetWindow()->IsOpen(); }
+    bool isOpen() const { return graphicsModule->GetWindow()->IsOpen(); }
 
     void run();
 
@@ -50,7 +50,7 @@ private:
     graphics::Sprite testSprite;
     graphics::Sprite testSpriteStretch;
 
-    Scene scene;
+    std::unique_ptr<Scene> scene;
 
     Camera camera{};
     Transform cameraTransform{};
