@@ -1,6 +1,5 @@
 #pragma once
 #include "graphics/api/assets/shader_asset.hpp"
-#include "shader.hpp"
 #include "utils/packing.hpp"
 #include "graphics/api/handles.hpp"
 

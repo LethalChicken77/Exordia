@@ -70,10 +70,6 @@ void Engine::init() {
     sbShader = AssetManager::LoadAsset<graphics::ShaderAsset>("internal/shaders/skybox.shader.tui");
     pbr = AssetManager::LoadAsset<graphics::ShaderAsset>("internal/shaders/PBR.shader.tui");
     spriteShader = AssetManager::LoadAsset<graphics::ShaderAsset>("internal/shaders/sprite.shader.tui");
-    sbShader->properties.depthWrite = DepthWrite::Disabled;
-    sbShader->Reload();
-    spriteShader->properties.depthWrite = DepthWrite::Disabled;
-    spriteShader->Reload();
     // spriteShader->properties.depthTest = CompareOp::Always;
     // spriteShader->properties.drawMode = DrawMode::Wireframe;
     // Shader* pbr = shaderPool.New(pbrShader, pbrShader);

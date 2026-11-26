@@ -2,6 +2,7 @@
 
 #include "asset.hpp"
 #include "core/asset_manager.hpp"
+#include "graphics/api/shader_config.hpp"
 #include "modules.hpp"
 #include "utils/debug.hpp"
 #include "graphics/api/shader_compile.hpp"
@@ -10,11 +11,14 @@
 #include "TuiScript.h"
 
 #include <memory>
+#include <cmath>
+#include <type_traits>
 #include <slang-com-ptr.h>
 #include <slang.h>
 
 namespace graphics
 {
+
 
 void ShaderCodeAsset::Load() {
     if(!loadFile()) {
@@ -28,6 +32,79 @@ void ShaderCodeAsset::Unload() {
     unloadFile();
 }
 
+template<typename Enum>
+bool readEnum(tui::table table, const char* key, Enum& value, Enum min, Enum max)
+{
+    tui::ref ref = table->get(key);
+    if(!ref)
+        return true;
+    Console::log("1" + std::string(key));
+
+    if(!ref->isNumber())
+        return false;
+    Console::log("2" + std::string(key));
+
+    double number = ref->numberValue();
+
+    if(!std::isfinite(number) || std::trunc(number) != number ||
+        number < static_cast<double>(min) || number > static_cast<double>(max))
+        return false;
+    Console::log("3" + std::string(key));
+
+    value = static_cast<Enum>(static_cast<std::underlying_type_t<Enum>>(number));
+    return true;
+}
+
+bool readBool(tui::table table, const char* key, bool& value)
+{
+    tui::ref ref = table->get(key);
+    if(!ref)
+        return true;
+
+    if(ref->type() != Tui_ref_type_BOOL)
+        return false;
+
+    value = ref->boolValue();
+    return true;
+}
+
+bool readFloat(tui::table table, const char* key, float& value)
+{
+    tui::ref ref = table->get(key);
+    if(!ref)
+        return true;
+
+    if(!ref->isNumber())
+        return false;
+
+    double number = ref->numberValue();
+    if(!std::isfinite(number))
+        return false;
+
+    float converted = static_cast<float>(number);
+    if(!std::isfinite(converted))
+        return false;
+
+    value = converted;
+    return true;
+}
+
+void parseProperties(tui::table table, ShaderProperties& props)
+{
+    table = table->getTable("properties");
+    if(!table)
+        return;
+
+    readEnum(table, "shaderType", props.shaderType, ShaderType::Lit, ShaderType::UI);
+    readEnum(table, "drawMode", props.drawMode, DrawMode::Fill, DrawMode::Points);
+    readEnum(table, "blendMode", props.blendMode, BlendMode::Opaque, BlendMode::Premultiply);
+    readEnum(table, "cullMode", props.cullMode, CullMode::None, CullMode::Both);
+    readEnum(table, "depthTest", props.depthTest, CompareOp::Never, CompareOp::Always);
+    readEnum(table, "depthWrite", props.depthWrite, DepthWrite::Auto, DepthWrite::Disabled);
+
+    readBool(table, "alphaClipping", props.alphaClipping);
+    readFloat(table, "alphaClippingThreshold", props.alphaClippingThreshold);
+}
 
 void ShaderAsset::Load() {
     m_status = core::AssetStatus::Loading;
@@ -72,6 +149,7 @@ void ShaderAsset::Load() {
         Console::error("Invalid shader setup", "ShaderAsset");
     }
 
+    parseProperties(table, properties);
     compile();
     if(m_status == core::AssetStatus::Invalid)
     {

@@ -28,7 +28,8 @@ bool Asset::loadFile()
     }
     if(m_fileLoaded)
     {
-        Console::warnf("File {} already loaded.", m_path.string(), "AssetData");
+        // Console::warnf("File {} already loaded.", m_path.string(), "AssetData");
+        return true;
     }
     m_fileData = FileUtil::ReadFile<std::vector<char>>(m_path);
     m_fileLoaded = true;
