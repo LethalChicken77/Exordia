@@ -14,7 +14,7 @@ void Sprite::SetTexture(TextureData* textureData)
         return;
     }
     texture = handle;
-    Texture* textureP = graphicsData->textureRegistry.Get(texture);
+    TextureResource* textureP = graphicsData->textureRegistry.Get(texture);
     textureSize = textureData->GetDimensions();
     texturePPU = textureData->properties.pixelsPerUnit;
     Validate();
@@ -22,7 +22,7 @@ void Sprite::SetTexture(TextureData* textureData)
 
 void Sprite::SetPosition(int x, int y)
 {
-    graphics::Texture* tex = graphicsData->textureRegistry.Get(texture);
+    graphics::TextureResource* tex = graphicsData->textureRegistry.Get(texture);
     if(tex == nullptr)
     {
         Console::errorf("Sprite {} has invalid texture handle", name, "Sprite");

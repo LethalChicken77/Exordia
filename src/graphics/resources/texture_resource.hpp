@@ -7,11 +7,11 @@ namespace graphics
 
 /// @brief Conainer for an image and a sampler.
 /// @note The sampler is required, for storage textures just use an image.
-class Texture
+class TextureResource
 {
 public:
-    Texture(internal::Device &_device, const TextureData &data);
-    Texture(const TextureData &data);
+    TextureResource(internal::Device &_device, Texture data);
+    TextureResource(Texture data);
 
     /// @brief Get Vulkan descriptor for this image. Does not include a sampler.
     /// @return Vulkan descriptor image info

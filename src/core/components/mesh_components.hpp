@@ -1,5 +1,5 @@
 #include "core/resources/mesh.hpp"
-#include "core/assets/material.hpp"
+#include "engine_types.hpp"
 
 namespace core
 {

@@ -1,0 +1,6 @@
+shader = "internal/shaders/basicShader.shader"
+materialInfo = {
+    color = vec3(1,1,1)
+    alphaClippingThreshold = 0.5
+    doAlphaClipping = true
+}

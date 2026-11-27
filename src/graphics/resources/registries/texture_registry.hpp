@@ -1,24 +1,25 @@
 #pragma once
 #include "registry.hpp"
 #include "graphics/api/resources/texture_data.hpp"
-#include "graphics/resources/texture.hpp"
+#include "graphics/resources/texture_resource.hpp"
 
 namespace graphics
 {
     
-class TextureRegistry : public GraphicsRegistry<Texture, TextureHandle>
+class TextureRegistry : public GraphicsRegistry<TextureResource, TextureHandle>
 {
 public:
     void Init();
-    TextureHandle Register(TextureData &texture);
-    bool Update(TextureData &texture);
-    using GraphicsRegistry<Texture, TextureHandle>::Deregister;
-    inline bool Deregister(TextureData &texture)
+    TextureHandle Register(Texture texture);
+    bool Update(Texture texture);
+    using GraphicsRegistry<TextureResource, TextureHandle>::Deregister;
+    inline bool Deregister(Texture texture)
     {
-        return Deregister(texture.graphicsHandle);
+        if(texture == nullptr) return false;
+        return Deregister(texture->graphicsHandle);
     }
 
-    [[nodiscard]] Texture* Get(TextureHandle handle) const;
+    [[nodiscard]] TextureResource* Get(TextureHandle handle) const;
 private:
     TextureHandle debugTextureHandle;
 };

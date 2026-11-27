@@ -5,13 +5,13 @@
 namespace graphics
 {
 
-GraphicsMaterial::GraphicsMaterial(const Material* _base, const GraphicsPipeline &pipeline, const TextureRegistry& textureRegistry, DescriptorPool &pool) 
+GraphicsMaterial::GraphicsMaterial(Material _base, const GraphicsPipeline &pipeline, const TextureRegistry& textureRegistry, DescriptorPool &pool) 
     : device(pool.GetDevice()),
     descriptorPool(pool),
-    base(_base),
-    layout(&pipeline.GetDescriptorSetLayout()),
-    name(_base->name)
+    layout(&pipeline.GetDescriptorSetLayout())
 {
+    shaderHandle = _base->shader->graphicsHandle;
+    name = _base->name;
     UpdateMaterial(_base, pipeline, textureRegistry);
 }
 
@@ -26,7 +26,7 @@ GraphicsMaterial::~GraphicsMaterial()
 /// @brief Update the values of the material buffer
 /// @param base Material to update the values with
 /// @return 
-void GraphicsMaterial::UpdateMaterial(const Material *_base, const GraphicsPipeline &pipeline, const TextureRegistry& textureRegistry)
+void GraphicsMaterial::UpdateMaterial(Material _base, const GraphicsPipeline &pipeline, const TextureRegistry& textureRegistry)
 {
     // if(descriptorSetInfo == *base->shader->GetLayout().GetMaterialDescriptorSet() && ubo->GetSize() == base->GetBufferSize())
     // {
@@ -41,13 +41,13 @@ void GraphicsMaterial::UpdateMaterial(const Material *_base, const GraphicsPipel
     DescriptorWriter writer = DescriptorWriter(pipeline.GetDescriptorSetLayout(), descriptorPool);
 
     empty = true;
-    if(base->GetData().size() != 0)
+    if(_base->GetData().size() != 0)
     {
-        if(ubo == nullptr || ubo->GetSize() != base->GetBufferSize())
+        if(ubo == nullptr || ubo->GetSize() != _base->GetBufferSize())
         {
             ubo = std::make_unique<Buffer>(
                 device,
-                base->GetData().size(),
+                _base->GetData().size(),
                 1,
                 vk::BufferUsageFlagBits::eUniformBuffer,
                 vk::MemoryPropertyFlagBits::eHostVisible | vk::MemoryPropertyFlagBits::eHostCoherent,
@@ -59,14 +59,14 @@ void GraphicsMaterial::UpdateMaterial(const Material *_base, const GraphicsPipel
         writer.WriteBuffer(MATERIAL_BUFFER_BINDING, bufferInfo);
         
         ubo->Map();
-        ubo->WriteData((void*)base->GetData().data(), base->GetData().size());
+        ubo->WriteData((void*)_base->GetData().data(), _base->GetData().size());
         ubo->Unmap();
         empty = false;
     }
 
-    for(const Material::TextureBinding &binding : base->GetTextureBindings())
+    for(const MaterialData::TextureBinding &binding : _base->GetTextureBindings())
     {
-        Texture *tex = textureRegistry.Get(binding.handle);
+        TextureResource *tex = textureRegistry.Get(binding.handle);
         if(tex == nullptr)
         {
             Console::warnf("Invalid texture handle for binding {}", binding.binding, "GraphicsMaterial");
@@ -84,7 +84,7 @@ void GraphicsMaterial::UpdateMaterial(const Material *_base, const GraphicsPipel
         writer.Overwrite(descriptorSet);
 }
 
-void GraphicsMaterial::updateData(const Material* base)
+void GraphicsMaterial::updateData(Material base)
 {
 }
 

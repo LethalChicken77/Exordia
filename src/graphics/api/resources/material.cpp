@@ -3,6 +3,7 @@
 #include "imgui.h"
 #include "imgui_extensions.hpp"
 #include "modules.hpp"
+#include <memory>
 
 using graphics::ShaderParameter;
 using graphics::BufferLayout;
@@ -10,7 +11,7 @@ using graphics::BufferLayout;
 namespace graphics
 {
 
-Material::Material(ShaderConst _shader, const std::string_view _name) 
+MaterialData::MaterialData(ShaderConst _shader, const std::string_view _name) 
     : shader(_shader),
     name(_name)
 {
@@ -52,12 +53,10 @@ Material::Material(ShaderConst _shader, const std::string_view _name)
             }
         }
     }
-    UpdateValues();
 }
 
-Material::~Material()
+MaterialData::~MaterialData()
 {
-    graphicsModule->DeregisterMaterial(*this);
 }
 
 /// @brief Assign a texture to a material via a texture handle.
@@ -65,7 +64,8 @@ Material::~Material()
 /// @param handle Texture handle.
 void Material::SetTexture(const std::string &name, TextureHandle handle)
 {
-    if(!textureIndex.contains(name))
+    if(!material) return;
+    if(!material->textureIndex.contains(name))
     {
         Console::errorf("Material has no texture named {}.", name);
         return;
@@ -76,19 +76,18 @@ void Material::SetTexture(const std::string &name, TextureHandle handle)
         return;
     }
 
-    textureBindings[textureIndex.at(name)].handle = handle;
-    UpdateValues();
+    material->textureBindings[material->textureIndex.at(name)].handle = handle;
 }
 
-void Material::SetTexture(const std::string &name, const TextureData& texture)
+void Material::SetTexture(const std::string &name, Texture texture)
 { 
-    SetTexture(name, texture.graphicsHandle); 
+    SetTexture(name, texture->graphicsHandle); 
 }
 
 /// @brief Create data buffers and index.
 /// Migrates old values if possible.
 /// @note Values will only be migrated if both the name and type match the old version.
-void Material::UpdateLayout(bool updateVals)
+void MaterialData::UpdateLayout(bool updateVals)
 {
     materialLayout = shader->GetLayoutPtr();
     std::vector<std::byte> oldData = data;
@@ -152,18 +151,9 @@ void Material::UpdateLayout(bool updateVals)
             }
         }
     }
-
-    if(updateVals)
-        UpdateValues();
 }
 
-void Material::UpdateValues()
-{
-    // Console::debugf("Updating material: {}", name);
-    graphicsModule->RegisterMaterial(*this);
-}
-
-bool Material::validateLayout() const noexcept
+bool MaterialData::validateLayout() const noexcept
 {
     if(materialLayout == nullptr)
     {
@@ -178,7 +168,7 @@ bool Material::validateLayout() const noexcept
     return true;
 }
 
-const ShaderParameter* Material::getShaderParameter(const std::string& paramName, const BufferLayout* materialInfoLayout)
+const ShaderParameter* MaterialData::getShaderParameter(const std::string& paramName, const BufferLayout* materialInfoLayout)
 {
     const graphics::ShaderParameter* param = materialInfoLayout->GetParameter(paramName);
     if(param == nullptr)
@@ -242,7 +232,8 @@ ImGuiDataType typeToImguiTypeScalar(TypeDescription td)
 
 bool Material::drawImGuiParam(const ShaderParameter& param)
 {
-    std::byte* dest = data.data() + param.offset;
+    if(!material) return false;
+    std::byte* dest = material->data.data() + param.offset;
     std::string baseParamName = param.name + "##" + std::to_string((uint64_t)this);
     const char* paramName = baseParamName.c_str();
     bool dirty = false;
@@ -372,23 +363,24 @@ bool Material::drawImGuiParam(const ShaderParameter& param)
 
 void Material::DrawImGui()
 {
-    ImGui::Text("%s", name.c_str());
-    if(!validateLayout())
+    if(!material) return;
+    ImGui::Text("%s", material->name.c_str());
+    if(!material->validateLayout())
     {
-        UpdateLayout();
+        material->UpdateLayout();
         return;
     }
-    if(materialLayout == nullptr) 
+    if(material->materialLayout == nullptr) 
     {
         ImGui::Text("Material layout is null.");
         return;
     }
     bool dirty = false;
-    for(const ShaderLayout::BindingInfo& binding : materialLayout->GetMaterialDescriptorSet()->bindings)
+    for(const ShaderLayout::BindingInfo& binding : material->materialLayout->GetMaterialDescriptorSet()->bindings)
     {
         if(binding.type.IsBuffer())
         {
-            const BufferLayout& buffLayout = materialLayout->GetBufferLayouts()[binding.bufferIndex];
+            const BufferLayout& buffLayout = material->materialLayout->GetBufferLayouts()[binding.bufferIndex];
             for(const ShaderParameter& param : buffLayout.GetParameters())
             {
                 dirty |= drawImGuiParam(param);
@@ -400,6 +392,24 @@ void Material::DrawImGui()
         }
     }
     if(dirty) UpdateValues();
+}
+
+Material::Material(ShaderConst shader, const std::string_view name)
+{
+    material = std::make_shared<MaterialData>(shader, name);
+    UpdateValues();
+}
+
+Material::~Material()
+{
+    if(material == nullptr || material.use_count() > 1) return;
+    graphicsModule->DeregisterMaterial(material);
+}
+
+void Material::UpdateValues()
+{
+    if(material == nullptr) return;
+    graphicsModule->RegisterMaterial(material);
 }
 
 } // namespace core

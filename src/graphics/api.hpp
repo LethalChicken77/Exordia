@@ -9,3 +9,5 @@ Includes all necessary types for use outside the graphics module. These are API 
 #include "api/resources/texture_data.hpp"
 #include "api/resources/material.hpp"
 #include "api/assets/shader_asset.hpp"
+#include "api/assets/material_asset.hpp"
+#include "api/assets/texture_asset.hpp"

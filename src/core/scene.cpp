@@ -33,7 +33,7 @@ void Scene::loadScene()
     // obj->mesh = graphics::GraphicsMesh::loadObj("internal/models/Nefertiti.obj");
     // obj->mesh->generateNormals();
     // obj->mesh->createBuffers();
-    obj->material = gameData->materials.Get(0);
+    obj->material = gameData->yellowMaterial->GetMaterial();
     obj->transform.setPosition(glm::vec3(2, 0, 0));
     // obj->transform.scale = glm::vec3(0.01f);
     // obj->transform.scale = glm::vec3(-0.01f, 0.01f, 0.01f); // TODO: Make sure negative scaling doesn't turn models inside out
@@ -42,18 +42,17 @@ void Scene::loadScene()
     // obj2.mesh = GraphicsMesh::loadObj("internal/models/monkey_high_res.obj");
     // obj2->mesh = Mesh::createGrid(250,250, {500.0f, 500.0f});
     obj2->mesh = terrainMesh;
-    // obj2->material = gameData->materials.Get(0);
-    obj2->material = gameData->materials.Get(2);
+    obj2->material = gameData->groundMaterial->GetMaterial();
     obj2->transform.setPosition(glm::vec3(0, -2, 0));
     obj2->transform.setScale(glm::vec3(16));
 
     obj3->mesh = monkeyMesh;
-    obj3->material = gameData->materials.Get(1);
+    obj3->material = gameData->blueMaterial->GetMaterial();
     obj3->transform.setPosition(glm::vec3(-4, 0, 0));
     obj3->transform.parent = &obj->transform;
 
     obj4->mesh = haloMesh;
-    obj4->material = gameData->materials.Get(1);
+    obj4->material = gameData->blueMaterial->GetMaterial();
     obj4->transform.setScale(glm::vec3(10000000));
     // obj3.mesh = GraphicsMesh::createSierpinskiPyramid(12.0f, 8);
     // obj3.materialID = 2;
@@ -110,7 +109,7 @@ void Scene::drawScene()
         // }
         // }
         // graphicsModule->DrawMesh(obj->mesh, obj->materialID, transforms);
-        graphicsModule->DrawMesh(obj->mesh, *obj->material, obj->transform.getTransform(), obj->getInstanceID());
+        graphicsModule->DrawMesh(obj->mesh, obj->material, obj->transform.getTransform(), obj->getInstanceID());
         // if(obj->getInstanceID() == selectedObject)
         //     graphicsModule->drawMeshOutline(obj->mesh, obj->transform.getTransform());
     }

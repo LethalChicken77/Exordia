@@ -11,9 +11,9 @@ import constants;
 // Material Descriptor Set
 struct MaterialInfo
 {
-    [Color] float4 tint;
+    [Color] float4 tint = float4(1,1,1,0);
     float saturation = 1.0;
-    float normalMapStrength;
+    float normalMapStrength = 1.0;
     float2 UVOffset = float2(0,0);
     float2 UVScale = float2(1,1);
 };
@@ -73,6 +73,7 @@ float4 fsMain(FIn input)
     // specular = specular * specular;
     // specular = specular * 0.1;
     float3 normalMapSample = normalMap.Sample(UV).xyz * 2.0 - 1.0;
+    normalMapSample *= float3(1,-1,1);
 
     normalMapSample *= float3(materialInfo.normalMapStrength, materialInfo.normalMapStrength, 1);
     normalMapSample = normalize(normalMapSample);
@@ -144,7 +145,7 @@ float4 fsMain(FIn input)
 
     // outColor = HSVtoRGB(float3(atan2(input.Position.z, input.Position.x) * 180 / PI, saturate(length(input.Position.zx) * 0.1), 0.5));
     // outColor = OklabToLinear(OklchToOklab(float3(0.7, clamp(length(input.Position.zx) * 0.1, 0, 0.4), atan2(input.Position.z, input.Position.x) * RADtoDEG)));
-    // outColor = albedo;
+
     return float4(outColor, 1.0);
     // return float4(normalMap.Sample(UV).xyz, 1.0);
 }

@@ -4,6 +4,10 @@
 #include <GLFW/glfw3.h>
 
 #include "engine.hpp"
+#include "asset.hpp"
+#include "asset_manager.hpp"
+#include "graphics/api/assets/material_asset.hpp"
+#include "graphics/api/resources/material.hpp"
 #include "modules.hpp"
 #include "core/input.hpp"
 #include "graphics/resources/graphics_mesh.hpp"
@@ -11,6 +15,7 @@
 
 #include "graphics/api/assets/shader_asset.hpp"
 #include "object_manager.hpp"
+#include "temp_data.hpp"
 
 #define GLM_FORCE_RADIANS
 #define GLM_FORCE_DEPTH_ZERO_TO_ONE
@@ -65,119 +70,37 @@ void Engine::init() {
     gameData->skyboxMesh = Mesh::createSkybox(10);
     graphicsModule->RegisterMesh(*gameData->skyboxMesh);
 
-    basicShader = AssetManager::LoadAsset<graphics::ShaderAsset>("internal/shaders/basicShader.shader.tui");
-    gShader = AssetManager::LoadAsset<graphics::ShaderAsset>("internal/shaders/goochShader.shader.tui");
-    sbShader = AssetManager::LoadAsset<graphics::ShaderAsset>("internal/shaders/skybox.shader.tui");
-    pbr = AssetManager::LoadAsset<graphics::ShaderAsset>("internal/shaders/PBR.shader.tui");
-    spriteShader = AssetManager::LoadAsset<graphics::ShaderAsset>("internal/shaders/sprite.shader.tui");
+    gameData->yellowMaterial = AssetManager::LoadAsset<MaterialAsset>("assets/basic_yellow.material");
+    gameData->blueMaterial = AssetManager::LoadAsset<MaterialAsset>("assets/basic_blue.material");
+    gameData->skyboxMaterial = AssetManager::LoadAsset<MaterialAsset>("assets/skybox.material");
+    gameData->spriteMaterial = AssetManager::LoadAsset<MaterialAsset>("assets/sprite.material");
+    gameData->spriteTiledMaterial = AssetManager::LoadAsset<MaterialAsset>("assets/sprite_tiled.material");
+    gameData->groundMaterial = AssetManager::LoadAsset<MaterialAsset>("assets/ground.material");
+
+    Ref<TextureAsset> textureTest = AssetManager::LoadAsset<TextureAsset>("assets/textures/rocky_terrain_02/rocky_terrain_02_diff_512.jpg");
+    Ref<TextureAsset> textureTest2 = AssetManager::LoadAsset<TextureAsset>("assets/textures/rocky_terrain_02/rocky_terrain_02_rough_512.exr");
     // spriteShader->properties.depthTest = CompareOp::Always;
     // spriteShader->properties.drawMode = DrawMode::Wireframe;
     // Shader* pbr = shaderPool.New(pbrShader, pbrShader);
 
+    // testSprite.SetTexture(texSpriteP);
+    // testSprite.SetPosition({6, 96});
+    // testSprite.SetSize({20,32});
+    // testSprite.name = "upgrade_rupture_core";
+    // testSpriteStretch.SetTexture(texSpriteTileP);
+    // testSpriteStretch.SetPosition({0,0});
+    // testSpriteStretch.SetSize(texSpriteTileP->GetDimensions());
+    // testSpriteStretch.SetLeft(8);
+    // testSpriteStretch.SetRight(8);
+    // testSpriteStretch.SetTop(8);
+    // testSpriteStretch.SetBottom(8);
+    // testSpriteStretch.name = "environment_wall_stone";
 
-    // std::unique_ptr<TextureData> texa = TextureData::LoadFromFile("./internal/textures/worn_tile_floor/worn_tile_floor_diff_1k.jpg");
-    // std::unique_ptr<TextureData> texr = TextureData::LoadFromFileEXR("./internal/textures/worn_tile_floor/worn_tile_floor_rough_1k.exr");
-    // std::unique_ptr<TextureData> texm = TextureData::LoadFromFileEXR("./internal/textures/defaults/default_metal.exr");
-    // std::unique_ptr<TextureData> texs = TextureData::LoadFromFileEXR("./internal/textures/defaults/default_spec.exr");
-    // std::unique_ptr<TextureData> texn = TextureData::LoadFromFileEXR("./internal/textures/worn_tile_floor/worn_tile_floor_nor_gl_1k.exr");
-    std::unique_ptr<TextureData> texa = TextureData::LoadFromFile("./internal/textures/rocky_terrain_02/rocky_terrain_02_diff_4k.jpg");
-    // std::unique_ptr<TextureData> texr = TextureData::LoadFromFile("./internal/textures/rocky_terrain_02/rocky_terrain_02_rough_512.png");
-    std::unique_ptr<TextureData> texr = TextureData::LoadFromFileEXR("./internal/textures/rocky_terrain_02/rocky_terrain_02_rough_4k.exr");
-    std::unique_ptr<TextureData> texm = TextureData::LoadFromFileEXR("./internal/textures/defaults/default_metal.exr");
-    std::unique_ptr<TextureData> texs = TextureData::LoadFromFileEXR("./internal/textures/rocky_terrain_02/rocky_terrain_02_spec_4k.exr");
-    std::unique_ptr<TextureData> texn = TextureData::LoadFromFileEXR("./internal/textures/rocky_terrain_02/rocky_terrain_02_nor_gl_4k.exr");
-    std::unique_ptr<TextureData> texSprite = TextureData::LoadFromFile("./assets/upgrades_inventory.png");
-    std::unique_ptr<TextureData> texSpriteTile = TextureData::LoadFromFile("./assets/environment_wall_stone_hot.png");
 
-    TextureHandle thA{};
-    TextureHandle thR{};
-    TextureHandle thM{};
-    TextureHandle thS{};
-    TextureHandle thN{};
-    TextureHandle thSprite{};
-    TextureHandle thSpriteTile{};
+    // spriteMat->SetTexture("mainTex", thSprite);
+    // spriteMatStretch->SetTexture("mainTex", thSpriteTile);
 
-    TextureData* texaP = gameData->textures.New(std::move(*texa));
-    TextureData* texrP = gameData->textures.New(std::move(*texr));
-    TextureData* texmP = gameData->textures.New(std::move(*texm));
-    TextureData* texsP = gameData->textures.New(std::move(*texs));
-    TextureData* texnP = gameData->textures.New(std::move(*texn));
-    TextureData* texSpriteP = gameData->textures.New(std::move(*texSprite));
-    TextureData* texSpriteTileP = gameData->textures.New(std::move(*texSpriteTile));
-    texSpriteP->properties.magFilter = graphics::TextureFilterMode::Nearest;
-    texSpriteP->properties.minFilter = graphics::TextureFilterMode::Nearest;
-    texSpriteP->properties.pixelsPerUnit = 16.f;
-    texSpriteTileP->properties.magFilter = graphics::TextureFilterMode::Nearest;
-    texSpriteTileP->properties.minFilter = graphics::TextureFilterMode::Nearest;
-    texSpriteTileP->properties.pixelsPerUnit = 16.f;
-
-    if(texa != nullptr) thA = graphicsModule->RegisterTexture(*texaP);
-    if(texr != nullptr) thR = graphicsModule->RegisterTexture(*texrP);
-    if(texm != nullptr) thM = graphicsModule->RegisterTexture(*texmP);
-    if(texs != nullptr) thS = graphicsModule->RegisterTexture(*texsP);
-    if(texn != nullptr) thN = graphicsModule->RegisterTexture(*texnP);
-    if(texSpriteP != nullptr) thSprite = graphicsModule->RegisterTexture(*texSpriteP);
-    if(texSpriteTileP != nullptr) thSpriteTile = graphicsModule->RegisterTexture(*texSpriteTileP);
-    testSprite.SetTexture(texSpriteP);
-    testSprite.SetPosition({6, 96});
-    testSprite.SetSize({20,32});
-    testSprite.name = "upgrade_rupture_core";
-    testSpriteStretch.SetTexture(texSpriteTileP);
-    testSpriteStretch.SetPosition({0,0});
-    testSpriteStretch.SetSize(texSpriteTileP->GetDimensions());
-    testSpriteStretch.SetLeft(8);
-    testSpriteStretch.SetRight(8);
-    testSpriteStretch.SetTop(8);
-    testSpriteStretch.SetBottom(8);
-    testSpriteStretch.name = "environment_wall_stone";
-
-    graphics::Material *yella = gameData->materials.New(basicShader, "Yeller");
-    graphics::Material *blue = gameData->materials.New(basicShader, "Bloo");
-    graphics::Material *pbrMat = gameData->materials.New(pbr, "Justin Pbr");
-    graphics::Material *skyboxMat = gameData->materials.New(sbShader, "Skybox");
-    graphics::Material *spriteMat = gameData->materials.New(spriteShader, "Shprite");
-    graphics::Material *spriteMatStretch = gameData->materials.New(spriteShader, "Shprite Stretch");
-    // skyboxMat->UpdateValues();
-    int64_t testVal = 69;
-    // mat.SetInt("test", testVal);
-    yella->SetColor3("color", Color(1.f, 0.8f, 0.3f));
-    yella->SetFloat("roughness", 0.2f);
-    yella->SetFloat("metallic", 0.0f);
-
-    blue->SetColor3("color", Color(0.2f, 0.5f, 0.8f));
-    blue->SetFloat("roughness", 0.7f);
-    blue->SetFloat("metallic", 0.0f);
-    // blue->SetVector("coolColor", glm::vec4(0.15f, 0.2f, 0.4f, 1.0f));
-    // blue->SetVector("warmColor", glm::vec4(0.9f, 0.9f, 0.8f, 1.0f));
-    // blue->SetVector("outlineColor", glm::vec4(0.1f, 0.05f, 0.0f, 1.0f));
-    // blue->SetFloat("outlinePower", 4.0f);
-    // blue->SetFloat("roughness", 0.5f);
-    // blue->name = "Gooch";
-
-    // pbrMat->SetVector("color", glm::vec4(0.1f, 0.5f, 0.1f, 1.0f));
-    pbrMat->SetVector("tint", glm::vec4(1.f, 1.f, 1.f, 0.f));
-    pbrMat->SetFloat("saturation", 1.f);
-    pbrMat->SetFloat("normalMapStrength", 1.f);
-    pbrMat->SetVector("UVOffset", glm::vec2(0,0));
-    pbrMat->SetVector("UVScale", glm::vec2(8,8));
-    // gameData->materials[2].SetFloat("roughness", 0.8f);
-    // gameData->materials[2].SetFloat("metallic", 0.0f);
-    pbrMat->SetTexture("albedoMap", thA);
-    pbrMat->SetTexture("roughnessMap", thR);
-    pbrMat->SetTexture("metallicMap", thM);
-    pbrMat->SetTexture("specularMap", thS);
-    pbrMat->SetTexture("normalMap", thN);
-
-    spriteMat->SetTexture("mainTex", thSprite);
-    spriteMatStretch->SetTexture("mainTex", thSpriteTile);
-
-    gameData->skyboxMaterial = skyboxMat;
-    // mat2.SetVector("color", glm::vec4(1));
-    // mat2.SetFloat("normalMapStrength", 1.0f);
-    // mat2.SetTexture("albedoMap", );
-    // mat2.SetTexture("roughnessMap", );
-    // mat2.SetTexture("metallicMap", );
-    // mat2.SetTexture("normalMap", );
+    // gameData->skyboxMaterial = skyboxMat;
 
     graphicsModule->GraphicsInitImgui();
     // ImGui::GetIO().ConfigFlags |= ImGuiConfigFlags_DockingEnable;
@@ -256,11 +179,9 @@ void Engine::update(double deltaTime)
     if(core::Input::getKeyDown(GLFW_KEY_R))
     {
         // TODO: Make a better system for this
-        basicShader->Reload();
-        gShader->Reload();
-        sbShader->Reload();
-        pbr->Reload();
-        spriteShader->Reload();
+        gameData->yellowMaterial->GetShader()->Reload();
+        gameData->skyboxMaterial->GetShader()->Reload();
+        gameData->spriteMaterial->GetShader()->Reload();
     }
 
     if(core::Input::getKeyDown(GLFW_KEY_F10))
@@ -354,25 +275,13 @@ void Engine::run()
 
         ImGui::Begin("Material Properties");
 
-        if(ImGui::CollapsingHeader(gameData->materials.Get(0)->name.c_str()))
+        if(gameData->yellowMaterial && gameData->yellowMaterial->IsReady() && ImGui::CollapsingHeader(gameData->yellowMaterial->GetMaterial()->name.c_str()))
         {
-            gameData->materials.Get(0)->DrawImGui();
+            gameData->yellowMaterial->GetMaterial().DrawImGui();
         }
-        if(ImGui::CollapsingHeader(gameData->materials.Get(1)->name.c_str()))
+        if(gameData->blueMaterial && gameData->blueMaterial->IsReady() && ImGui::CollapsingHeader(gameData->blueMaterial->GetMaterial()->name.c_str()))
         {
-            gameData->materials.Get(1)->DrawImGui();
-        }
-        if(ImGui::CollapsingHeader(gameData->materials.Get(2)->name.c_str()))
-        {
-            gameData->materials.Get(2)->DrawImGui();
-        }
-        if(ImGui::CollapsingHeader(gameData->materials.Get(3)->name.c_str()))
-        {
-            gameData->materials.Get(3)->DrawImGui();
-        }
-        if(ImGui::CollapsingHeader(gameData->materials.Get(4)->name.c_str()))
-        {
-            gameData->materials.Get(4)->DrawImGui();
+            gameData->blueMaterial->GetMaterial().DrawImGui();
         }
         // for(Material &mat : Shared::materials)
         // {
@@ -403,9 +312,9 @@ void Engine::run()
 
         Transform skyboxTransform{};
         skyboxTransform.setPosition(cameraTransform.getPosition());
-        graphicsModule->DrawMesh(gameData->skyboxMesh, *gameData->skyboxMaterial, skyboxTransform.getTransform(), -1); // Draw skybox
-        graphicsModule->DrawSprite({testSpriteStretch, {29,29}, SpriteDrawMode::Tile}, *gameData->materials.Get(5), glm::identity<glm::mat4>(), -1);
-        graphicsModule->DrawSprite(testSprite, *gameData->materials.Get(4), glm::identity<glm::mat4>(), -1);
+        graphicsModule->DrawMesh(gameData->skyboxMesh, gameData->skyboxMaterial->GetMaterial(), skyboxTransform.getTransform(), -1); // Draw skybox
+        // graphicsModule->DrawSprite({testSpriteStretch, {29,29}, SpriteDrawMode::Tile}, *gameData->materials.Get(5), glm::identity<glm::mat4>(), -1);
+        // graphicsModule->DrawSprite(testSprite, *gameData->materials.Get(4), glm::identity<glm::mat4>(), -1);
         scene->drawScene();
         // Render here
         camera.setAspectRatio(graphicsModule->GetAspectRatio());

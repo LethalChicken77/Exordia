@@ -1,7 +1,10 @@
 #pragma once
 #include "graphics/api/assets/shader_asset.hpp"
+#include "graphics/api/resources/texture_data.hpp"
 #include "utils/packing.hpp"
 #include "graphics/api/handles.hpp"
+#define GLM_ENABLE_EXPERIMENTAL
+#include <glm/gtx/type_trait.hpp>
 
 #include "console.hpp"
 
@@ -16,7 +19,8 @@ template<typename T>
 concept IsVecInt = IsVec<T> && std::is_integral_v<typename T::value_type>;
 
 class TextureData;
-class Material
+class Material;
+class MaterialData
 {
 public:
     struct TextureBinding
@@ -30,78 +34,16 @@ public:
     ShaderConst shader;
     std::string name;
 
-    Material(ShaderConst shader, const std::string_view name = "New Material");
-    ~Material();
+    MaterialData(ShaderConst shader, const std::string_view name = "New Material");
+    ~MaterialData();
 
     void UpdateLayout(bool updateVals = true);
-    void UpdateValues();
 
     const uint32_t GetBufferSize() const { return data.size(); }
     const std::vector<std::byte> &GetData() const { return data; }
     const std::vector<TextureBinding> &GetTextureBindings() const { return textureBindings; }
     
-    inline void SetInt(const std::string &name, int8_t val) { return setIntegral<int8_t>(name, val); }
-    inline void SetInt(const std::string &name, int16_t val) { return setIntegral<int16_t>(name, val); }
-    inline void SetInt(const std::string &name, int32_t val) { return setIntegral<int32_t>(name, val); }
-    inline void SetInt(const std::string &name, int64_t val) { return setIntegral<int64_t>(name, val); }
 
-    inline void SetInt(const std::string &name, uint8_t val) { return setIntegral<uint8_t>(name, val); }
-    inline void SetInt(const std::string &name, uint16_t val) { return setIntegral<uint16_t>(name, val); }
-    inline void SetInt(const std::string &name, uint32_t val) { return setIntegral<uint32_t>(name, val); }
-    inline void SetInt(const std::string &name, uint64_t val) { return setIntegral<uint64_t>(name, val); }
-
-    inline void SetBool(const std::string &name, bool val) { return setIntegral<bool>(name, val); }
-
-    // void SetFloat(std::string_view name, std::float16_t val); // TODO: Deal with 16 bit floats
-    inline void SetFloat(const std::string &name, float val) { return setFloat<float>(name, val); }
-    inline void SetFloat(const std::string &name, double val) { return setFloat<double>(name, val); }
-    
-    inline void SetVector(const std::string &name, glm::i8vec2 val) { return setIntegral<glm::i8vec2>(name, val); }
-    inline void SetVector(const std::string &name, glm::u8vec2 val) { return setIntegral<glm::u8vec2>(name, val); }
-    inline void SetVector(const std::string &name, glm::i16vec2 val) { return setIntegral<glm::i16vec2>(name, val); }
-    inline void SetVector(const std::string &name, glm::u16vec2 val) { return setIntegral<glm::u16vec2>(name, val); }
-    inline void SetVector(const std::string &name, glm::i32vec2 val) { return setIntegral<glm::i32vec2>(name, val); }
-    inline void SetVector(const std::string &name, glm::u32vec2 val) { return setIntegral<glm::u32vec2>(name, val); }
-    inline void SetVector(const std::string &name, glm::i64vec2 val) { return setIntegral<glm::i64vec2>(name, val); }
-    inline void SetVector(const std::string &name, glm::u64vec2 val) { return setIntegral<glm::u64vec2>(name, val); }
-    inline void SetVector(const std::string &name, glm::vec2 val) { return setFloat<glm::vec2>(name, val); }
-    inline void SetVector(const std::string &name, glm::dvec2 val) { return setFloat<glm::dvec2>(name, val); }
-
-    inline void SetVector(const std::string &name, glm::i8vec3 val) { return setIntegral<glm::i8vec3>(name, val); }
-    inline void SetVector(const std::string &name, glm::u8vec3 val) { return setIntegral<glm::u8vec3>(name, val); }
-    inline void SetVector(const std::string &name, glm::i16vec3 val) { return setIntegral<glm::i16vec3>(name, val); }
-    inline void SetVector(const std::string &name, glm::u16vec3 val) { return setIntegral<glm::u16vec3>(name, val); }
-    inline void SetVector(const std::string &name, glm::i32vec3 val) { return setIntegral<glm::i32vec3>(name, val); }
-    inline void SetVector(const std::string &name, glm::u32vec3 val) { return setIntegral<glm::u32vec3>(name, val); }
-    inline void SetVector(const std::string &name, glm::i64vec3 val) { return setIntegral<glm::i64vec3>(name, val); }
-    inline void SetVector(const std::string &name, glm::u64vec3 val) { return setIntegral<glm::u64vec3>(name, val); }
-    inline void SetVector(const std::string &name, glm::vec3 val) { return setFloat<glm::vec3>(name, val); }
-    inline void SetVector(const std::string &name, glm::dvec3 val) { return setFloat<glm::dvec3>(name, val); }
-
-    inline void SetVector(const std::string &name, glm::i8vec4 val) { return setIntegral<glm::i8vec4>(name, val); }
-    inline void SetVector(const std::string &name, glm::u8vec4 val) { return setIntegral<glm::u8vec4>(name, val); }
-    inline void SetVector(const std::string &name, glm::i16vec4 val) { return setIntegral<glm::i16vec4>(name, val); }
-    inline void SetVector(const std::string &name, glm::u16vec4 val) { return setIntegral<glm::u16vec4>(name, val); }
-    inline void SetVector(const std::string &name, glm::i32vec4 val) { return setIntegral<glm::i32vec4>(name, val); }
-    inline void SetVector(const std::string &name, glm::u32vec4 val) { return setIntegral<glm::u32vec4>(name, val); }
-    inline void SetVector(const std::string &name, glm::i64vec4 val) { return setIntegral<glm::i64vec4>(name, val); }
-    inline void SetVector(const std::string &name, glm::u64vec4 val) { return setIntegral<glm::u64vec4>(name, val); }
-    inline void SetVector(const std::string &name, glm::vec4 val) { return setFloat<glm::vec4>(name, val); }
-    inline void SetVector(const std::string &name, glm::dvec4 val) { return setFloat<glm::dvec4>(name, val); }
-
-    inline void SetColor(const std::string &name, Color val) { return setFloat<glm::vec3>(name, (glm::vec3)val); }
-    inline void SetColor3(const std::string &name, Color val) { return setFloat<glm::vec3>(name, (glm::vec3)val); }
-    inline void SetColor4(const std::string &name, Color val) { return setFloat<glm::vec4>(name, (glm::vec4)val); }
-
-    void SetMat2x2(std::string_view name, glm::mat2x2 val);
-    void SetMat3x3(std::string_view name, glm::mat3x3 val);
-    void SetMat4x4(std::string_view name, glm::mat4x4 val);
-
-    void SetTexture(const std::string &name, TextureHandle handle);
-    void SetTexture(const std::string &name, const TextureData& texture);
-
-    /// @brief Draw material properties in ImGui. Expects window to already be in progress.
-    void DrawImGui();
 private:
     struct DataIndex
     {
@@ -140,8 +82,6 @@ private:
             return;
         
         setIntegralParam<T>(param, value);
-
-        UpdateValues();
     }
 
     /// @brief Write a float value to the buffer
@@ -164,7 +104,6 @@ private:
         if(param == nullptr)
             return;
         setFloatParam<T>(param, value);
-        UpdateValues();
     }
     // glm::packHalf2x16()
     template<typename T>
@@ -324,7 +263,118 @@ private:
         }
     }
 
-    bool drawImGuiParam(const ShaderParameter& param);
+    friend class Material;
 };
+
+class Material
+{
+public: 
+    Ref<MaterialData> material{};
+
+    Material() = default;
+    Material(ShaderConst shader, const std::string_view name = "New Material");
+    Material(const Ref<MaterialData>& _material) : material(_material) {}
+    Material(Ref<MaterialData>&& _material) : material(std::move(_material)) {}
+    ~Material();
+
+    Material& operator=(const Ref<MaterialData>& _material)
+    {
+        material = _material;
+        return *this;
+    }
+
+    Material& operator=(Ref<MaterialData>&& _material)
+    {
+        material = std::move(_material);
+        return *this;
+    }
+
+    MaterialData* operator->() const { return material.get(); }
+    operator bool() const { return material != nullptr; }
+    operator Ref<MaterialData>&() { return material; }
+    operator const Ref<MaterialData>&() const { return material; }
+
+    inline void reset() noexcept { material.reset(); }
+
+
+
+        inline void SetBool(const std::string &name, bool val, bool update = true) { 
+        if(material != nullptr) {
+            material->setIntegral<bool>(name, val);
+            if(update) UpdateValues();
+        }
+    }
+
+    template<typename T>
+        requires std::integral<T> && (!std::same_as<T, bool>)
+    inline void SetInt(const std::string &name, T val, bool update = true) {
+        if(material != nullptr) {
+            material->setIntegral<T>(name, val);
+            if(update) UpdateValues();
+        }
+    }
+
+    template<typename T>
+        requires std::floating_point<T>
+    inline void SetFloat(const std::string &name, T val, bool update = true) {
+        if(material != nullptr) {
+            material->setFloat<T>(name, val);
+            if(update) UpdateValues();
+        }
+    }
+
+    template<typename T>
+        requires glm::type<T>::is_vec && std::integral<typename T::value_type>
+    inline void SetVector(const std::string &name, T val, bool update = true) {
+        if(material != nullptr) {
+            material->setIntegral<T>(name, val);
+            if(update) UpdateValues();
+        }
+    }
+
+    template<typename T>
+        requires glm::type<T>::is_vec && std::floating_point<typename T::value_type>
+    inline void SetVector(const std::string &name, T val, bool update = true) {
+        if(material != nullptr) {
+            material->setFloat<T>(name, val);
+            if(update) UpdateValues();
+        }
+    }
+
+    inline void SetColor(const std::string &name, Color val, bool update = true) { 
+        if(material != nullptr) {
+            material->setFloat<glm::vec3>(name, (glm::vec3)val);
+            if(update) UpdateValues();
+        }
+    }
+    inline void SetColor3(const std::string &name, Color val, bool update = true) { 
+        if(material != nullptr) {
+            material->setFloat<glm::vec3>(name, (glm::vec3)val);
+            if(update) UpdateValues();
+        }
+    }
+    inline void SetColor4(const std::string &name, Color val, bool update = true) { 
+        if(material != nullptr) {
+            material->setFloat<glm::vec4>(name, (glm::vec4)val);
+            if(update) UpdateValues();
+        }
+    }
+
+    void SetMat2x2(std::string_view name, glm::mat2x2 val);
+    void SetMat3x3(std::string_view name, glm::mat3x3 val);
+    void SetMat4x4(std::string_view name, glm::mat4x4 val);
+
+    void SetTexture(const std::string &name, TextureHandle handle);
+    void SetTexture(const std::string &name, Texture texture);
+
+    void UpdateValues();
+
+    /// @brief Draw material properties in ImGui. Expects window to already be in progress.
+    void DrawImGui();
+private:
+    bool drawImGuiParam(const ShaderParameter& param);
+
+};
+
 
 } // namespace graphics

@@ -1,0 +1,6 @@
+shader = "internal/shaders/basicShader.shader"
+materialInfo = {
+    color = vec3(1.0, 0.8, 0.3)
+    roughness = 0.2
+    metallic = 0
+}

@@ -85,13 +85,13 @@ public:
     );
 
     Image(
-        const TextureData &textureData,
+        Texture textureData,
         const ImageProperties &properties = {},
         vk::MemoryPropertyFlags memoryProperties = vk::MemoryPropertyFlagBits::eDeviceLocal
     );
     Image(
         internal::Device &device,
-        const TextureData &textureData,
+        Texture textureData,
         const ImageProperties &properties = {},
         vk::MemoryPropertyFlags memoryProperties = vk::MemoryPropertyFlagBits::eDeviceLocal
     );
@@ -127,8 +127,8 @@ public:
 
     void CopyFromBuffer(const Buffer& buffer, uint32_t width, uint32_t height, uint32_t layerCount);
 
-    void SetData(const TextureData &data);
-    void GetData(TextureData *data) const;
+    void SetData(Texture data);
+    void GetData(Texture data) const;
     inline vk::Image GetImage() const noexcept { return image; }
     inline vk::ImageView GetImageView() const noexcept { return imageView; }
     inline vk::ImageSubresourceRange GetSubresourceRange() const noexcept
@@ -158,6 +158,8 @@ public:
         imageInfo.sampler = VK_NULL_HANDLE;
         return imageInfo;
     }
+    
+    inline bool IsValid() const { return image != nullptr && imageView != nullptr && imageAllocation != nullptr; }
 private:
     internal::Device &device;
     ImageFormat format{};
@@ -177,7 +179,7 @@ private:
     uint32_t depth = 0;
 
     void create();
-    void createInitialized(const TextureData& data);
+    void createInitialized(Texture data);
     void createImage();
     void createImageView();
     void copyDataToImage();

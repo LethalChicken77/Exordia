@@ -1,3 +1,4 @@
+#pragma once
 #include <functional>
 #include <memory>
 #include <string>
@@ -31,6 +32,7 @@ public:
         if(!fileCheck(path))
             return nullptr;
 
+        printLoading(T::assetTypeName, path);
         asset = std::make_shared<T>();
         asset->SetPath(path);
         asset->Load();
@@ -72,6 +74,7 @@ public:
 private:
     inline static std::unordered_map<std::string, WRef<Asset>, StringHash, std::equal_to<>> assetTable{};
     static bool fileCheck(std::filesystem::path path);
+    static void printLoading(std::string_view typeName, std::string_view path);
 };
 
 } // namespace core

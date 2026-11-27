@@ -5,6 +5,7 @@
 #include "console.hpp"
 #include "buffer.hpp"
 #include "debug.hpp"
+#include "vulkan/vulkan.hpp"
 
 namespace graphics
 {
@@ -71,7 +72,7 @@ Image::Image(
 }
 
 Image::Image(
-    const TextureData &textureData,
+    Texture textureData,
     const ImageProperties &_properties,
     vk::MemoryPropertyFlags _memoryProperties
 ) : Image(graphicsData->GetBackend().GetDevice(), textureData, _properties, _memoryProperties)
@@ -80,13 +81,13 @@ Image::Image(
 
 Image::Image(
     internal::Device &_device,
-    const TextureData &textureData,
+    Texture textureData,
     const ImageProperties &_properties,
     vk::MemoryPropertyFlags _memoryProperties
 ) : device(_device),
-    width(textureData.GetWidth()),
-    height(textureData.GetHeight()),
-    depth(textureData.GetDepth()),
+    width(textureData->GetWidth()),
+    height(textureData->GetHeight()),
+    depth(textureData->GetDepth()),
     properties(_properties),
     memoryPropertyFlags(_memoryProperties)
 {
@@ -160,13 +161,14 @@ void Image::createImage()
 
     vma::AllocationCreateInfo allocCreateInfo = {};
     allocCreateInfo.usage = vma::MemoryUsage::eAuto;
-    device.GetAllocator().createImage(
+    vk::Result result = device.GetAllocator().createImage(
         &imageInfo,
         &allocCreateInfo,
         &image,
         &imageAllocation,
         &imageAllocationInfo
     );
+    VK_CHECK(result, "Failed to create texture image");
 }
 
 vk::ComponentSwizzle getSwizzle(SwizzleChannel swiz)
@@ -207,7 +209,7 @@ void Image::create()
 }
 
 /// @brief Create image and initialize with data from textureData
-void Image::createInitialized(const TextureData& data)
+void Image::createInitialized(Texture data)
 {
     createImage();
     createImageView();
@@ -333,9 +335,9 @@ void Image::generateMipmaps()
     device.EndSingleTimeCommands(cmd);
 }
 
-void Image::SetData(const TextureData &data)
+void Image::SetData(Texture data)
 {
-    format = data.properties.format;
+    format = data->properties.format;
     VkFormat vkFmt = ImageFormatToVkFormat(format);
     if(vkFmt == VK_FORMAT_UNDEFINED)
     {
@@ -349,12 +351,12 @@ void Image::SetData(const TextureData &data)
     // std::cout << "Buffer size: " << bufferSize << std::endl;
     // std::cout << "Data size: " << data.size() << std::endl;
     // std::cout << "Width: " << width << " Height: " << height << std::endl;
-    if(data.GetSize() != bufferSize)
+    if(data->GetSize() != bufferSize)
     {
         Console::error(
             std::format(
                 "Texture data size ({}) does not match image size ({})",
-                data.GetSize(),
+                data->GetSize(),
                 bufferSize
             ),
             "Image"
@@ -369,7 +371,7 @@ void Image::SetData(const TextureData &data)
     );
     
     stagingBuffer.Map();
-    stagingBuffer.WriteData((void *)data.GetDataPtr());
+    stagingBuffer.WriteData((void *)data->GetDataConst().data());
 
     CopyFromBuffer(stagingBuffer, width, height, 1);
 }
@@ -405,7 +407,7 @@ void Image::CopyFromBuffer(const Buffer& buffer, uint32_t width, uint32_t height
     TransitionImageLayout(prevLayout);
 }
 
-void Image::GetData(TextureData *data) const
+void Image::GetData(Texture data) const
 {
     #ifndef DISABLE_VALIDATION
     if(!data)
@@ -435,7 +437,7 @@ void Image::GetData(TextureData *data) const
     
     // device->copyImageToBuffer(image, stagingBuffer.getBuffer(), width, height, 1);
     
-    stagingBuffer.ReadData((void *)data->GetDataPtr());
+    stagingBuffer.ReadData((void *)data->GetDataConst().data());
 }
 
 /// @brief Change the layout of the image

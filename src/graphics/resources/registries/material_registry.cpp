@@ -11,11 +11,12 @@ MaterialRegistry::MaterialRegistry(const PipelineRegistry& _pipelineRegistry, co
 /// @brief Create graphics mesh data for a given mesh
 /// @param meshData 
 /// @return Handle for new mesh, invalid on failure
-MaterialHandle MaterialRegistry::Register(Material &material, DescriptorPool &pool)
+MaterialHandle MaterialRegistry::Register(Ref<MaterialData> material, DescriptorPool &pool)
 {
-    if(Update(material)) return material.graphicsHandle;
+    if(!material) return {};
+    if(Update(material)) return material->graphicsHandle;
 
-    GraphicsPipeline* pipeline = pipelineRegistry.Get(material.shader->graphicsHandle);
+    GraphicsPipeline* pipeline = pipelineRegistry.Get(material->shader->graphicsHandle);
     if(pipeline == nullptr)
     {
         Console::error("Failed to create graphics material: Invalid pipeline", "GraphicsMaterial");
@@ -37,7 +38,7 @@ MaterialHandle MaterialRegistry::Register(Material &material, DescriptorPool &po
 
     Entry &entry = entries[index];
     entry.value = std::make_unique<GraphicsMaterial>(
-        &material,
+        material,
         *pipeline,
         textureRegistry,
         pool
@@ -45,20 +46,20 @@ MaterialHandle MaterialRegistry::Register(Material &material, DescriptorPool &po
     entry.inUse = true;
     entry.generation = nextGeneration++;
 
-    material.graphicsHandle = {index, entry.generation};
-    return material.graphicsHandle;
+    material->graphicsHandle = {index, entry.generation};
+    return material->graphicsHandle;
 }
 
 /// @brief Update the graphics mesh corresponding to an already registered mesh
 /// @param meshData 
 /// @return True on success, false on failure
-bool MaterialRegistry::Update(Material &material)
+bool MaterialRegistry::Update(Ref<MaterialData> material)
 {
-    if(!IsValid(material.graphicsHandle)) return false;
+    if(!material || !IsValid(material->graphicsHandle)) return false;
     
-    MaterialHandle &handle = material.graphicsHandle;
+    MaterialHandle &handle = material->graphicsHandle;
 
-    GraphicsPipeline* pipeline = pipelineRegistry.Get(material.shader->graphicsHandle);
+    GraphicsPipeline* pipeline = pipelineRegistry.Get(material->shader->graphicsHandle);
     if(pipeline == nullptr)
     {
         Console::error("Failed to update graphics material: Invalid pipeline", "GraphicsMaterial");
@@ -66,7 +67,7 @@ bool MaterialRegistry::Update(Material &material)
     }
 
     Entry &entry = entries[handle.index];
-    entry.value->UpdateMaterial(&material, *pipeline, textureRegistry);
+    entry.value->UpdateMaterial(material, *pipeline, textureRegistry);
 
 
     return true;

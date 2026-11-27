@@ -43,41 +43,17 @@ TextureData::TextureData(uint32_t _width, uint32_t _height, uint32_t _depth, std
 //         (data[index + 2] << 8) |
 //         (data[index + 3]);
 // }
-std::unique_ptr<TextureData> TextureData::LoadFromFile(const std::string& path)
+bool TextureData::LoadFromFileSTB(const std::string& path)
 {
     // if(!std::filesystem::exists(path))
     if(!FileUtil::FileExists(path))
     {
         Console::error("File not found: " + path, "TextureData");
-        return nullptr;
+        return false;
     }
-    
-    stbi_set_flip_vertically_on_load(true); // Flip texture on load to match UV coords
 
-    int texWidth, texHeight, texChannels;
-    stbi_uc* pixels = stbi_load(path.c_str(), &texWidth, &texHeight, &texChannels, STBI_rgb_alpha);
-    if(!pixels)
-    {
-        throw std::runtime_error("Failed to load texture image");
-    }
-    uint32_t pixelCount = texWidth * texHeight;
-    
-    // int numChannels = texChannels; // Actual image channels (from STB)
-    int numChannels = sizeof(STBI_rgb_alpha); // Force 4 Channels
-    TextureConfig texConfig{};
-    ImageFormat &format = texConfig.format;
-    format.channelCount = numChannels;
-    format.channelSize = sizeof(stbi_uc);
-    format.isSRGB = true;
-    format.dataType = TextureDataType::UNorm;
-    format.channelOrder = ChannelOrder::RGBA;
-    std::unique_ptr<TextureData> texture = std::make_unique<TextureData>(texWidth, texHeight, std::filesystem::path(path).stem().string(), texConfig);
-    memcpy(texture->data.data(), pixels, pixelCount * numChannels * sizeof(stbi_uc));
-
-    texture->width = texWidth;
-    texture->height = texHeight;
-
-    return texture;
+    std::vector<uint8_t> fileData = FileUtil::ReadFile<std::vector<uint8_t>>(path);
+    return LoadSTB(fileData);
 }
 
 /// @brief Load texture data from a file
@@ -85,7 +61,7 @@ std::unique_ptr<TextureData> TextureData::LoadFromFile(const std::string& path)
 /// @param dataType Override for the data type. By default, loads whatever the image specifies. Currently does nothing.
 /// @param channelSize Override for the channel size. By default, loads the size of the type stored in the image. Currently does nothing.
 /// @return TextureData object
-std::unique_ptr<TextureData> TextureData::LoadFromFileEXR(const std::string& path, TextureDataType dataType, uint32_t channelSize)
+bool TextureData::LoadFromFileEXR(std::string_view path, TextureDataType dataType, uint32_t channelSize)
 {
     if(channelSize != 0)
     {
@@ -95,22 +71,65 @@ std::unique_ptr<TextureData> TextureData::LoadFromFileEXR(const std::string& pat
     }
     if(!FileUtil::FileExists(path))
     {
-        Console::error("File not found: " + path, "TextureData");
-        return nullptr;
+        Console::error(std::format("File not found: {}", path), "TextureData");
+        return false;
     }
 
+    name = std::filesystem::path(path).stem().string();
+
+    std::vector<uint8_t> fileData = FileUtil::ReadFile<std::vector<uint8_t>>(path);
+    return LoadEXR(fileData, dataType, channelSize);
+}
+
+bool TextureData::LoadSTB(std::span<const uint8_t> fileData) {
+
+    stbi_set_flip_vertically_on_load(true); // Flip texture on load to match UV coords
+
+    int texWidth, texHeight, texChannels;
+    stbi_uc* pixels = stbi_load_from_memory(
+        fileData.data(), 
+        fileData.size(), 
+        &texWidth, 
+        &texHeight, 
+        &texChannels, 
+        STBI_rgb_alpha);
+    if(!pixels)
+    {
+        throw std::runtime_error("Failed to load texture image");
+    }
+    uint32_t pixelCount = texWidth * texHeight;
+    
+    // int numChannels = texChannels; // Actual image channels (from STB)
+    int numChannels = sizeof(STBI_rgb_alpha); // Force 4 Channels
+    ImageFormat &format = properties.format;
+    format.channelCount = numChannels;
+    format.channelSize = sizeof(stbi_uc);
+    format.isSRGB = true;
+    format.dataType = TextureDataType::UNorm;
+    format.channelOrder = ChannelOrder::RGBA;
+    size_t bufferSize = pixelCount * numChannels * sizeof(stbi_uc);
+    data.resize(bufferSize);
+    memcpy(data.data(), pixels, bufferSize);
+
+    width = texWidth;
+    height = texHeight;
+
+    return true;
+}
+
+bool TextureData::LoadEXR(std::span<const uint8_t> exrData, TextureDataType dataType, uint32_t channelSize) {
     const char* err = nullptr;
 
     // Parse EXR version
     EXRVersion version;
-    if (ParseEXRVersionFromFile(&version, path.c_str()) != TINYEXR_SUCCESS) {
+    if (ParseEXRVersionFromMemory(&version, exrData.data(), exrData.size()) != TINYEXR_SUCCESS) {
         throw std::runtime_error("Failed to parse EXR version");
     }
 
     // Parse the EXR header
     EXRHeader header;
     InitEXRHeader(&header);
-    if (ParseEXRHeaderFromFile(&header, &version, path.c_str(), &err) != TINYEXR_SUCCESS) {
+    if (ParseEXRHeaderFromMemory(&header, &version, exrData.data(), exrData.size(), &err) != TINYEXR_SUCCESS) {
         std::string errorMsg = err ? std::string(err) : "Unknown EXR header error";
         FreeEXRErrorMessage(err);
         throw std::runtime_error("Failed to parse EXR header: " + errorMsg);
@@ -124,7 +143,7 @@ std::unique_ptr<TextureData> TextureData::LoadFromFileEXR(const std::string& pat
     }
     // Load the EXR image
     EXRImage image;
-    if (LoadEXRImageFromFile(&image, &header, path.c_str(), &err) != TINYEXR_SUCCESS) {
+    if (LoadEXRImageFromMemory(&image, &header, exrData.data(), exrData.size(), &err) != TINYEXR_SUCCESS) {
         std::string errorMsg = err ? std::string(err) : "Unknown EXR image error";
         FreeEXRErrorMessage(err);
         throw std::runtime_error("Failed to load EXR image: " + errorMsg);
@@ -146,8 +165,8 @@ std::unique_ptr<TextureData> TextureData::LoadFromFileEXR(const std::string& pat
 
         if(header.pixel_types[i] != pixelType)
         {
-            Console::errorf("Failed to load EXR image \"{}\": Channels have different pixel sizes.", path);
-            return nullptr;
+            Console::errorf("Failed to load EXR image \"{}\": Channels have different pixel sizes.", name, "TextureData");
+            return false;
         }
     }
 
@@ -172,8 +191,7 @@ std::unique_ptr<TextureData> TextureData::LoadFromFileEXR(const std::string& pat
 
     
     int effectiveNumChannels = (numChannels == 3) ? 4 : numChannels; // Expand RGB to RGBA
-    TextureConfig texConfig{};
-    ImageFormat& format = texConfig.format;
+    ImageFormat& format = properties.format;
     format.channelCount = effectiveNumChannels;
     // if(channelSize == 0) // TODO: Add casting step. Probably in importer tbh
     // {
@@ -192,29 +210,39 @@ std::unique_ptr<TextureData> TextureData::LoadFromFileEXR(const std::string& pat
             format.dataType = TextureDataType::UInt;
             break;
         default:
-            Console::errorf("Failed to load EXR image \"{}\": Invalid pixel type.", path);
+            Console::errorf("Failed to load EXR image \"{}\": Invalid pixel type.", name, "TextureData");
             break;
         }
     // }
     format.channelOrder = ChannelOrder::RGBA; // TODO: Allow user specified order
-    std::unique_ptr<TextureData> texture = std::make_unique<TextureData>(texWidth, texHeight, std::filesystem::path(path).stem().string(), texConfig);
+    width = texWidth;
+    height = texHeight;
+    depth = 1;
 
-    texture->data.resize(pixelCount * sizeof(float) * effectiveNumChannels);
+    data.resize(pixelCount * sizeof(float) * effectiveNumChannels);
 
-    for (uint32_t i = 0; i < pixelCount; i++)
+    for(uint32_t y = 0; y < texHeight; y++)
     {
-        // std::cout << "Pixel: " << i << " / " << pixelCount << "\n";
-        float pixelData[4] = {
-            chR[i],
-            (numChannels >= 2) ? chG[i] : 0.0f,
-            (numChannels >= 3) ? chB[i] : 0.0f,
-            (numChannels >= 4) ? chA[i] : 1.0f
-        };
-        memcpy(
-            texture->data.data() + i * sizeof(float) * effectiveNumChannels, 
-            pixelData, 
-            sizeof(float) * effectiveNumChannels
-        );
+        uint32_t sourceY = texHeight - 1 - y;
+
+        for(uint32_t x = 0; x < texWidth; x++)
+        {
+            uint32_t sourceIndex = sourceY * texWidth + x;
+            uint32_t destIndex = y * texWidth + x;
+
+            float pixelData[4] = {
+                chR[sourceIndex],
+                (numChannels >= 2) ? chG[sourceIndex] : 0.0f,
+                (numChannels >= 3) ? chB[sourceIndex] : 0.0f,
+                (numChannels >= 4) ? chA[sourceIndex] : 1.0f
+            };
+
+            memcpy(
+                data.data() + destIndex * sizeof(float) * effectiveNumChannels,
+                pixelData,
+                sizeof(float) * effectiveNumChannels
+            );
+        }
     }
     
     if(!header.tiled)
@@ -230,11 +258,6 @@ std::unique_ptr<TextureData> TextureData::LoadFromFileEXR(const std::string& pat
     FreeEXRImage(&image);
     FreeEXRHeader(&header);
 
-
-    texture->width = texWidth;
-    texture->height = texHeight;
-    texture->name = std::filesystem::path(path).stem().string();
-
-    return std::move(texture);
+    return true;
 }
 } // namespace core

@@ -1,8 +1,0 @@
-shader = "/internal/shaders/basicShader.shader.tui"
-
-materialInfo = {
-    color = vec3(1.0, 1.0, 0.5)
-    roughness = 0.4
-    metallic = 0
-    specular = 0.04 // F0
-}

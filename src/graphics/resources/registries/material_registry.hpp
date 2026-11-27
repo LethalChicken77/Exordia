@@ -14,12 +14,12 @@ class MaterialRegistry : public GraphicsRegistry<GraphicsMaterial, MaterialHandl
 public:
     MaterialRegistry(const PipelineRegistry &pipelineRegistry, const TextureRegistry &textureRegistry);
 
-    MaterialHandle Register(Material &material, DescriptorPool &pool);
-    bool Update(Material &material);
+    MaterialHandle Register(Ref<MaterialData> material, DescriptorPool &pool);
+    bool Update(Ref<MaterialData> material);
     using GraphicsRegistry<GraphicsMaterial, MaterialHandle>::Deregister;
-    inline bool Deregister(Material &material)
+    inline bool Deregister(Ref<MaterialData> material)
     {
-        return Deregister(material.graphicsHandle);
+        return Deregister(material->graphicsHandle);
     }
 private:
     const PipelineRegistry &pipelineRegistry;

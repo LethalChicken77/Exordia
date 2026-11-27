@@ -29,7 +29,7 @@ namespace core
         Transform transform;
         // MeshRenderer meshRenderer;
 
-        graphics::Material* material = nullptr;
+        Ref<graphics::MaterialData> material = nullptr;
     protected:
         GameObject_t(id_t newID) : Object(newID) {}
         id_t localID; // ID local to scene/prefab

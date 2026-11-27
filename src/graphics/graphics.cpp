@@ -145,9 +145,9 @@ namespace graphics
         cameraState.infiniteFarPlane = camera.properties.infiniteFarPlane;
     }
 
-    void Graphics::DrawMesh(const core::Mesh& meshData, const Material& material, const std::vector<glm::mat4>& modelMatrices, int instanceID)
+    void Graphics::DrawMesh(const core::Mesh& meshData, Ref<MaterialData> material, const std::vector<glm::mat4>& modelMatrices, int instanceID)
     {
-        if(!graphicsData->materialRegistry.IsValid(material.graphicsHandle))
+        if(!material || !graphicsData->materialRegistry.IsValid(material->graphicsHandle))
         {
             Console::warn("Invalid material handle passed to Draw", "Graphics");
             return; // TODO: Draw with debug material
@@ -160,13 +160,13 @@ namespace graphics
         drawQueue.push_back(MeshDrawInfo(
             meshData->graphicsHandle, 
             modelMatrices, 
-            material.graphicsHandle, 
+            material->graphicsHandle, 
             instanceID));
     }
 
-    void Graphics::DrawMesh(const core::Mesh& meshData, const Material& material, const glm::mat4& modelMatrix, int instanceID)
+    void Graphics::DrawMesh(const core::Mesh& meshData, Ref<MaterialData> material, const glm::mat4& modelMatrix, int instanceID)
     {
-        if(!graphicsData->materialRegistry.IsValid(material.graphicsHandle))
+        if(!material || !graphicsData->materialRegistry.IsValid(material->graphicsHandle))
         {
             Console::warn("Invalid material handle passed to Draw", "Graphics");
             return; // TODO: Draw with debug material
@@ -178,39 +178,39 @@ namespace graphics
         }
         drawQueue.push_back(MeshDrawInfo(
             meshData->graphicsHandle, 
-            modelMatrix, 
-            material.graphicsHandle, 
+            modelMatrix,
+            material->graphicsHandle, 
             instanceID));
     }
 
-    void Graphics::DrawSprite(const Sprite& sprite, const Material& material, const glm::mat4& modelMatrix, int instanceID)
+    void Graphics::DrawSprite(const Sprite& sprite, Ref<MaterialData> material, const glm::mat4& modelMatrix, int instanceID)
     {
         DrawSprite({sprite, sprite.GetSimpleSize(), SpriteDrawMode::Stretch}, material, {&modelMatrix, 1}, instanceID);
     }
 
-    void Graphics::DrawSprite(const Sprite& sprite, const Material& material, const std::span<const glm::mat4> modelMatrices, int instanceID)
+    void Graphics::DrawSprite(const Sprite& sprite, Ref<MaterialData> material, const std::span<const glm::mat4> modelMatrices, int instanceID)
     {
         DrawSprite({sprite, sprite.GetSimpleSize(), SpriteDrawMode::Stretch}, material, modelMatrices, instanceID);
     }
 
-    void Graphics::DrawSprite(const Sprite& sprite, glm::vec2 size, const Material& material, const glm::mat4& modelMatrix, int instanceID)
+    void Graphics::DrawSprite(const Sprite& sprite, glm::vec2 size, Ref<MaterialData> material, const glm::mat4& modelMatrix, int instanceID)
     {
         DrawSprite({sprite, size, SpriteDrawMode::Stretch}, material, {&modelMatrix, 1}, instanceID);
     }
 
-    void Graphics::DrawSprite(const Sprite& sprite, glm::vec2 size, const Material& material, const std::span<const glm::mat4> modelMatrices, int instanceID)
+    void Graphics::DrawSprite(const Sprite& sprite, glm::vec2 size, Ref<MaterialData> material, const std::span<const glm::mat4> modelMatrices, int instanceID)
     {
         DrawSprite({sprite, size, SpriteDrawMode::Stretch}, material, modelMatrices, instanceID);
     }
 
-    void Graphics::DrawSprite(const SpriteDrawInfo& drawInfo, const Material& material, const glm::mat4& modelMatrix, int instanceID)
+    void Graphics::DrawSprite(const SpriteDrawInfo& drawInfo, Ref<MaterialData> material, const glm::mat4& modelMatrix, int instanceID)
     {
         DrawSprite(drawInfo, material, {&modelMatrix, 1}, instanceID);
     }
 
-    void Graphics::DrawSprite(const SpriteDrawInfo& drawInfo, const Material& material, const std::span<const glm::mat4> modelMatrices, int instanceID)
+    void Graphics::DrawSprite(const SpriteDrawInfo& drawInfo, Ref<MaterialData> material, const std::span<const glm::mat4> modelMatrices, int instanceID)
     {
-        if(!graphicsData->materialRegistry.IsValid(material.graphicsHandle))
+        if(!graphicsData->materialRegistry.IsValid(material->graphicsHandle))
         {
             Console::warn("Invalid material handle passed to DrawSprite", "Graphics");
             return; // TODO: Draw with debug material
@@ -218,7 +218,7 @@ namespace graphics
         spriteDrawQueue.push_back(SpriteDrawCall(
             drawInfo,
             modelMatrices,
-            material.graphicsHandle,
+            material->graphicsHandle,
             instanceID
         ));
     }
@@ -265,7 +265,7 @@ namespace graphics
                 GraphicsMaterial *mat = graphicsData->materialRegistry.Get(drawInfo.materialHandle);
                 // Console::debugf("{}", drawInfo.materialHandle.index);
                 if(mat == nullptr) continue;
-                GraphicsPipeline *currentPipeline = graphicsData->pipelineRegistry.Get(mat->base->shader->graphicsHandle);
+                GraphicsPipeline *currentPipeline = graphicsData->pipelineRegistry.Get(mat->shaderHandle);
                 if(currentPipeline == nullptr) continue;
                 currentPipeline->Bind(renderContext.commandBuffer);
                 localDescriptorSets = {mat->GetDescriptorSet()}; // This is terrible. TODO: literally anything else
@@ -296,7 +296,7 @@ namespace graphics
                 GraphicsMaterial *mat = graphicsData->materialRegistry.Get(drawInfo.materialHandle);
                 // Console::debugf("{}", drawInfo.materialHandle.index);
                 if(mat == nullptr) continue;
-                GraphicsPipeline *currentPipeline = graphicsData->pipelineRegistry.Get(mat->base->shader->graphicsHandle);
+                GraphicsPipeline *currentPipeline = graphicsData->pipelineRegistry.Get(mat->shaderHandle);
                 if(currentPipeline == nullptr) continue;
                 currentPipeline->Bind(renderContext.commandBuffer);
                 localDescriptorSets = {mat->GetDescriptorSet()}; // This is terrible. TODO: literally anything else

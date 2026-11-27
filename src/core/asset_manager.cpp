@@ -14,4 +14,9 @@ bool AssetManager::fileCheck(std::filesystem::path path)
     }
     return true;
 }
+
+void AssetManager::printLoading(std::string_view typeName, std::string_view path)
+{
+    Console::logf("Loading {} {}", typeName, path);
+}
 } // namespace core

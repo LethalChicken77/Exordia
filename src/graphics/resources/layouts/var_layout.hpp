@@ -32,6 +32,21 @@ public:
         return type == Float;
     }
 
+    inline bool IsNorm() const noexcept
+    {
+        return type == UNorm || type == SNorm;
+    }
+
+    inline bool IsBool() const noexcept
+    {
+        return type == Bool;
+    }
+
+    inline bool IsSigned() const noexcept
+    {
+        return type == SInt || type == SNorm || type == Float;
+    }
+
     DataType() = default;
     DataType(_DataType t) : type(t) {};
 

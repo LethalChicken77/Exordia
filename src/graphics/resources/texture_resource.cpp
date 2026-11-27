@@ -1,13 +1,13 @@
-#include "texture.hpp"
+#include "texture_resource.hpp"
 #include "graphics/graphics_data.hpp"
 #include "glm/gtc/integer.hpp"
 
 namespace graphics
 {
 
-ImageProperties GetImageProperties(const TextureData &texture)
+ImageProperties GetImageProperties(Texture texture)
 {
-    const TextureConfig& config = texture.properties;
+    const TextureConfig& config = texture->properties;
     ImageProperties props{};
     VkFormat fmt = ImageFormatToVkFormat(config.format);
     if(fmt != VK_FORMAT_UNDEFINED)
@@ -42,9 +42,9 @@ ImageProperties GetImageProperties(const TextureData &texture)
         props.arrayLayers = 1;
     }
 
-    if(texture.properties.generateMipmaps)
+    if(texture->properties.generateMipmaps)
     {
-        props.mipLevels = glm::floor(glm::log2(glm::max(texture.GetWidth(), texture.GetHeight()))) + 1;
+        props.mipLevels = glm::floor(glm::log2(glm::max(texture->GetWidth(), texture->GetHeight()))) + 1;
         props.usage = vk::ImageUsageFlagBits::eTransferDst | vk::ImageUsageFlagBits::eTransferSrc | vk::ImageUsageFlagBits::eSampled;
     }
     else
@@ -56,16 +56,16 @@ ImageProperties GetImageProperties(const TextureData &texture)
     return props;
 }
 
-Texture::Texture(internal::Device &_device, const TextureData &texture)
+TextureResource::TextureResource(internal::Device &_device, Texture texture)
     : device(_device),
     image(device, texture, GetImageProperties(texture)),
-    sampler(device, texture.properties)
+    sampler(device, texture->properties)
 {
-    Console::debugf("Created texture: {}", texture.name);
+    Console::debugf("Created texture: {}", texture->name);
 }
 
-Texture::Texture(const TextureData &texture)
-    : Texture(graphicsData->GetBackend().GetDevice(), texture)
+TextureResource::TextureResource(Texture texture)
+    : TextureResource(graphicsData->GetBackend().GetDevice(), texture)
 {
 
 }

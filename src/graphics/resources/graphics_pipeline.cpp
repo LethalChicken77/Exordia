@@ -147,7 +147,7 @@ void GraphicsPipeline::createPipeline(ShaderConst shader, vk::PipelineCache cach
     shaderStages[1].pNext = &fsModuleCreateInfo;
 
     
-    Console::debug(shader->GetVertexLayout().ToString(), "CreatePipeline");
+    // Console::debug(shader->GetVertexLayout().ToString(), "CreatePipeline");
     std::vector<vk::VertexInputBindingDescription> bindingDescriptions = createVertexBindings();
     std::vector<vk::VertexInputAttributeDescription> attributeDescriptions = createVertexAttributes();
     vk::PipelineVertexInputStateCreateInfo vertexInputInfo{};

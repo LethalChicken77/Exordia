@@ -1,0 +1,9 @@
+shader = "internal/shaders/PBR.shader"
+materialInfo = {
+    UVScale = vec2(10,10)
+}
+albedoMap = "assets/textures/rocky_terrain_02/rocky_terrain_02_diff_4k.jpg"
+roughnessMap = "assets/textures/rocky_terrain_02/rocky_terrain_02_rough_4k.exr"
+metallicMap = "internal/textures/defaults/default_metal.exr"
+specularMap = "assets/textures/rocky_terrain_02/rocky_terrain_02_spec_4k.exr"
+normalMap = "assets/textures/rocky_terrain_02/rocky_terrain_02_nor_gl_4k.exr"

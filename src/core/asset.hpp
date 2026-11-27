@@ -1,5 +1,6 @@
 #pragma once
 #include <concepts>
+#include <cstddef>
 #include <string>
 #include <filesystem>
 #include <span>
@@ -55,13 +56,26 @@ public:
     [[nodiscard]] inline AssetStatus Status() const { return m_status; }
 
     [[nodiscard]] inline std::string Path() const { return m_path.string(); }
-    [[nodiscard]] inline std::span<const char> Data() const 
+    [[nodiscard]] inline std::span<const char> Data() const
     {
         return m_fileLoaded ? std::span<const char>{m_fileData.data(), m_fileData.size()} : std::span<const char>{}; 
+    }
+    template<class T>
+    [[nodiscard]] inline std::span<const T> Data() const requires (sizeof(T) == 1)
+    {
+        return m_fileLoaded ? std::span<const T>{reinterpret_cast<const T*>(m_fileData.data()), m_fileData.size()} : std::span<const T>{}; 
     }
     [[nodiscard]] inline std::string_view DataString() const 
     { 
         return m_fileLoaded ? std::string_view{m_fileData.data(), m_fileData.size()} : std::string_view{}; 
+    }
+    [[nodiscard]] inline std::span<const char> Metadata() const 
+    {
+        return m_fileLoaded ? std::span<const char>{m_metaData.data(), m_metaData.size()} : std::span<const char>{}; 
+    }
+    [[nodiscard]] inline std::string_view MetadataString() const 
+    { 
+        return m_fileLoaded ? std::string_view{m_metaData.data(), m_metaData.size()} : std::string_view{}; 
     }
 
 protected:
@@ -91,6 +105,7 @@ protected:
 private:
     std::filesystem::path m_path;
     std::vector<char> m_fileData{}; // TODO: Replace with scratch arena assigned by asset manager
+    std::vector<char> m_metaData{}; // TODO: Replace with scratch arena assigned by asset manager
     bool m_fileLoaded = false;
 
     void SetUUID(); // TODO: Implement

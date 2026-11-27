@@ -33,6 +33,12 @@ bool Asset::loadFile()
     }
     m_fileData = FileUtil::ReadFile<std::vector<char>>(m_path);
     m_fileLoaded = true;
+    std::filesystem::path metaDataPath = m_path;
+    metaDataPath.concat(".meta");
+    if(FileUtil::FileExists(metaDataPath))
+    {
+        m_metaData = FileUtil::ReadFile<std::vector<char>>(metaDataPath);
+    }
     return true;
 }
 

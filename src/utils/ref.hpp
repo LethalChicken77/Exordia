@@ -2,6 +2,7 @@
 #pragma once
 #include <cstdint>
 #include <atomic>
+#include <memory>
 #include <type_traits>
 
 template<typename T>

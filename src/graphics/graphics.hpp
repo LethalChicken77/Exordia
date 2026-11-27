@@ -21,15 +21,15 @@ class Graphics
         Graphics& operator=(const Graphics&) = delete;
 
 
-        void DrawMesh(const core::Mesh& meshData, const Material& material, const glm::mat4& modelMatrix, int instanceID = -1);
+        void DrawMesh(const core::Mesh& meshData, Ref<MaterialData> material, const glm::mat4& modelMatrix, int instanceID = -1);
         // TODO: Pass span instead of vector ref
-        void DrawMesh(const core::Mesh& meshData, const Material& material, const std::vector<glm::mat4>& modelMatrices, int instanceID = -1);
-        void DrawSprite(const Sprite& sprite, const Material& material, const glm::mat4& modelMatrix, int instanceID = -1);
-        void DrawSprite(const Sprite& sprite, const Material& material, const std::span<const glm::mat4> modelMatrices, int instanceID = -1);
-        void DrawSprite(const Sprite& sprite, glm::vec2 size, const Material& material, const glm::mat4& modelMatrix, int instanceID = -1);
-        void DrawSprite(const Sprite& sprite, glm::vec2 size, const Material& material, const std::span<const glm::mat4> modelMatrices, int instanceID = -1);
-        void DrawSprite(const SpriteDrawInfo& drawInfo, const Material& material, const glm::mat4& modelMatrix, int instanceID = -1);
-        void DrawSprite(const SpriteDrawInfo& drawInfo, const Material& material, const std::span<const glm::mat4> modelMatrices, int instanceID = -1);
+        void DrawMesh(const core::Mesh& meshData, Ref<MaterialData> material, const std::vector<glm::mat4>& modelMatrices, int instanceID = -1);
+        void DrawSprite(const Sprite& sprite, Ref<MaterialData> material, const glm::mat4& modelMatrix, int instanceID = -1);
+        void DrawSprite(const Sprite& sprite, Ref<MaterialData> material, const std::span<const glm::mat4> modelMatrices, int instanceID = -1);
+        void DrawSprite(const Sprite& sprite, glm::vec2 size, Ref<MaterialData> material, const glm::mat4& modelMatrix, int instanceID = -1);
+        void DrawSprite(const Sprite& sprite, glm::vec2 size, Ref<MaterialData> material, const std::span<const glm::mat4> modelMatrices, int instanceID = -1);
+        void DrawSprite(const SpriteDrawInfo& drawInfo, Ref<MaterialData> material, const glm::mat4& modelMatrix, int instanceID = -1);
+        void DrawSprite(const SpriteDrawInfo& drawInfo, Ref<MaterialData> material, const std::span<const glm::mat4> modelMatrices, int instanceID = -1);
         void DrawFrame();
 
         inline void RegisterShader(Shader shader) { graphicsData->pipelineRegistry.Register(shader); }
@@ -40,19 +40,19 @@ class Graphics
         }
         inline void DeregisterShader(Shader shader) { graphicsData->pipelineRegistry.Deregister(shader); }
 
-        void RegisterMaterial(Material& mat) 
+        void RegisterMaterial(Material mat) 
         { 
             graphicsData->materialRegistry.Register(mat, *graphicsData->materialDescriptorPool); // TODO: Deal with descriptor pools differently
         }
-        inline void DeregisterMaterial(Material &mat) { graphicsData->materialRegistry.Deregister(mat); }
+        inline void DeregisterMaterial(Material mat) { graphicsData->materialRegistry.Deregister(mat); }
 
         inline MeshHandle RegisterMesh(core::MeshData &mesh) { return graphicsData->meshRegistry.Register(mesh); }
         inline bool UpdateMesh(core::MeshData &mesh) { return graphicsData->meshRegistry.Update(mesh); }
         inline bool DeregisterMesh(core::MeshData &mesh) { return graphicsData->meshRegistry.Deregister(mesh); }
 
-        inline TextureHandle RegisterTexture(TextureData &tex) { return graphicsData->textureRegistry.Register(tex); }
-        inline bool UpdateTexture(TextureData &tex) { return graphicsData->textureRegistry.Update(tex); }
-        inline bool DeregisterTexture(TextureData &tex) { return graphicsData->textureRegistry.Deregister(tex); }
+        inline TextureHandle RegisterTexture(Texture tex) { return graphicsData->textureRegistry.Register(tex); }
+        inline bool UpdateTexture(Texture tex) { return graphicsData->textureRegistry.Update(tex); }
+        inline bool DeregisterTexture(Texture tex) { return graphicsData->textureRegistry.Deregister(tex); }
         
         void SetCamera(const Camera &camera);
 

@@ -1,7 +1,7 @@
 #pragma once
 #include "descriptors.hpp"
 #include "buffer.hpp"
-#include "texture.hpp"
+#include "texture_resource.hpp"
 #include "registries/texture_registry.hpp"
 
 #include "graphics/backend/device.hpp"
@@ -17,12 +17,13 @@ class GraphicsMaterial
 {
 public:
     static const uint32_t MATERIAL_BUFFER_BINDING = 0;
-    const Material* base;
     std::string name;
-    GraphicsMaterial(const Material *base, const GraphicsPipeline &pipeline, const TextureRegistry& textureRegistry, DescriptorPool &pool);
+    ShaderHandle shaderHandle;
+
+    GraphicsMaterial(Material base, const GraphicsPipeline &pipeline, const TextureRegistry& textureRegistry, DescriptorPool &pool);
     ~GraphicsMaterial();
 
-    void UpdateMaterial(const Material *base, const GraphicsPipeline &pipeline, const TextureRegistry& textureRegistry);
+    void UpdateMaterial(Material base, const GraphicsPipeline &pipeline, const TextureRegistry& textureRegistry);
 
     [[nodiscard]] VkDescriptorSet GetDescriptorSet() const { return descriptorSet; }
     
@@ -35,9 +36,9 @@ private:
     ShaderLayout::DescriptorSetInfo descriptorSetInfo{};
     VkDescriptorSet descriptorSet = VK_NULL_HANDLE;
     std::unique_ptr<Buffer> ubo = nullptr; // TODO: Replace with buffer handles to allow for large buffers + bindless
-    std::vector<Texture*> textures{};
+    std::vector<TextureResource*> textures{};
 
-    void updateData(const Material* base);
+    void updateData(Material base);
     bool empty = true;
 };
 
