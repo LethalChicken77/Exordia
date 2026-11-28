@@ -42,6 +42,7 @@ public:
     void SetRight(int r);
     void SetTop(int t);
     void SetBottom(int b);
+    void SetBorder(glm::ivec4 border);
 
     [[nodiscard]] inline TextureHandle GetTexture() const { return texture; };
     [[nodiscard]] inline glm::ivec2 GetTextureSize() const { return textureSize; };
@@ -51,15 +52,15 @@ public:
     [[nodiscard]] inline glm::ivec2 GetSize() const { return size; }
     [[nodiscard]] inline glm::vec2 GetPivot() const { return pivot; }
     
-    [[nodiscard]] inline int GetLeft() const { return left; }
-    [[nodiscard]] inline int GetRight() const { return right; }
-    [[nodiscard]] inline int GetTop() const { return top; }
-    [[nodiscard]] inline int GetBottom() const { return bottom; }
+    [[nodiscard]] inline int GetLeft() const { return border.x; }
+    [[nodiscard]] inline int GetRight() const { return border.y; }
+    [[nodiscard]] inline int GetTop() const { return border.z; }
+    [[nodiscard]] inline int GetBottom() const { return border.w; }
 
-    [[nodiscard]] inline float GetUVLeft() const { return left / (float)textureSize.x; }
-    [[nodiscard]] inline float GetUVRight() const { return right / (float)textureSize.x; }
-    [[nodiscard]] inline float GetUVTop() const { return top / (float)textureSize.y; }
-    [[nodiscard]] inline float GetUVBottom() const { return bottom / (float)textureSize.y; }
+    [[nodiscard]] inline float GetUVLeft() const { return border.x / (float)textureSize.x; }
+    [[nodiscard]] inline float GetUVRight() const { return border.y / (float)textureSize.x; }
+    [[nodiscard]] inline float GetUVTop() const { return border.z / (float)textureSize.y; }
+    [[nodiscard]] inline float GetUVBottom() const { return border.w / (float)textureSize.y; }
     [[nodiscard]] inline glm::vec4 GetUVBorder() const { return {GetUVLeft(), GetUVRight(), GetUVTop(), GetUVBottom()}; }
     
     [[nodiscard]] inline glm::vec2 GetUVMin() const { return (glm::vec2)pos / (glm::vec2)textureSize; }
@@ -79,11 +80,8 @@ private:
     // Definition
     glm::ivec2 pos = {0,0};
     glm::ivec2 size = {16,16};
-    // Border
-    int left = 0;
-    int right = 0;
-    int top = 0;
-    int bottom = 0;
+    // Border {L, R, T, B}
+    glm::ivec4 border{};
 
     glm::vec2 pivot = {0.5f,0.5f};
 };

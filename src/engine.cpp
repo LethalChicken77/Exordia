@@ -15,6 +15,7 @@
 
 #include "graphics/api/assets/shader_asset.hpp"
 #include "object_manager.hpp"
+#include "primitives/color.hpp"
 #include "temp_data.hpp"
 
 #define GLM_FORCE_RADIANS
@@ -78,7 +79,7 @@ void Engine::init() {
     gameData->groundMaterial = AssetManager::LoadAsset<MaterialAsset>("assets/ground.material");
 
     Ref<TextureAsset> textureTest = AssetManager::LoadAsset<TextureAsset>("assets/textures/rocky_terrain_02/rocky_terrain_02_diff_512.jpg");
-    Ref<TextureAsset> textureTest2 = AssetManager::LoadAsset<TextureAsset>("assets/textures/rocky_terrain_02/rocky_terrain_02_rough_512.exr");
+    Ref<TextureAsset> textureTest2 = AssetManager::LoadAsset<TextureAsset>("assets/textures/rocky_terrain_02/rocky_terrain_02_rough_512.png");
     // spriteShader->properties.depthTest = CompareOp::Always;
     // spriteShader->properties.drawMode = DrawMode::Wireframe;
     // Shader* pbr = shaderPool.New(pbrShader, pbrShader);
@@ -241,13 +242,6 @@ void Engine::run()
         // Poll for and process events
         glfwPollEvents();
         
-        // TODO: Reimplement
-        // if(core::Input::getKeyDown(GLFW_KEY_R))
-        // {
-        //     graphicsModule->ReloadShaders();
-        // }
-
-
         ImGui_ImplVulkan_NewFrame();
         ImGui_ImplGlfw_NewFrame();
         ImGui::NewFrame();

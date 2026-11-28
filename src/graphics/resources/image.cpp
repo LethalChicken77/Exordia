@@ -171,19 +171,6 @@ void Image::createImage()
     VK_CHECK(result, "Failed to create texture image");
 }
 
-vk::ComponentSwizzle getSwizzle(SwizzleChannel swiz)
-{
-    switch(swiz)
-    {
-    case SwizzleChannel::Red: return    vk::ComponentSwizzle::eR;
-    case SwizzleChannel::Green: return  vk::ComponentSwizzle::eG;
-    case SwizzleChannel::Blue: return   vk::ComponentSwizzle::eB;
-    case SwizzleChannel::Alpha: return  vk::ComponentSwizzle::eA;
-    case SwizzleChannel::Zero: return   vk::ComponentSwizzle::eOne;
-    case SwizzleChannel::One: return    vk::ComponentSwizzle::eZero;
-    }
-}
-
 /// @brief Create the image view for the image
 void Image::createImageView()
 {
@@ -192,7 +179,10 @@ void Image::createImageView()
     viewInfo.viewType = properties.imageViewType;
     viewInfo.format = properties.format;
 
-    // TODO: Handle swizzle from TextureConfig
+    viewInfo.components.r = properties.rSwizzle;
+    viewInfo.components.g = properties.gSwizzle;
+    viewInfo.components.b = properties.bSwizzle;
+    viewInfo.components.a = properties.aSwizzle;
 
     viewInfo.subresourceRange = GetSubresourceRange();
 

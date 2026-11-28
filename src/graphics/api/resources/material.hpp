@@ -25,14 +25,14 @@ class MaterialData
 public:
     struct TextureBinding
     {
-        uint32_t binding;
+        uint32_t      binding;
         TextureHandle handle;
     };
 
 public:
-    MaterialHandle graphicsHandle;
-    ShaderConst shader;
-    std::string name;
+    MaterialHandle  graphicsHandle;
+    ShaderConst     shader;
+    std::string     name;
 
     MaterialData(ShaderConst shader, const std::string_view name = "New Material");
     ~MaterialData();
@@ -47,16 +47,16 @@ public:
 private:
     struct DataIndex
     {
-        uint32_t index; // Index in data vector
+        uint32_t        index; // Index in data vector
         TypeDescription type; // Holds size, type, etc.
     };
 
     // const Shader* shader;
-    const ShaderLayout* materialLayout = nullptr;
-    std::vector<std::byte> data{};
+    const ShaderLayout*                        materialLayout = nullptr;
+    std::vector<std::byte>                     data{};
     std::unordered_map<std::string, DataIndex> dataMap{};
-    std::vector<TextureBinding> textureBindings{};
-    std::unordered_map<std::string, uint32_t> textureIndex{};
+    std::vector<TextureBinding>                textureBindings{};
+    std::unordered_map<std::string, uint32_t>  textureIndex{};
 
     bool validateLayout() const noexcept;
     const ShaderParameter* getShaderParameter(const std::string& paramName, const BufferLayout* materialInfoLayout);
@@ -195,7 +195,7 @@ private:
             std::is_floating_point_v<T> || IsVecFloat<T>, 
             "Material::setFloatParam requires floating point type"
         );
-        const std::string& paramName = param->name;
+        const std::string& paramName    = param->name;
         
         const TypeDescription& typeInfo = param->type;
         if(typeInfo.type != DataType::Float)
@@ -274,7 +274,7 @@ public:
     Material() = default;
     Material(ShaderConst shader, const std::string_view name = "New Material");
     Material(const Ref<MaterialData>& _material) : material(_material) {}
-    Material(Ref<MaterialData>&& _material) : material(std::move(_material)) {}
+    Material(Ref<MaterialData>&& _material)      : material(std::move(_material)) {}
     ~Material();
 
     Material& operator=(const Ref<MaterialData>& _material)

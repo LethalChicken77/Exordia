@@ -1,9 +1,27 @@
 #include "texture_resource.hpp"
+#include "graphics/api/texture_properties.hpp"
 #include "graphics/graphics_data.hpp"
 #include "glm/gtc/integer.hpp"
+#include "vulkan/vulkan.hpp"
 
 namespace graphics
 {
+
+vk::ComponentSwizzle GetSwizzle(SwizzleChannel channel, SwizzleChannel swizzle) {
+    if(channel == swizzle)
+        return vk::ComponentSwizzle::eIdentity;
+
+    switch(swizzle) {
+        case SwizzleChannel::Red:   return vk::ComponentSwizzle::eR;
+        case SwizzleChannel::Green: return vk::ComponentSwizzle::eG;
+        case SwizzleChannel::Blue:  return vk::ComponentSwizzle::eB;
+        case SwizzleChannel::Alpha: return vk::ComponentSwizzle::eA;
+        case SwizzleChannel::Zero:  return vk::ComponentSwizzle::eZero;
+        case SwizzleChannel::One:   return vk::ComponentSwizzle::eOne;
+    }
+
+    return vk::ComponentSwizzle::eIdentity;
+}
 
 ImageProperties GetImageProperties(Texture texture)
 {
@@ -52,6 +70,10 @@ ImageProperties GetImageProperties(Texture texture)
         props.mipLevels = 1;
         props.usage = vk::ImageUsageFlagBits::eTransferDst | vk::ImageUsageFlagBits::eSampled;
     }
+    props.rSwizzle = GetSwizzle(SwizzleChannel::Red,   texture->properties.swizzle.r);
+    props.gSwizzle = GetSwizzle(SwizzleChannel::Green, texture->properties.swizzle.g);
+    props.bSwizzle = GetSwizzle(SwizzleChannel::Blue,  texture->properties.swizzle.b);
+    props.aSwizzle = GetSwizzle(SwizzleChannel::Alpha, texture->properties.swizzle.a);
 
     return props;
 }

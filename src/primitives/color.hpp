@@ -1,4 +1,5 @@
 #pragma once
+#include "fwd.hpp"
 #include <glm/glm.hpp>
 #include <string>
 
@@ -15,6 +16,16 @@ struct Color
     // Values
     float r{0.0f}, g{0.0f}, b{0.0f};
     float a{1.0f};
+
+    inline       glm::vec3  Vec3()          noexcept { return {r, g, b}; };
+    inline const glm::vec3  Vec3()    const noexcept { return {r, g, b}; };
+    inline       glm::vec3* Vec3Ptr()       noexcept { return reinterpret_cast<      glm::vec3*>(&r); };
+    inline const glm::vec3* Vec3Ptr() const noexcept { return reinterpret_cast<const glm::vec3*>(&r); };
+
+    inline       glm::vec4  Vec4()          noexcept { return {r, g, b, a}; };
+    inline const glm::vec4  Vec4()    const noexcept { return {r, g, b, a}; };
+    inline       glm::vec4* Vec4Ptr()       noexcept { return reinterpret_cast<      glm::vec4*>(&r); };
+    inline const glm::vec4* Vec4Ptr() const noexcept { return reinterpret_cast<const glm::vec4*>(&r); };
     
     // Get color from hex
     static Color hex(uint32_t value);

@@ -6,55 +6,55 @@ namespace graphics
 {
 enum class TextureType : uint8_t
 {
-    Default = 0, // Color, linear channels
+    Default   = 0, // Color, linear channels
     NormalMap = 1, // Normal maps, perform remapping beforehand for performance
-    CubeMap = 2, // Cube maps, divided into 6 textures in the graphics module
+    CubeMap   = 2, // Cube maps, divided into 6 textures in the graphics module
     // LIGHT_MAP, SPRITE, HDRI, etc.
 };
 
 enum class TextureWrapMode : uint8_t
 {
-    Repeat = 0,
-    MirroredRepeat = 1,
-    ClampToEdge = 2,
-    ClampToBorder = 3,
+    Repeat            = 0,
+    MirroredRepeat    = 1,
+    ClampToEdge       = 2,
+    ClampToBorder     = 3,
     MirrorClampToEdge = 4
 };
 
 enum class TextureFilterMode : uint8_t
 {
-    Nearest = 0,
+    Nearest  = 0,
     Bilinear = 1,
-    Cubic = 2
+    Cubic    = 2
 };
 
 enum class MipmapMode : uint8_t
 {
-    None = 0, // Used to determine whether to create mipmaps. Sets the sample to nearest.
+    None    = 0, // Used to determine whether to create mipmaps. Sets the sample to nearest.
     Nearest = 1,
-    Linear = 2
+    Linear  = 2
 };
 
 enum class BorderColorMode
 {
     FTransparentBlack = 0,
     ITransparentBlack = 1,
-    FOpaqueBlack = 2,
-    IOpaqueBlack = 3,
-    FOpaqueWhite = 4,
-    IOpaqueWhite = 5,
-    FCustom = 1000287003,
-    ICustom = 1000287004
+    FOpaqueBlack      = 2,
+    IOpaqueBlack      = 3,
+    FOpaqueWhite      = 4,
+    IOpaqueWhite      = 5,
+    FCustom           = 1000287003,
+    ICustom           = 1000287004
 };
 
 enum class SwizzleChannel : uint8_t
 {
-    Red = 0,
+    Red   = 0,
     Green = 1,
-    Blue = 2,
+    Blue  = 2,
     Alpha = 3,
-    Zero = 4,
-    One = 5
+    Zero  = 4,
+    One   = 5,
 };
 
 struct Swizzle
@@ -122,10 +122,10 @@ struct ImageFormat
 
     bool operator==(const ImageFormat& other) const
     {
-        return isSRGB == other.isSRGB
+        return isSRGB       == other.isSRGB
             && channelCount == other.channelCount
-            && channelSize == other.channelSize
-            && dataType == other.dataType
+            && channelSize  == other.channelSize
+            && dataType     == other.dataType
             && channelOrder == other.channelOrder;
     }
 
@@ -134,9 +134,9 @@ struct ImageFormat
         size_t operator()(const ImageFormat& f) const noexcept
         {
             size_t h = std::hash<bool>()(f.isSRGB);
-            h ^= std::hash<uint32_t>()(f.channelCount) + 0x9e3779b9 + (h<<6) + (h>>2);
-            h ^= std::hash<uint32_t>()(f.channelSize) + 0x9e3779b9 + (h<<6) + (h>>2);
-            h ^= std::hash<int>()(static_cast<int>(f.dataType)) + 0x9e3779b9 + (h<<6) + (h>>2);
+            h ^= std::hash<uint32_t>()(f.channelCount)              + 0x9e3779b9 + (h<<6) + (h>>2);
+            h ^= std::hash<uint32_t>()(f.channelSize)               + 0x9e3779b9 + (h<<6) + (h>>2);
+            h ^= std::hash<int>()(static_cast<int>(f.dataType))     + 0x9e3779b9 + (h<<6) + (h>>2);
             h ^= std::hash<int>()(static_cast<int>(f.channelOrder)) + 0x9e3779b9 + (h<<6) + (h>>2);
             return h;
         }
@@ -150,8 +150,8 @@ struct TextureConfig
     bool generateMipmaps = true;
     
     // Texture properties
-    ImageFormat format{};
-    Swizzle swizzle{};
+    ImageFormat  format{};
+    Swizzle      swizzle{};
     TextureShape shape = TextureShape::s2D;
 
     // Sampler properties
@@ -163,15 +163,15 @@ struct TextureConfig
     TextureFilterMode minFilter = TextureFilterMode::Bilinear;
 
     MipmapMode mipmapMode = MipmapMode::Linear;
-    float mipLodBias = 0;
+    float      mipLodBias = 0;
 
     BorderColorMode borderColorMode = BorderColorMode::FOpaqueBlack;
-    Color borderColor = Color(0.f,0.f,0.f,1.f);
+    Color           borderColor = Color(0.f,0.f,0.f,1.f);
 
-    bool anisotropicFiltering = true;
+    bool  anisotropicFiltering = true;
     float maxAnisotropy = 8.0f;
 
-    bool compareEnable = false; // Used for shadow maps
+    bool      compareEnable = false; // Used for shadow maps
     CompareOp compareOp = CompareOp::Always; // Use LessEqual for shadow maps
 
     float minLod = 0.0f;

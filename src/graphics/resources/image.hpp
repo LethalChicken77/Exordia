@@ -6,24 +6,31 @@
 #include "graphics/api/resources/texture_data.hpp"
 #include "graphics/backend/device.hpp"
 #include "buffer.hpp"
+#include "vulkan/vulkan.hpp"
 
 namespace graphics
 {
 
-const VkFormat ImageFormatToVkFormat(ImageFormat fmt);
+const VkFormat    ImageFormatToVkFormat(ImageFormat fmt);
 const ImageFormat VkFormatToImageFormat(VkFormat vkFmt);
 
 struct ImageProperties
 {
-    vk::Format format = vk::Format::eR8G8B8A8Srgb; // Data format
-    vk::ImageTiling tiling = vk::ImageTiling::eOptimal;
-    vk::ImageUsageFlags usage = vk::ImageUsageFlagBits::eTransferDst | vk::ImageUsageFlagBits::eTransferSrc | vk::ImageUsageFlagBits::eSampled;
-    vk::ImageType imageType = vk::ImageType::e2D;
-    vk::ImageViewType imageViewType = vk::ImageViewType::e2D;
+    vk::Format              format = vk::Format::eR8G8B8A8Srgb; // Data format
+    vk::ImageTiling         tiling = vk::ImageTiling::eOptimal;
+    vk::ImageUsageFlags     usage  = vk::ImageUsageFlagBits::eTransferDst 
+                                   | vk::ImageUsageFlagBits::eTransferSrc 
+                                   | vk::ImageUsageFlagBits::eSampled;
+    vk::ImageType           imageType     = vk::ImageType::e2D;
+    vk::ImageViewType       imageViewType = vk::ImageViewType::e2D;
     vk::SampleCountFlagBits sampleCount = vk::SampleCountFlagBits::e1;
-    uint32_t mipLevels = 1;
-    uint32_t arrayLayers = 1;
-    vk::SharingMode sharingMode = vk::SharingMode::eExclusive;
+    uint32_t                mipLevels   = 1;
+    uint32_t                arrayLayers = 1;
+    vk::SharingMode         sharingMode = vk::SharingMode::eExclusive;
+    vk::ComponentSwizzle rSwizzle = vk::ComponentSwizzle::eIdentity;
+    vk::ComponentSwizzle gSwizzle = vk::ComponentSwizzle::eIdentity;
+    vk::ComponentSwizzle bSwizzle = vk::ComponentSwizzle::eIdentity;
+    vk::ComponentSwizzle aSwizzle = vk::ComponentSwizzle::eIdentity;
 
     inline vk::ImageAspectFlags GetAspectMask() const noexcept
     {
@@ -37,7 +44,8 @@ struct ImageProperties
             case vk::Format::eD16UnormS8Uint:
             case vk::Format::eD24UnormS8Uint:
             case vk::Format::eD32SfloatS8Uint:
-                return vk::ImageAspectFlagBits::eDepth | vk::ImageAspectFlagBits::eStencil;
+                return vk::ImageAspectFlagBits::eDepth 
+                     | vk::ImageAspectFlagBits::eStencil;
             
             case vk::Format::eS8Uint:
                 return vk::ImageAspectFlagBits::eStencil;
@@ -56,43 +64,43 @@ class Image
 {
 public:
     Image(
-        vk::DeviceSize width,
-        vk::DeviceSize height,
-        const ImageProperties &properties = {},
+        vk::DeviceSize          width,
+        vk::DeviceSize          height,
+        const ImageProperties&  properties = {},
         vk::MemoryPropertyFlags memoryProperties = vk::MemoryPropertyFlagBits::eDeviceLocal
     );
     Image(
-        internal::Device &device,
-        vk::DeviceSize width,
-        vk::DeviceSize height,
-        const ImageProperties &properties = {},
+        internal::Device&       device,
+        vk::DeviceSize          width,
+        vk::DeviceSize          height,
+        const ImageProperties&  properties = {},
         vk::MemoryPropertyFlags memoryProperties = vk::MemoryPropertyFlagBits::eDeviceLocal
     );
     Image(
-        vk::DeviceSize width,
-        vk::DeviceSize height,
-        vk::DeviceSize depth,
-        const ImageProperties &properties = {},
+        vk::DeviceSize          width,
+        vk::DeviceSize          height,
+        vk::DeviceSize          depth,
+        const ImageProperties&  properties = {},
         vk::MemoryPropertyFlags memoryProperties = vk::MemoryPropertyFlagBits::eDeviceLocal
     );
     Image(
-        internal::Device &device,
-        vk::DeviceSize width,
-        vk::DeviceSize height,
-        vk::DeviceSize depth,
-        const ImageProperties &properties = {},
+        internal::Device&       device,
+        vk::DeviceSize          width,
+        vk::DeviceSize          height,
+        vk::DeviceSize          depth,
+        const ImageProperties&  properties = {},
         vk::MemoryPropertyFlags memoryProperties = vk::MemoryPropertyFlagBits::eDeviceLocal
     );
 
     Image(
-        Texture textureData,
-        const ImageProperties &properties = {},
+        Texture                 textureData,
+        const ImageProperties&  properties = {},
         vk::MemoryPropertyFlags memoryProperties = vk::MemoryPropertyFlagBits::eDeviceLocal
     );
     Image(
-        internal::Device &device,
-        Texture textureData,
-        const ImageProperties &properties = {},
+        internal::Device&       device,
+        Texture                 textureData,
+        const ImageProperties&  properties = {},
         vk::MemoryPropertyFlags memoryProperties = vk::MemoryPropertyFlagBits::eDeviceLocal
     );
 
@@ -102,15 +110,48 @@ public:
     Image(const Image&, internal::Device& device);
     Image& operator=(const Image&) = delete;
 
-    static void TransitionImageLayout(Image& image, vk::ImageLayout oldLayout, vk::ImageLayout newLayout, vk::CommandBuffer commandBuffer);
+    static void TransitionImageLayout(
+        Image&            image, 
+        vk::ImageLayout   oldLayout, 
+        vk::ImageLayout   newLayout, 
+        vk::CommandBuffer commandBuffer);
 
-    void TransitionImageLayout(vk::ImageLayout newLayout);
-    void TransitionImageLayout(vk::ImageLayout newLayout, vk::CommandBuffer commandBuffer);
-    void TransitionImageLayout(vk::ImageLayout oldLayout, vk::ImageLayout newLayout);
-    void TransitionImageLayout(vk::ImageLayout oldLayout, vk::ImageLayout newLayout, vk::CommandBuffer commandBuffer);
-    static void TransitionVkImageLayout(internal::Device& device, VkImage& image, VkImageLayout oldLayout, VkImageLayout newLayout, VkImageSubresourceRange subresourceRange);
-    static void TransitionVkImageLayout(VkImage image, VkImageLayout oldLayout, VkImageLayout newLayout, VkCommandBuffer commandBuffer, VkImageSubresourceRange subresourceRange);
-    static inline void TransitionVkImageLayout(vk::Image image, vk::ImageLayout oldLayout, vk::ImageLayout newLayout, vk::CommandBuffer commandBuffer, vk::ImageSubresourceRange subresourceRange)
+    void TransitionImageLayout(
+        vk::ImageLayout newLayout);
+
+    void TransitionImageLayout(
+        vk::ImageLayout   newLayout, 
+        vk::CommandBuffer commandBuffer);
+
+    void TransitionImageLayout(
+        vk::ImageLayout oldLayout, 
+        vk::ImageLayout newLayout);
+        
+    void TransitionImageLayout(
+        vk::ImageLayout   oldLayout, 
+        vk::ImageLayout   newLayout, 
+        vk::CommandBuffer commandBuffer);
+
+    static void TransitionVkImageLayout(
+        internal::Device&       device, 
+        VkImage&                image, 
+        VkImageLayout           oldLayout, 
+        VkImageLayout           newLayout, 
+        VkImageSubresourceRange subresourceRange);
+
+    static void TransitionVkImageLayout(
+        VkImage                 image, 
+        VkImageLayout           oldLayout, 
+        VkImageLayout           newLayout, 
+        VkCommandBuffer         commandBuffer, 
+        VkImageSubresourceRange subresourceRange);
+
+    static inline void TransitionVkImageLayout(
+        vk::Image                 image, 
+        vk::ImageLayout           oldLayout, 
+        vk::ImageLayout           newLayout, 
+        vk::CommandBuffer         commandBuffer, 
+        vk::ImageSubresourceRange subresourceRange)
     {
         TransitionVkImageLayout(
             static_cast<VkImage>(image), 
@@ -120,8 +161,9 @@ public:
             static_cast<VkImageSubresourceRange>(subresourceRange)
         );
     }
+
     /// @brief Reset to default image layout
-    inline void ResetImageLayout() { TransitionImageLayout(defaultLayout); }
+    inline void ResetImageLayout()                                { TransitionImageLayout(defaultLayout); }
     /// @brief Reset to default image layout with command buffer
     inline void ResetImageLayout(vk::CommandBuffer commandBuffer) { TransitionImageLayout(defaultLayout, commandBuffer); }
 
@@ -129,23 +171,23 @@ public:
 
     void SetData(Texture data);
     void GetData(Texture data) const;
-    inline vk::Image GetImage() const noexcept { return image; }
+    inline vk::Image     GetImage()     const noexcept { return image; }
     inline vk::ImageView GetImageView() const noexcept { return imageView; }
     inline vk::ImageSubresourceRange GetSubresourceRange() const noexcept
     {
         vk::ImageSubresourceRange range{};
-        range.aspectMask = properties.GetAspectMask();
-        range.baseMipLevel = 0;
-        range.levelCount = properties.mipLevels;
+        range.aspectMask     = properties.GetAspectMask();
+        range.baseMipLevel   = 0;
+        range.levelCount     = properties.mipLevels;
         range.baseArrayLayer = 0;
-        range.layerCount = 1;
+        range.layerCount     = 1;
         return range;
     }
-    glm::ivec2 GetDimensions() const { return {width, height}; }
+    glm::ivec2 GetDimensions()  const { return {width, height}; }
     glm::ivec3 GetDimensions3() const { return {width, height, depth}; }
-    uint32_t GetWidth() const { return width; }
+    uint32_t GetWidth()  const { return width;  }
     uint32_t GetHeight() const { return height; }
-    uint32_t GetDepth() const { return depth; }
+    uint32_t GetDepth()  const { return depth;  }
 
 
     /// @brief Get Vulkan descriptor for this image. Does not include a sampler.
@@ -154,29 +196,29 @@ public:
     {
         vk::DescriptorImageInfo imageInfo{};
         imageInfo.imageLayout = currentLayout;
-        imageInfo.imageView = imageView;
-        imageInfo.sampler = VK_NULL_HANDLE;
+        imageInfo.imageView   = imageView;
+        imageInfo.sampler     = VK_NULL_HANDLE;
         return imageInfo;
     }
     
     inline bool IsValid() const { return image != nullptr && imageView != nullptr && imageAllocation != nullptr; }
 private:
-    internal::Device &device;
-    ImageFormat format{};
+    internal::Device&   device;
+    ImageFormat         format{};
 
-    vk::Image image = VK_NULL_HANDLE;
-    vk::ImageView imageView = VK_NULL_HANDLE;
-    vma::Allocation imageAllocation = VK_NULL_HANDLE;
-    vma::AllocationInfo imageAllocationInfo;
+    vk::Image           image           = VK_NULL_HANDLE;
+    vk::ImageView       imageView       = VK_NULL_HANDLE;
+    vma::Allocation     imageAllocation = VK_NULL_HANDLE;
+    vma::AllocationInfo imageAllocationInfo{};
     
-    ImageProperties properties{};
-    vk::ImageLayout currentLayout = vk::ImageLayout::eUndefined;
-    vk::ImageLayout defaultLayout = vk::ImageLayout::eShaderReadOnlyOptimal;
+    ImageProperties         properties{};
+    vk::ImageLayout         currentLayout = vk::ImageLayout::eUndefined;
+    vk::ImageLayout         defaultLayout = vk::ImageLayout::eShaderReadOnlyOptimal;
     vk::MemoryPropertyFlags memoryPropertyFlags{};
 
-    uint32_t width = 0;
+    uint32_t width  = 0;
     uint32_t height = 0;
-    uint32_t depth = 0;
+    uint32_t depth  = 0;
 
     void create();
     void createInitialized(Texture data);

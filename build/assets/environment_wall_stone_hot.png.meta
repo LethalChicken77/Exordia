@@ -1,0 +1,11 @@
+properties = {
+    
+}
+sprites = {
+    wall = {
+        pos = vec2(0,0)
+        size = vec2(128,128)
+        border = vec4(8,8,8,8)
+        pivot = vec2(0.5,0.5)
+    }
+}
